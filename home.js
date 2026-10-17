@@ -26,28 +26,64 @@ if(experiences){
  const rotation=experiences.querySelector('#experience-rotation');
  const status=experiences.querySelector('#experience-status');
  const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
- let current=0,timer=null,visible=false,focusPaused=false,userPaused=motion.matches,animation=null,touch=null;
+ const viewport=experiences.querySelector('.experience-viewport');
+ let current=0,timer=null,visible=false,focusPaused=false,userPaused=motion.matches,touch=null;
+ let transitioning=false,pending=null,animations=[],imagesPrepared=false;
+ // Las tres diapositivas comparten una celda: su altura se mantiene estable
+ // y la imagen anterior permanece debajo durante el fundido de la siguiente.
+ viewport.classList.add('is-ready');
+ panels.forEach((panel,i)=>{
+  panel.hidden=false;panel.inert=i!==current;
+  panel.setAttribute('aria-hidden',String(i!==current));
+  panel.classList.toggle('is-active',i===current);
+ });
+ async function prepareImage(panel){
+  const image=panel.querySelector('img');
+  image.loading='eager';
+  try{if(typeof image.decode==='function')await image.decode();}catch{
+   // Una imagen que falla no debe bloquear los controles de la galería.
+  }
+ }
  function schedule(){
   clearTimeout(timer);
   updateRotation();
-  if(!userPaused&&!focusPaused&&visible&&!document.hidden)timer=setTimeout(()=>show(current+1,false),8000);
+  if(!transitioning&&!userPaused&&!focusPaused&&visible&&!document.hidden)timer=setTimeout(()=>show(current+1,false),8000);
  }
  function updateRotation(){
   const paused=userPaused||focusPaused;
   rotation.textContent=paused?'Reanudar rotación':'Pausar rotación';
   rotation.setAttribute('aria-pressed',String(paused));
  }
- function show(index,manual=true){
+ async function show(index,manual=true){
   const next=(index+panels.length)%panels.length;
+  // Los clics rápidos se atienden al terminar el fundido, sin cortarlo.
+  if(transitioning){pending={index:next,manual};return;}
   if(next===current){schedule();return;}
-  animation?.cancel();
-  panels[current].hidden=true;panels[current].inert=true;
-  current=next;const panel=panels[current];panel.hidden=false;panel.inert=false;
+  clearTimeout(timer);transitioning=true;
+  const previous=panels[current],panel=panels[next];
+  await prepareImage(panel);
+  previous.inert=true;previous.setAttribute('aria-hidden','true');
+  previous.classList.add('is-leaving');previous.classList.remove('is-active');
+  current=next;panel.inert=false;panel.setAttribute('aria-hidden','false');panel.classList.add('is-active');
   choices.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===current)));
   experiences.querySelector('#experience-count').textContent=String(current+1).padStart(2,'0')+' / 03';
   if(manual)status.textContent=panel.getAttribute('aria-label')+'. '+panel.querySelector('h3').textContent;
-  if(!motion.matches&&typeof panel.animate==='function')animation=panel.animate([{opacity:.3,transform:'translateX(-24px)'},{opacity:1,transform:'translateX(0)'}],{duration:520,easing:'cubic-bezier(.2,.65,.3,1)'});
-  schedule();
+  try{
+   if(!motion.matches&&!document.hidden&&typeof panel.animate==='function'){
+    animations=[
+     previous.querySelector('.experience-text').animate([{opacity:1},{opacity:0}],{duration:180,easing:'ease-out',fill:'both'}),
+     panel.querySelector('.experience-text').animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:560,delay:200,easing:'ease-out',fill:'both'}),
+     panel.querySelector('.experience-image').animate([{opacity:0},{opacity:1}],{duration:900,easing:'ease-in-out',fill:'both'})
+    ];
+    await Promise.allSettled(animations.map(animation=>animation.finished));
+   }
+  }finally{
+   previous.classList.remove('is-leaving');
+   animations.forEach(animation=>animation.cancel());animations=[];transitioning=false;
+   const queued=pending;pending=null;
+   if(queued&&queued.index!==current)show(queued.index,queued.manual);
+   else schedule();
+  }
  }
  experiences.querySelector('.experience-controls').hidden=false;
  choices.forEach((button,i)=>button.addEventListener('click',()=>show(i)));
@@ -72,7 +108,6 @@ if(experiences){
   if(!event.target.closest('.experience-controls'))return;
   if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();show(current+(event.key==='ArrowRight'?1:-1));}
  });
- const viewport=experiences.querySelector('.experience-viewport');
  viewport.addEventListener('pointerdown',event=>{if(event.pointerType==='touch')touch={x:event.clientX,y:event.clientY};});
  viewport.addEventListener('pointercancel',()=>{touch=null;});
  viewport.addEventListener('pointerup',event=>{
@@ -80,8 +115,13 @@ if(experiences){
   if(Math.abs(x)>55&&Math.abs(x)>Math.abs(y)*1.4)show(current+(x<0?1:-1));
  });
  document.addEventListener('visibilitychange',schedule);
- motion.addEventListener('change',()=>{if(motion.matches){userPaused=true;animation?.cancel();}updateRotation();schedule();});
- if('IntersectionObserver' in window){new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.1}).observe(experiences);}
- else{visible=true;schedule();}
+ motion.addEventListener('change',()=>{if(motion.matches){userPaused=true;animations.forEach(animation=>animation.cancel());}schedule();});
+ function setVisible(value){
+  visible=value;
+  if(visible&&!imagesPrepared){imagesPrepared=true;panels.forEach(prepareImage);}
+  schedule();
+ }
+ if('IntersectionObserver' in window){new IntersectionObserver(entries=>setVisible(entries[0].isIntersecting),{threshold:.1}).observe(experiences);}
+ else setVisible(true);
  updateRotation();
 }
