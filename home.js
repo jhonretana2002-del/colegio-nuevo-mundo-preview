@@ -26,15 +26,16 @@ if(experiences){
  const rotation=experiences.querySelector('#experience-rotation');
  const status=experiences.querySelector('#experience-status');
  const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
- let current=0,timer=null,visible=false,hovered=false,userPaused=motion.matches,animation=null,touch=null;
+ let current=0,timer=null,visible=false,focusPaused=false,userPaused=motion.matches,animation=null,touch=null;
  function schedule(){
   clearTimeout(timer);
-  const focused=experiences.contains(document.activeElement);
-  if(!userPaused&&visible&&!hovered&&!focused&&!document.hidden)timer=setTimeout(()=>show(current+1,false),8000);
+  updateRotation();
+  if(!userPaused&&!focusPaused&&visible&&!document.hidden)timer=setTimeout(()=>show(current+1,false),8000);
  }
  function updateRotation(){
-  rotation.textContent=userPaused?'Reanudar cambios':'Pausar cambios';
-  rotation.setAttribute('aria-pressed',String(userPaused));
+  const paused=userPaused||focusPaused;
+  rotation.textContent=paused?'Reanudar rotación':'Pausar rotación';
+  rotation.setAttribute('aria-pressed',String(paused));
  }
  function show(index,manual=true){
   const next=(index+panels.length)%panels.length;
@@ -52,11 +53,21 @@ if(experiences){
  choices.forEach((button,i)=>button.addEventListener('click',()=>show(i)));
  experiences.querySelector('#experience-previous').addEventListener('click',()=>show(current-1));
  experiences.querySelector('#experience-next').addEventListener('click',()=>show(current+1));
- rotation.addEventListener('click',()=>{userPaused=!userPaused;updateRotation();schedule();});
- experiences.addEventListener('mouseenter',()=>{hovered=true;schedule();});
- experiences.addEventListener('mouseleave',()=>{hovered=false;schedule();});
- experiences.addEventListener('focusin',schedule);
- experiences.addEventListener('focusout',()=>queueMicrotask(schedule));
+ rotation.addEventListener('click',()=>{
+  if(userPaused||focusPaused){userPaused=false;focusPaused=false;}
+  else userPaused=true;
+  schedule();
+ });
+ // El cursor no detiene la galería. El foco protege la lectura con teclado;
+ // reanudar explícitamente también funciona mientras el botón conserva el foco.
+ experiences.addEventListener('focusin',event=>{
+  if(event.target!==rotation)focusPaused=true;
+  schedule();
+ });
+ experiences.addEventListener('focusout',()=>queueMicrotask(()=>{
+  if(!experiences.contains(document.activeElement))focusPaused=false;
+  schedule();
+ }));
  experiences.addEventListener('keydown',event=>{
   if(!event.target.closest('.experience-controls'))return;
   if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();show(current+(event.key==='ArrowRight'?1:-1));}
@@ -70,7 +81,7 @@ if(experiences){
  });
  document.addEventListener('visibilitychange',schedule);
  motion.addEventListener('change',()=>{if(motion.matches){userPaused=true;animation?.cancel();}updateRotation();schedule();});
- if('IntersectionObserver' in window){new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.3}).observe(experiences);}
+ if('IntersectionObserver' in window){new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.1}).observe(experiences);}
  else{visible=true;schedule();}
  updateRotation();
 }
