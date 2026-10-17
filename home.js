@@ -100,10 +100,10 @@ if(experiences){
   if(event.target!==rotation)focusPaused=true;
   schedule();
  });
- experiences.addEventListener('focusout',()=>queueMicrotask(()=>{
-  if(!experiences.contains(document.activeElement))focusPaused=false;
+ experiences.addEventListener('focusout',event=>{
+  if(!experiences.contains(event.relatedTarget))focusPaused=false;
   schedule();
- }));
+ });
  experiences.addEventListener('keydown',event=>{
   if(!event.target.closest('.experience-controls'))return;
   if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();show(current+(event.key==='ArrowRight'?1:-1));}
