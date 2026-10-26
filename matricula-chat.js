@@ -27,7 +27,7 @@
  };
  function message(text,from='bot'){
   const item=make('div',null,'matricula-message matricula-message-'+from);
-  item.append(make('span',from==='user'?'Usted':'Asistente de matrícula','matricula-message-author'),make('p',text));
+  item.append(make('span',from==='user'?'Usted':'Mundito','matricula-message-author'),make('p',text));
   log.append(item);
   while(log.children.length>24)log.firstElementChild.remove();
   if(!reducedMotion.matches&&typeof item.animate==='function')item.animate([{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'ease-out'});
