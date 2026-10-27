@@ -7,3 +7,7 @@ Este repositorio contiene solo la exportación estática de demostración. El pr
 La información institucional y la restauración del escudo están sujetas a validación. La demostración solicita no indexación y no representa el lanzamiento oficial.
 
 El inicio incluye un banner con controles manuales y accesos por etapa educativa. La imagen de estudiantes es una composición ilustrativa generada: no representa alumnado real ni instalaciones del colegio.
+
+## Lumi
+
+El asistente de matrícula se llama Lumi. El botón conserva el personaje y el emblema de la imagen de referencia; la mano se recorta en una capa y gira suavemente sobre la muñeca. El aro dorado, la cabeza y el cuerpo permanecen estables. La preferencia de reducir movimiento desactiva el saludo.

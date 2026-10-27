@@ -32,7 +32,7 @@
   outline-offset: 4px;
 }
 
-.mundito-sign {
+.lumi-sign {
   position: absolute;
   right: 0;
   bottom: calc(100% + 7px);
@@ -49,7 +49,7 @@
   white-space: nowrap;
 }
 
-.mundito-sign::after {
+.lumi-sign::after {
   content: '';
   position: absolute;
   right: 23px;
@@ -58,29 +58,67 @@
   border-top-color: #1d3979;
 }
 
-.mundito-sprite,
-.mundito-mini-sprite {
+.lumi-art {
   display: block;
-  flex: none;
   background-image: url('assets/mundito-saludo-4frames.png');
   background-repeat: no-repeat;
   background-size: 400% auto;
+  background-position: 100% 42%;
 }
 
-.mundito-sprite {
-  width: 78px;
-  height: 78px;
-  background-position: 0% 42%;
-  animation: mundito-wave 1.2s steps(1, end) infinite;
+.lumi-mascot {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 88px;
+  height: 88px;
+  overflow: visible;
 }
 
-.mundito-mini-sprite {
+.lumi-art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.lumi-frame {
+  position: absolute;
+  left: .6%;
+  top: 3%;
+  width: 97%;
+  height: 96.4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, transparent 88.5%, #4b2603 89%, #f7d887 89.7%, #e8ad33 91%, #ffdf7f 94.5%, #fdd061 97%, #8b4a07 98.5%, #ffe994 99.3%, #9b5a09 100%);
+}
+
+/* Ambos recortes usan la misma pose: la cara, el aro y el emblema
+   quedan estables mientras la mano gira suavemente sobre la muñeca. */
+.lumi-body {
+  mask-image: radial-gradient(ellipse 44.2% 43.8% at 49.3% 51.2%, #000 99.5%, transparent 100%);
+  clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+    78% 28%, 100% 28%, 100% 60%, 82% 60%, 78% 52%, 71% 48%, 71% 42%, 78% 42%, 78% 28%, 0 0);
+}
+
+.lumi-hand {
+  clip-path: polygon(81% 53%, 77% 49.2%, 73.4% 46.8%, 73.4% 44.6%, 74.8% 43.2%, 78.8% 44.8%,
+    80.2% 42.6%, 79.6% 34.8%, 79.4% 30.5%, 81.6% 30%, 83.8% 31.8%, 83.8% 39.6%,
+    86.2% 39.8%, 86.8% 33%, 88.2% 28.8%, 91.4% 29%, 92.6% 31.5%, 91% 40.4%,
+    92.4% 41%, 94.4% 36.6%, 96.4% 34.2%, 99.8% 34.6%, 100% 39%, 95.4% 43.4%,
+    94.8% 49.2%, 91% 53.4%, 90% 56.4%, 87% 57.9%, 82.5% 56.4%);
+  transform-origin: 86.8% 57.4%;
+  animation: lumi-hand-wave .7s cubic-bezier(.45, 0, .55, 1) infinite alternate;
+}
+
+.lumi-mascot.lumi-mini {
   width: 36px;
   height: 36px;
-  background-position: 33.333% 42%;
 }
 
-.mundito-name {
+.lumi-mini .lumi-hand {
+  animation: none;
+}
+
+.lumi-name {
   display: block;
   padding: 2px 8px;
   border-radius: 8px;
@@ -91,12 +129,9 @@
   line-height: 1.3;
 }
 
-@keyframes mundito-wave {
-  0%, 24.999% { background-position: 0% 42%; }
-  25%, 49.999% { background-position: 33.333% 42%; }
-  50%, 74.999% { background-position: 66.667% 42%; }
-  75%, 99.999% { background-position: 100% 42%; }
-  100% { background-position: 0% 42%; }
+@keyframes lumi-hand-wave {
+  from { transform: rotate(-9deg); }
+  to { transform: rotate(11deg); }
 }
 
 @media (max-width: 600px) {
@@ -107,13 +142,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mundito-sprite { animation: none; background-position: 33.333% 42%; }
+  .lumi-hand { animation: none; transform: none; }
   .matricula-chat-launcher { transition: none; }
   .matricula-chat-launcher:hover { transform: none; }
 }
 .matricula-chat{position:fixed;inset:auto 24px 24px auto;margin:0;padding:0;width:400px;max-width:calc(100vw - 32px);height:min(680px,calc(100dvh - 48px));max-height:calc(100dvh - 32px);border:1px solid #ccd5e5;border-radius:18px;background:#f5f7fb;color:#1b2944;box-shadow:0 24px 80px #0b19354d;overflow:hidden;font-family:var(--sans);line-height:1.6}
 .matricula-chat::backdrop{background:#0b193529}.matricula-chat[open]{display:flex;flex-direction:column;animation:matricula-chat-open .24s ease-out}.matricula-chat *{box-sizing:border-box}.matricula-chat button,.matricula-chat textarea{font-family:inherit}.matricula-chat button:focus-visible,.matricula-chat a:focus-visible,.matricula-chat textarea:focus-visible{outline:3px solid #b28a2e;outline-offset:3px}
-.matricula-chat-header{display:flex;align-items:center;gap:12px;padding:20px;background:#1d3979;color:#fff;border-bottom:3px solid #c3a75f;flex-shrink:0}.matricula-chat-mark{width:42px;height:42px;border:1px solid #d6be81;border-radius:50%;display:grid;place-items:center;background:#ffffff0c;flex-shrink:0}.matricula-chat-mark .mundito-mini-sprite{width:36px;height:36px;background-size:400% auto;animation:none}.matricula-chat-header h2{font-size:16px!important;line-height:1.3!important;letter-spacing:-.02em!important;font-weight:700!important;margin:0!important;color:#fff}.matricula-chat-header p{font-size:10px;color:#dce5f7;margin:4px 0 0!important;letter-spacing:.035em}.matricula-chat-close{width:36px;height:36px;display:grid;place-items:center;border:1px solid #ffffff35;border-radius:50%;background:transparent;color:#fff;margin-left:auto;flex-shrink:0}.matricula-chat-close:hover{background:#ffffff15}.matricula-chat-close svg{width:17px;height:17px}
+.matricula-chat-header{display:flex;align-items:center;gap:12px;padding:20px;background:#1d3979;color:#fff;border-bottom:3px solid #c3a75f;flex-shrink:0}.matricula-chat-mark{width:42px;height:42px;border:1px solid #d6be81;border-radius:50%;display:grid;place-items:center;background:#ffffff0c;flex-shrink:0}.matricula-chat-mark .lumi-mini{width:36px;height:36px;background-size:400% auto;animation:none}.matricula-chat-header h2{font-size:16px!important;line-height:1.3!important;letter-spacing:-.02em!important;font-weight:700!important;margin:0!important;color:#fff}.matricula-chat-header p{font-size:10px;color:#dce5f7;margin:4px 0 0!important;letter-spacing:.035em}.matricula-chat-close{width:36px;height:36px;display:grid;place-items:center;border:1px solid #ffffff35;border-radius:50%;background:transparent;color:#fff;margin-left:auto;flex-shrink:0}.matricula-chat-close:hover{background:#ffffff15}.matricula-chat-close svg{width:17px;height:17px}
 .matricula-chat-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.matricula-chat-home{overflow:auto;padding:24px 22px}.matricula-chat-kicker{font-size:9px;letter-spacing:.13em;font-weight:700;color:#806426;margin:0 0 10px!important}.matricula-chat-home h3{font-size:25px!important;line-height:1.18!important;letter-spacing:-.035em!important;font-weight:700!important;color:#1d3979;margin:0 0 14px!important}.matricula-chat-welcome{font-size:13px;color:#52617d;margin:0 0 20px!important;line-height:1.7}.matricula-chat-question-label{font-size:11px;font-weight:700;color:#344561;margin:0 0 10px!important}.matricula-chat-questions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.matricula-faq-button{min-height:60px;padding:11px 12px;text-align:left;border:1px solid #d5deed;border-radius:10px;color:#1d3979;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:12px;font-weight:600;line-height:1.4;transition:border-color .2s,background .2s}.matricula-faq-button:hover{border-color:#1d3979;background:#eef2fa}.matricula-faq-arrow{font-size:16px;color:#806426;flex-shrink:0}
 .matricula-chat-advisor{width:100%;display:flex;align-items:center;gap:12px;margin-top:18px;padding:14px;border:1px solid #d4bf8a;border-radius:12px;background:#faf6ed;color:#243b69;text-align:left}.matricula-chat-advisor svg{width:28px;height:28px;flex-shrink:0;color:#806426}.matricula-chat-advisor strong{font-size:12px;line-height:1.5;display:block}.matricula-chat-advisor small{display:block;font-size:10px;color:#646b79;line-height:1.5;margin-top:3px}.matricula-chat-advisor:hover{background:#f2e9d6}.matricula-chat-advisor>span:last-child{margin-left:auto;color:#806426}
 .matricula-chat-conversation{flex:1;min-height:0;display:flex;flex-direction:column}.matricula-chat-conversation-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;background:#fff;border-bottom:1px solid #dce3ef;flex-shrink:0}.matricula-chat-back,.matricula-chat-human{background:none;border:0;padding:9px 0;font-size:11px;font-weight:650;color:#1d3979;min-height:36px}.matricula-chat-back:hover,.matricula-chat-human:hover{text-decoration:underline;text-underline-offset:4px}.matricula-chat-human{color:#806426}.matricula-chat-log{overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;padding:18px;display:flex;flex-direction:column;gap:14px}.matricula-message{padding:12px 14px;max-width:92%;border-radius:13px;background:#fff;border:1px solid #dce3ef;align-self:flex-start;flex-shrink:0}.matricula-message-user{align-self:flex-end;background:#1d3979;border-color:#1d3979;color:#fff;border-bottom-right-radius:3px}.matricula-message-bot{border-bottom-left-radius:3px}.matricula-message-author{display:block;font-size:9px;font-weight:700;letter-spacing:.025em;color:#687792;margin-bottom:5px}.matricula-message-user .matricula-message-author{color:#d4def5}.matricula-message p{font-size:12px;line-height:1.75;margin:0!important;overflow-wrap:anywhere;white-space:pre-wrap}.matricula-chat-advisor-notice{background:#f6efde;border-top:1px solid #e2d4b1;padding:10px 18px;color:#6e5521;font-size:10px;line-height:1.6;margin:0!important;flex-shrink:0}.matricula-chat-form{display:flex;align-items:flex-end;gap:9px;background:#fff;border-top:1px solid #dce3ef;padding:12px 16px;flex-shrink:0}.matricula-chat-form textarea{resize:none;min-width:0;flex:1;border:1px solid #c9d4e5;border-radius:9px;padding:10px;font-size:12px;line-height:1.5;background:#f9faff;color:#1b2944}.matricula-chat-form textarea::placeholder{color:#657590}.matricula-chat-send{width:42px;height:42px;flex-shrink:0;border:0;border-radius:10px;background:#cf1728;color:#fff;display:grid;place-items:center}.matricula-chat-send:hover{background:#b51222}.matricula-chat-send svg{width:19px;height:19px}
