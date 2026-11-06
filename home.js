@@ -1,7 +1,7 @@
 const campaign=document.querySelector('.campaign-hero');
 if(campaign){
  const messages=[
-  {kicker:'APRENDER. CRECER. TRASCENDER.',title:'Un nuevo mundo',highlight:'para tu futuro.',description:'Cada etapa es una oportunidad para aprender, descubrir y crecer. Conozca nuestra comunidad educativa.',label:'Conozca el colegio',target:'#institucion'},
+  {kicker:'BIENVENIDOS AL COLEGIO NUEVO MUNDO',title:'Aprender hoy,',highlight:'transformar mañana.',description:'Educación inclusiva y de calidad, atención personalizada y formación integral. Conozca una comunidad educativa que acompaña a cada estudiante.',label:'Contactar con Admisiones',target:'https://wa.me/50685868193'},
   {kicker:'SECUNDARIA',title:'Descubre lo que',highlight:'puedes lograr.',description:'Una etapa para aprender, crear y compartir. Conozca experiencias que acompañan el crecimiento de nuestra comunidad estudiantil.',label:'Explore la vida en el colegio',target:'#oferta'},
   {kicker:'ADMISIONES',title:'El primer paso es',highlight:'conocernos.',description:'Encuentre orientación sobre requisitos, niveles y el proceso de admisión. Conversemos sobre el próximo paso de su familia.',label:'Conozca el proceso de admisión',target:'#admisiones'}
  ];
@@ -124,4 +124,33 @@ if(experiences){
  if('IntersectionObserver' in window){new IntersectionObserver(entries=>setVisible(entries[0].isIntersecting),{threshold:.1}).observe(experiences);}
  else setVisible(true);
  updateRotation();
+}
+// Submenús accesibles: clic, teclado, toque y puntero; sin cambios de paleta.
+const institutionalMenus=[...document.querySelectorAll('#nav .nav-section')];
+institutionalMenus.forEach(menu=>{
+ menu.addEventListener('toggle',()=>{if(menu.open)institutionalMenus.forEach(other=>{if(other!==menu)other.open=false;});});
+ menu.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'&&matchMedia('(hover:hover) and (min-width:1101px)').matches)menu.open=true;});
+ menu.addEventListener('pointerleave',()=>{if(!menu.contains(document.activeElement))menu.open=false;});
+ menu.addEventListener('focusout',()=>{setTimeout(()=>{if(!menu.contains(document.activeElement))menu.open=false;},0);});
+ menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;menu.querySelector('summary').focus();}});
+ menu.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{menu.open=false;}));
+});
+document.addEventListener('click',event=>{institutionalMenus.forEach(menu=>{if(!menu.contains(event.target))menu.open=false;});});
+// Actualizar aquí el curso lectivo y los montos en colones. null mantiene la consulta con Admisiones.
+const institutionFees={course:null,matricula:null,mensualidad:null,materiales:null,libros:null,uniformes:null,jacket:null};
+const feeFormat=new Intl.NumberFormat('es-CR',{style:'currency',currency:'CRC',maximumFractionDigits:0});
+if(institutionFees.course&&document.getElementById('fees-course'))document.getElementById('fees-course').textContent='Aranceles del curso lectivo '+institutionFees.course+'.';
+document.querySelectorAll('[data-fee]').forEach(cell=>{const amount=institutionFees[cell.dataset.fee];if(typeof amount==='number'&&Number.isFinite(amount)&&amount>=0)cell.textContent=feeFormat.format(amount);});
+const admissionContact=document.getElementById('admission-contact-form');
+if(admissionContact){
+ const review=document.getElementById('admission-contact-review');
+ admissionContact.addEventListener('input',()=>{review.hidden=true;document.getElementById('admission-contact-whatsapp').removeAttribute('href');});
+ admissionContact.addEventListener('submit',event=>{
+  event.preventDefault();if(!admissionContact.reportValidity())return;
+  const data=new FormData(admissionContact),value=key=>String(data.get(key)||'').trim();
+  const message=['Hola, quisiera información sobre admisiones del Colegio Nuevo Mundo.','Nombre del encargado: '+value('name'),'Teléfono: '+value('phone'),value('email')?'Correo: '+value('email'):'','Nivel de interés: '+value('level'),'Consulta: '+value('message')].filter(Boolean).join('\n');
+  document.getElementById('admission-contact-preview').textContent=message;
+  document.getElementById('admission-contact-whatsapp').href='https://wa.me/50685868193?text='+encodeURIComponent(message);
+  review.hidden=false;
+ });
 }
