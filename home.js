@@ -129,8 +129,6 @@ if(experiences){
 const institutionalMenus=[...document.querySelectorAll('#nav .nav-section')];
 institutionalMenus.forEach(menu=>{
  menu.addEventListener('toggle',()=>{if(menu.open)institutionalMenus.forEach(other=>{if(other!==menu)other.open=false;});});
- menu.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'&&matchMedia('(hover:hover) and (min-width:1101px)').matches)menu.open=true;});
- menu.addEventListener('pointerleave',()=>{if(!menu.contains(document.activeElement))menu.open=false;});
  menu.addEventListener('focusout',()=>{setTimeout(()=>{if(!menu.contains(document.activeElement))menu.open=false;},0);});
  menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;menu.querySelector('summary').focus();}});
  menu.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{menu.open=false;}));
