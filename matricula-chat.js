@@ -11,7 +11,7 @@
  const submit=dialog.querySelector('#matricula-chat-send');
  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
  let advisorMode=false;
- const faqs=[
+ const faqs=window.colegioContent?.faqs ?? [
   {label:'¿Cómo iniciar la matrícula?',short:'Proceso de matrícula',keys:['matricula','inscribir','inscripcion','ingreso','proceso'],answer:'El primer paso es conversar con admisiones. Indique el nivel de interés y consulte la disponibilidad. El equipo le orientará sobre los requisitos y los pasos oficiales para continuar.'},
   {label:'¿Qué requisitos se solicitan?',short:'Requisitos de ingreso',keys:['requisito','documento','papel','traslado'],answer:'Los requisitos deben confirmarse con admisiones según el nivel y la situación del estudiante. Solicite la lista oficial antes de preparar documentos. Esta demostración no recibe expedientes ni archivos.'},
   {label:'¿Cuáles son los costos?',short:'Costos y condiciones',keys:['costo','precio','tarifa','pago','mensualidad','cuota','beca'],answer:'Los montos de matrícula, mensualidad y las condiciones de pago deben confirmarse directamente con admisiones. Todavía no contamos con tarifas oficiales publicadas en esta vista previa.'},
@@ -25,9 +25,10 @@
   if(className)element.className=className;
   return element;
  };
- function message(text,from='bot'){
+ function message(text,from='bot',reference){
   const item=make('div',null,'matricula-message matricula-message-'+from);
   item.append(make('span',from==='user'?'Usted':'Lumi','matricula-message-author'),make('p',text));
+  if(reference?.url){const link=make('a',reference.link,'matricula-answer-link');link.href=reference.url;item.append(link);}
   log.append(item);
   while(log.children.length>24)log.firstElementChild.remove();
   if(!reducedMotion.matches&&typeof item.animate==='function')item.animate([{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'ease-out'});
@@ -42,7 +43,7 @@
   if(entering)dialog.querySelector('#matricula-chat-back').focus({preventScroll:true});
  }
  function ask(faq){
-  openConversation();message(faq.label,'user');message(faq.answer);
+  openConversation();message(faq.label,'user');message(faq.answer,'bot',faq);
  }
  function showAdvisor(announce=true){
   openConversation(true);
@@ -55,6 +56,38 @@
   button.addEventListener('click',()=>ask(faq));dialog.querySelector('#matricula-chat-questions').append(button);
  }
  launcher.hidden=false;
+ const sizeToggle=document.getElementById('lumi-size-toggle');
+ if(sizeToggle){
+  sizeToggle.hidden=false;
+  let preferredSize=null;
+  const constrained=new Set();
+  const compactViewport=matchMedia('(max-width:600px)');
+  const setCompact=compact=>{
+   launcher.classList.toggle('lumi-compact',compact);
+   document.body.classList.toggle('lumi-is-compact',compact);
+   sizeToggle.setAttribute('aria-expanded',String(!compact));
+   sizeToggle.setAttribute('aria-label',compact?'Mostrar personaje de Lumi':'Minimizar personaje de Lumi');
+   sizeToggle.querySelector('span').textContent=compact?'+':'−';
+  };
+  const updateSize=()=>setCompact(preferredSize??(compactViewport.matches||constrained.size>0));
+  compactViewport.addEventListener('change',updateSize);
+  updateSize();
+  sizeToggle.addEventListener('click',()=>{
+   preferredSize=!launcher.classList.contains('lumi-compact');
+   setCompact(preferredSize);
+  });
+  if('IntersectionObserver' in window){
+   const observer=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>entry.isIntersecting?constrained.add(entry.target):constrained.delete(entry.target));
+    updateSize();
+   });
+   document.querySelectorAll('.site-footer,#consulta-admisiones').forEach(target=>observer.observe(target));
+  }
+ }
+ // Dejar libres los campos mientras la familia escribe su consulta.
+ const updateFormFocus=()=>document.body.classList.toggle('lumi-form-focus',Boolean(document.activeElement?.closest('#admission-contact-form')));
+ document.addEventListener('focusin',updateFormFocus);
+ document.addEventListener('focusout',()=>queueMicrotask(updateFormFocus));
  launcher.addEventListener('click',()=>{
   dialog.showModal();launcher.setAttribute('aria-expanded','true');
   dialog.querySelector('#matricula-chat-close').focus({preventScroll:true});
@@ -68,6 +101,7 @@
   dialog.querySelector('.matricula-faq-button').focus({preventScroll:true});
  });
  dialog.querySelector('[data-matricula-contact]').addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('click',event=>{if(event.target.closest('.matricula-answer-link'))dialog.close();});
  form.addEventListener('submit',event=>{
   event.preventDefault();const text=input.value.trim().slice(0,300);if(!text)return;
   input.value='';message(text,'user');
@@ -75,6 +109,6 @@
   const normalized=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   if(/asesor|persona|humano|hablar con alguien/.test(normalized)){showAdvisor(false);return;}
   const faq=[...faqs.slice(1),faqs[0]].find(item=>item.keys.some(key=>normalized.includes(key)));
-  message(faq?faq.answer:'Puedo orientarle sobre matrícula, requisitos, costos, cupos, niveles y visitas. Puede volver a las preguntas frecuentes o elegir «Hablar con un asesor». Las consultas particulares deben confirmarse con admisiones.');
+  message(faq?faq.answer:'Puedo orientarle sobre matrícula, requisitos, costos, cupos, niveles y visitas. Puede volver a las preguntas frecuentes o elegir «Hablar con un asesor». Las consultas particulares deben confirmarse con admisiones.','bot',faq);
  });
 })();

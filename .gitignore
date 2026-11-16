@@ -1,0 +1,5 @@
+# Archivos locales de trabajo y entregables de revisión; no se sirven en producción.
+/tmp/
+/output/
+**/__pycache__/
+*.pyc

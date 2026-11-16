@@ -1,0 +1,64 @@
+/* Identidad compartida y navegación de la propuesta audiovisual. */
+:root{--sans:'Noto Sans','Segoe UI',Arial,sans-serif;--gold:#e4b553;--heading:'Kumbh Sans','Segoe UI',Arial,sans-serif}
+html{scroll-padding-top:116px}
+h1,h2,h3{font-family:var(--heading)}
+.preview-notice{background:#edf2f8;color:#465a75;font-size:10px}
+.utility-bar{background:var(--primary);color:#fff}
+.utility-inner{min-height:35px;font-size:11px}
+.utility-inner>div{gap:26px}
+.utility-inner>div a{font-size:11px;font-weight:500}
+.utility-inner>a{font-size:10px}
+.utility-inner a:hover{text-decoration:underline;text-underline-offset:4px}
+.site-header{position:sticky;top:0;background:#fff;color:var(--deep);border-bottom:1px solid #dfe6ee;box-shadow:0 3px 14px #10234e08}
+.header-inner{min-height:101px;gap:24px}
+.brand small{color:#58708c}
+.site-header nav{gap:20px}
+.site-header nav a{font-size:12px;font-weight:650}
+.site-header nav a[aria-current=page]{color:#76551a}
+.site-header nav a[aria-current=page]:after{bottom:5px}
+.site-header nav a.nav-admissions{color:var(--deep);padding:12px 17px;border-radius:3px}
+.nav-item{position:relative}
+.nav-parent{display:flex;align-items:center;gap:2px}
+.submenu-toggle{display:grid;place-items:center;flex:none;width:30px;height:44px;padding:0;border:0;background:none;color:var(--primary);font-size:20px}
+.submenu-toggle:hover{background:#eff4fa}
+.submenu-toggle[aria-expanded=true]{background:#e9f0f9}
+.nav-submenu{position:absolute;left:0;top:calc(100% + 8px);min-width:260px;max-width:300px;list-style:none;padding:9px;margin:0;background:#fff;border:1px solid #d8e2ef;border-top:3px solid var(--gold);box-shadow:0 14px 26px #10234e21;border-radius:0 0 5px 5px}
+.site-header nav .nav-submenu a{display:block;padding:11px 14px;white-space:normal;font-size:13px;font-weight:500;line-height:1.5;border-radius:2px}
+.nav-submenu a:hover,.nav-submenu a:focus-visible{background:#edf3fa}
+.menu-toggle{display:none;color:var(--primary);border-color:#adbed5;white-space:nowrap;flex-shrink:0}
+.site-footer .brand small{color:#b7c9e6}
+.site-footer .footer-grid p,.site-footer .footer-grid a,.site-footer .hours{font-size:12px}
+.site-footer .footer-bottom{font-size:10px;padding-bottom:80px}
+.site-footer .brand strong{font-size:15px}
+@media(max-width:1140px) and (min-width:1041px){.site-header nav{gap:13px}.site-header nav a{font-size:11px}.brand strong{font-size:14px}.header-inner{gap:15px}.submenu-toggle{width:26px}}
+@media(max-width:1040px){
+ .header-inner{min-height:85px}
+ .site-header nav{display:none;position:absolute;left:0;right:0;top:100%;padding:14px max(24px,calc((100vw - 900px)/2)) 22px;background:#fff;border-top:1px solid var(--line);box-shadow:0 16px 24px #10234e1a;max-height:calc(100dvh - 85px);overflow:auto}
+ .site-header nav.open{display:flex;flex-direction:column;align-items:stretch;gap:3px}
+ .site-header nav a{font-size:14px;padding:12px;display:block;min-height:46px}
+ .site-header nav a[aria-current=page]:after{left:12px;right:auto;width:27px;bottom:7px}
+ .site-header nav a.nav-admissions{display:inline-flex;margin-top:6px}
+ .nav-parent>a{flex:1}
+ .submenu-toggle{width:46px;height:46px;border:1px solid #dce5f1;border-radius:3px}
+ .nav-submenu{position:static;min-width:0;max-width:none;margin:0 0 6px 12px;border:0;border-left:2px solid var(--gold);box-shadow:none;border-radius:0;background:#f5f8fc;padding:5px}
+ .site-header nav .nav-submenu a{font-size:13px;padding:11px 14px}
+ .navigation-ready .menu-toggle{display:block}
+ .site-header:not(.navigation-ready) .header-inner{flex-wrap:wrap;padding-block:14px}
+ .site-header:not(.navigation-ready) nav{display:flex;position:static;box-shadow:none;max-height:none;flex-wrap:wrap;padding:0}
+}
+@media(max-width:600px){
+ html{scroll-padding-top:94px}
+ .preview-notice{font-size:9px;padding:6px 14px}
+ .utility-inner{min-height:32px;gap:12px}
+ .utility-inner>div a{font-size:11px}
+ .utility-inner>div .utility-email{display:none}
+ .utility-inner>a{font-size:9px}
+ .header-inner{min-height:81px;gap:12px}
+ .brand img{width:47px;height:49px}
+ .brand strong{font-size:14px}
+ .brand small{font-size:7px}
+ .site-header nav{max-height:calc(100dvh - 81px)}
+ .menu-toggle{font-size:12px}
+ .site-footer .footer-bottom{padding-bottom:85px}
+}
+@media print{.site-header{display:none!important}}

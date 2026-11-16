@@ -1,5 +1,18 @@
 .matricula-chat-launcher[hidden] { display: none; }
 
+.lumi-size-toggle{position:fixed;right:184px;bottom:max(164px,calc(env(safe-area-inset-bottom) + 148px));z-index:36;width:36px;height:36px;display:grid;place-items:center;border:1px solid #afbdd2;border-radius:50%;background:#fff;color:#18376f;font-size:24px;line-height:1;box-shadow:0 3px 10px #10234e24}
+.lumi-size-toggle:hover{background:#edf3fa}
+.matricula-chat-launcher.lumi-compact{flex-direction:row;width:auto;min-height:46px;padding:5px 9px 5px 5px;background:#fff;border:1px solid #c4a251;border-radius:25px;gap:3px}
+.lumi-compact .lumi-mascot{width:32px;height:32px}
+.lumi-compact .lumi-sign{display:none}
+.lumi-compact .lumi-name{font-size:12px;padding:2px 4px}
+.lumi-is-compact .lumi-size-toggle{bottom:max(29px,calc(env(safe-area-inset-bottom) + 13px));right:121px}
+.lumi-form-focus .matricula-chat-launcher,.lumi-form-focus .lumi-size-toggle{visibility:hidden}
+@media(max-width:600px){.lumi-size-toggle{right:182px;bottom:max(164px,calc(env(safe-area-inset-bottom) + 148px));width:44px;height:44px}.lumi-is-compact .lumi-size-toggle{bottom:max(17px,env(safe-area-inset-bottom));right:109px}}
+@media print{.lumi-size-toggle{display:none!important}}
+
+.matricula-answer-link { display: inline-block; margin-top: 10px; color: #18376f; font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+
 .matricula-chat-launcher {
   position: fixed;
   right: 24px;

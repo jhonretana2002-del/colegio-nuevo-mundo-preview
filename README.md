@@ -6,8 +6,27 @@ Este repositorio contiene solo la exportación estática de demostración. El pr
 
 La información institucional y la restauración del escudo están sujetas a validación. La demostración solicita no indexación y no representa el lanzamiento oficial.
 
-El inicio incluye un banner con controles manuales y accesos por etapa educativa. La imagen de estudiantes es una composición ilustrativa generada: no representa alumnado real ni instalaciones del colegio.
+El inicio incluye una portada audiovisual de ancho completo, presentación breve, cuatro accesos a la oferta educativa, acompañamiento y consulta de admisiones. El video de archivo está identificado y acreditado; las imágenes ilustrativas no representan alumnado real ni instalaciones verificadas del colegio.
 
 ## Lumi
 
 El asistente de matrícula se llama Lumi. El botón conserva el personaje y el emblema de la imagen de referencia; la mano se recorta en una capa y gira suavemente sobre la muñeca. El aro dorado, la cabeza y el cuerpo permanecen estables. La preferencia de reducir movimiento desactiva el saludo.
+
+## Adaptación por categorías
+
+La portada compacta enlaza a Conócenos, Oferta educativa, Vida en el colegio, Admisiones y Contacto. Las listas extensas se consultan en acordeones de apertura única dentro de cada categoría. Noticias continúa como acceso secundario sin publicaciones de prueba.
+
+Los contenidos compartidos se mantienen en `contenido/colegio.json`. Para regenerar la exportación y revisarla:
+
+```powershell
+node scripts/generar-sitio.mjs
+node --test scripts/video-portada.test.mjs
+python scripts/verificar-sitio.py
+python scripts/servir-sitio.py --port 4873
+```
+
+Vista local: `http://127.0.0.1:4873/colegio-nuevo-mundo-preview/`.
+
+Consultar `GUIA_ADAPTACION_CONTENIDOS.md` para edición, datos pendientes, limitaciones y fases de publicación. Esta implementación no activa el panel privado ni publica automáticamente en GitHub Pages.
+
+La adaptación audiovisual del 15 de noviembre está documentada en `GUIA_PORTADA_AUDIOVISUAL.md`. Los textos e imágenes de portada se editan en `inicio`, dentro de la misma fuente JSON. Las fuentes y el video se sirven localmente; el video no se descarga automáticamente en móvil, con movimiento reducido o con ahorro de datos disponible en el navegador.

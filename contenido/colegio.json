@@ -1,0 +1,309 @@
+{
+  "basePath": "/colegio-nuevo-mundo-preview/",
+  "publicUrl": "https://jhonretana2002-del.github.io/colegio-nuevo-mundo-preview/",
+  "revision": "2026-11-15",
+  "nombre": "Colegio Nuevo Mundo",
+  "lema": "Aprender hoy, transformar mañana.",
+  "presentacion": "En el Colegio Nuevo Mundo acompañamos a cada estudiante con una educación inclusiva, atención personalizada y formación integral. Conozca nuestra oferta educativa, nuestra forma de aprender y los pasos para iniciar una consulta de admisión.",
+  "quienesSomos": "Somos una comunidad educativa ubicada en San Francisco de Dos Ríos, comprometida con la educación inclusiva, la atención personalizada y la formación integral. Acompañamos a cada estudiante y mantenemos una comunicación cercana con las familias.",
+  "mision": "Nuestra institución promueve una educación inclusiva y de calidad, por medio de la optimización de los recursos, que permita ofrecer un servicio eficiente y eficaz acorde con la individualidad de los usuarios de los servicios.",
+  "vision": "El Colegio Nuevo Mundo, en la gestión de prestación de sus servicios educativos inclusivos y de calidad, busca la excelencia y responder a las necesidades e intereses de los educandos, respondiendo a los postulados de los fines de la educación costarricense amparados en nuestra Constitución Política.",
+  "historia": null,
+  "valores": [
+    {
+      "titulo": "Perseverancia",
+      "descripcion": "Acompañamos el esfuerzo y la continuidad en el aprendizaje."
+    },
+    {
+      "titulo": "Excelencia",
+      "descripcion": "Buscamos la mejora constante de nuestra labor educativa."
+    },
+    {
+      "titulo": "Lealtad",
+      "descripcion": "Cuidamos la confianza y el compromiso con nuestra comunidad."
+    },
+    {
+      "titulo": "Compromiso",
+      "descripcion": "Asumimos con responsabilidad la formación de cada estudiante."
+    }
+  ],
+  "contacto": {
+    "direccion": "San Francisco de Dos Ríos, 75 metros al sur de la Escuela Santa Marta, Barrio Los Sauces.",
+    "telefonos": [
+      {
+        "texto": "2226-1746",
+        "numero": "+50622261746"
+      },
+      {
+        "texto": "2226-0183",
+        "numero": "+50622260183"
+      }
+    ],
+    "whatsapp": {
+      "texto": "8586-8193",
+      "numero": "50685868193"
+    },
+    "correo": "colnuevomundo20@gmail.com",
+    "facebook": "https://www.facebook.com/colegionuevomundocr",
+    "instagram": "https://www.instagram.com/colegionuevomundocr/",
+    "mapa": "https://www.google.com/maps/search/?api=1&query=Colegio+Nuevo+Mundo+San+Francisco+de+Dos+Rios+Costa+Rica",
+    "mapaEmbed": null
+  },
+  "horarioInstitucional": [
+    {
+      "dias": "Lunes a jueves",
+      "horas": "7:30 a. m. a 2:00 p. m."
+    },
+    {
+      "dias": "Viernes",
+      "horas": "7:30 a. m. a 11:00 a. m."
+    }
+  ],
+  "horarioAdministrativo": null,
+  "beneficios": [
+    {
+      "titulo": "Acompañamiento cercano",
+      "descripcion": "Atención personalizada, grupos pequeños y comunicación permanente con las familias."
+    },
+    {
+      "titulo": "Formación integral",
+      "descripcion": "Aprendizaje académico, materias complementarias e idiomas para crecer en distintas áreas."
+    },
+    {
+      "titulo": "Aprender con tecnología",
+      "descripcion": "Herramientas y recursos educativos que enriquecen las experiencias de aprendizaje."
+    }
+  ],
+  "oferta": [
+    {
+      "id": "iii-ciclo",
+      "titulo": "III Ciclo",
+      "resumen": "Asignaturas de formación académica.",
+      "items": [
+        "Español",
+        "Estudios Sociales",
+        "Educación Cívica",
+        "Matemáticas",
+        "Ciencias"
+      ]
+    },
+    {
+      "id": "diversificada",
+      "titulo": "Educación Diversificada",
+      "resumen": "Asignaturas de esta etapa educativa.",
+      "items": [
+        "Español",
+        "Estudios Sociales",
+        "Educación Cívica",
+        "Física Matemática",
+        "Biología",
+        "Química"
+      ]
+    },
+    {
+      "id": "complementarias",
+      "titulo": "Materias complementarias",
+      "resumen": "Arte, tecnología, expresión y movimiento.",
+      "items": [
+        "Expresión Creativa",
+        "Educación Musical",
+        "Robótica Educativa y Programación",
+        "Redacción y Ortografía",
+        "Educación Física"
+      ]
+    },
+    {
+      "id": "multilingue",
+      "titulo": "Educación multilingüe",
+      "resumen": "Conozca los idiomas que se enseñan.",
+      "items": [
+        "Español",
+        "Inglés",
+        "Francés",
+        "Mandarín"
+      ]
+    }
+  ],
+  "propuesta": [
+    "Clases presenciales.",
+    "Atención personalizada durante la mediación pedagógica.",
+    "Comunicación horizontal y permanente con el hogar.",
+    "Grupos pequeños de estudiantes.",
+    "Uso de herramientas educativas apoyadas en inteligencia artificial.",
+    "Incorporación de tecnologías para fortalecer los procesos de enseñanza y aprendizaje."
+  ],
+  "servicios": [
+    {
+      "id": "tecnologia",
+      "titulo": "Tecnología para aprender",
+      "resumen": "Recursos que enriquecen las experiencias educativas.",
+      "parrafos": [
+        "Integramos herramientas educativas apoyadas en inteligencia artificial y tecnologías para fortalecer la enseñanza y el aprendizaje.",
+        "Entre los recursos presentados por el colegio se encuentran podcasts, Kahoot, Nearpod y otras plataformas educativas. Consulte cómo se utilizan según el nivel y la actividad."
+      ]
+    },
+    {
+      "id": "alimentacion",
+      "titulo": "Alimentación",
+      "resumen": "Soda estudiantil durante la jornada.",
+      "parrafos": [
+        "Contamos con una soda estudiantil con opciones de desayuno, meriendas y almuerzos.",
+        "Consulte los horarios, las opciones y las condiciones del servicio directamente con el colegio."
+      ]
+    },
+    {
+      "id": "transporte",
+      "titulo": "Transporte estudiantil",
+      "resumen": "Consulte condiciones y disponibilidad.",
+      "parrafos": [
+        "Consulte con el colegio las condiciones, rutas, tarifas y disponibilidad del servicio de transporte estudiantil."
+      ],
+      "consulta": "Hola, quisiera información sobre el transporte estudiantil del Colegio Nuevo Mundo."
+    }
+  ],
+  "galeria": [
+    {
+      "imagen": "experiencia-actividades-640.webp",
+      "imagenGrande": "experiencia-actividades-1280.webp",
+      "titulo": "Convivir y descubrir",
+      "descripcion": "Experiencias para compartir y crecer en comunidad.",
+      "alt": "Actividad de convivencia estudiantil",
+      "posicion": "actividades"
+    },
+    {
+      "imagen": "experiencia-creatividad-640.webp",
+      "imagenGrande": "experiencia-creatividad-1280.webp",
+      "titulo": "Crear y expresarse",
+      "descripcion": "Espacios para explorar ideas, talentos y nuevas habilidades.",
+      "alt": "Proyecto creativo elaborado con piezas de madera",
+      "posicion": "creatividad"
+    },
+    {
+      "imagen": "experiencia-docentes-640.webp",
+      "imagenGrande": "experiencia-docentes-1280.webp",
+      "titulo": "Aprender acompañados",
+      "descripcion": "Atención y cercanía en cada etapa del aprendizaje.",
+      "alt": "Imagen ilustrativa de acompañamiento docente",
+      "posicion": "docentes"
+    }
+  ],
+  "admisiones": {
+    "cursoLectivo": null,
+    "matriculaAbierta": false,
+    "calendarioConfirmado": false,
+    "prematricula": "La prematrícula inicia en el mes de abril.",
+    "periodo": "El período de matrícula inicia durante los primeros días de diciembre y se mantiene durante todo enero.",
+    "reserva": {
+      "monto": 50000,
+      "confirmada": false,
+      "condiciones": "Se aplica al pago inicial de matrícula."
+    },
+    "horarioPrematricula": [
+      {
+        "dias": "Lunes a jueves",
+        "horas": "7:30 a. m. a 2:00 p. m."
+      },
+      {
+        "dias": "Viernes",
+        "horas": "7:30 a. m. a 11:00 a. m."
+      }
+    ],
+    "requisitos": [
+      "Copia del título de I y II Ciclo de la Educación General Básica.",
+      "Copia de la cédula de identidad del padre de familia o encargado.",
+      "Documentación de identificación del estudiante.",
+      "Comprobante de pago del seguro estudiantil.",
+      "Certificación de conducta emitida por el centro educativo de procedencia.",
+      "Carta que certifique que el estudiante se encuentra al día con las mensualidades del centro educativo de procedencia, en caso de provenir de una institución privada."
+    ],
+    "aranceles": [
+      {
+        "id": "matricula",
+        "rubro": "Matrícula",
+        "monto": null,
+        "condicion": "Consultar condiciones"
+      },
+      {
+        "id": "mensualidad",
+        "rubro": "Mensualidad",
+        "monto": null,
+        "condicion": "Pago mensual"
+      },
+      {
+        "id": "materiales",
+        "rubro": "Materiales",
+        "monto": null,
+        "condicion": "Cuota anual"
+      },
+      {
+        "id": "libros",
+        "rubro": "Paquete de libros",
+        "monto": null,
+        "condicion": "Consultar condiciones"
+      },
+      {
+        "id": "uniformes",
+        "rubro": "Uniformes",
+        "monto": null,
+        "condicion": "Consultar condiciones"
+      },
+      {
+        "id": "jacket",
+        "rubro": "Jacket colegial",
+        "monto": null,
+        "condicion": "Consultar condiciones"
+      }
+    ]
+  },
+  "pendientes": [
+    "Aprobar textos de presentación y explicaciones de valores.",
+    "Suministrar una historia institucional verificable, si se desea publicarla.",
+    "Confirmar Física Matemática, la lista de Diversificada y el alcance de complementarias e idiomas por nivel.",
+    "Confirmar curso lectivo, años calendario, reserva y aranceles antes de anunciar matrícula abierta.",
+    "Confirmar horario administrativo, condiciones de servicios, marcador del mapa y fotografías.",
+    "Integrar un panel de gestión con el servidor privado antes de ofrecer edición y publicación al propietario."
+  ],
+  "inicio": {
+    "antetitulo": "Una comunidad para aprender y crecer",
+    "titulo": [
+      "Aprender hoy,",
+      "transformar",
+      "mañana."
+    ],
+    "descripcion": "Educación inclusiva, acompañamiento cercano y formación integral para descubrir nuevas oportunidades de aprendizaje.",
+    "video": {
+      "archivo": "assets/portada/portada-optimizada.mp4",
+      "poster": "assets/portada/portada-poster.jpg",
+      "fuente": "https://www.pexels.com/video/group-of-people-studying-in-the-library-8199398/",
+      "licencia": "https://www.pexels.com/license/"
+    },
+    "introduccion": {
+      "titulo": "Un nuevo mundo empieza con cada estudiante.",
+      "texto": "Acompañamos a cada estudiante con atención personalizada y una formación que conecta conocimientos, creatividad e idiomas. Una comunidad cercana, en comunicación permanente con las familias."
+    },
+    "ofertaTitulo": "Aprender, crear y abrir nuevas posibilidades.",
+    "tarjetas": [
+      {
+        "id": "iii-ciclo",
+        "imagen": "experiencia-docentes-640.webp"
+      },
+      {
+        "id": "diversificada",
+        "imagen": "estudiantes-480.webp"
+      },
+      {
+        "id": "complementarias",
+        "imagen": "experiencia-creatividad-640.webp"
+      },
+      {
+        "id": "multilingue",
+        "imagen": "experiencia-actividades-640.webp"
+      }
+    ],
+    "acompanamiento": {
+      "titulo": "Crecer con acompañamiento, cada día.",
+      "imagen": "experiencia-actividades-640.webp",
+      "alt": "Actividad de convivencia, imagen de referencia"
+    }
+  }
+}
