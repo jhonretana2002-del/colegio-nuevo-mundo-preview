@@ -8,6 +8,10 @@ La información institucional y la restauración del escudo están sujetas a val
 
 El inicio incluye una portada audiovisual de ancho completo, presentación breve, cuatro accesos a la oferta educativa, acompañamiento y consulta de admisiones. El video de archivo está identificado y acreditado; las imágenes ilustrativas no representan alumnado real ni instalaciones verificadas del colegio.
 
+## Gestión de contenidos
+
+El acceso `/admin/` incluye un prototipo para preparar, revisar y descargar borradores de contenido. No guarda en el servidor ni publica cambios. Consultar `GUIA_GESTION_CONTENIDOS.md` para los campos disponibles, la validación institucional y la integración privada pendiente.
+
 ## Lumi
 
 El asistente de matrícula se llama Lumi. El botón conserva el personaje y el emblema de la imagen de referencia; la mano se recorta en una capa y gira suavemente sobre la muñeca. El aro dorado, la cabeza y el cuerpo permanecen estables. La preferencia de reducir movimiento desactiva el saludo.
