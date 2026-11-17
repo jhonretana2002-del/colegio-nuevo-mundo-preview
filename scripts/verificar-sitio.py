@@ -76,7 +76,7 @@ assert 'media-src \'self\'' in home and 'font-src \'self\'' in home
 assert all(not page.videos for name, page in pages.items() if name != 'index.html')
 for card in DATA['inicio']['tarjetas']:
     assert BASE+'oferta-educativa/#'+card['id'] in home
-for css in ['fuentes.css', 'portada.css', 'navegacion.css', 'matricula-chat.css']:
+for css in ['fuentes.css', 'portada.css', 'navegacion.css', 'matricula-chat.css', 'matricula-portada.css', 'opiniones.css']:
     for resource in re.findall(r'url\([\'\"]?([^\)\'\"]+)', (ROOT/css).read_text(encoding='utf-8')):
         assert not urlsplit(resource).scheme, f'{css}: recurso externo inesperado'
         assert (ROOT/resource).is_file(), f'{css}: no existe {resource}'

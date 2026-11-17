@@ -1,7 +1,7 @@
 {
   "basePath": "/colegio-nuevo-mundo-preview/",
   "publicUrl": "https://jhonretana2002-del.github.io/colegio-nuevo-mundo-preview/",
-  "revision": "2026-11-15",
+  "revision": "2026-11-17",
   "nombre": "Colegio Nuevo Mundo",
   "lema": "Aprender hoy, transformar mañana.",
   "presentacion": "En el Colegio Nuevo Mundo acompañamos a cada estudiante con una educación inclusiva, atención personalizada y formación integral. Conozca nuestra oferta educativa, nuestra forma de aprender y los pasos para iniciar una consulta de admisión.",
@@ -305,5 +305,17 @@
       "imagen": "experiencia-actividades-640.webp",
       "alt": "Actividad de convivencia, imagen de referencia"
     }
-  }
+  },
+  "opiniones": [
+    {
+      "autor": "Mario AZ",
+      "fecha": "2016-10-06",
+      "fechaTexto": "6 de octubre de 2016",
+      "tipo": "recomendacion",
+      "texto": null,
+      "fuente": "https://www.facebook.com/mario77899/posts/pfbid0ruiq3CpqbRNPB7icpE2dnyABsgiYQyexf9Prd7rWogqmdGohNLCtMh5jgxTBUHQal",
+      "verificada": true,
+      "vinculoFamiliarConfirmado": false
+    }
+  ]
 }

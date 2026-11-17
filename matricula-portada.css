@@ -1,0 +1,14 @@
+/* Fondo fijo de matrícula: el contenido se desplaza sobre la imagen. */
+.home-contact{background-color:#dfe8ef;background-image:url('assets/portada/matricula-estudiante.webp');background-size:cover;background-position:center 78px;background-repeat:no-repeat;background-attachment:fixed;padding:64px 0}
+.home-contact .two-columns{display:block;width:54%;max-width:650px;padding:34px;background:#fffffff0;border:1px solid #ffffffb3;border-top:3px solid var(--gold);border-radius:6px;box-shadow:0 8px 30px #18345614}
+.home-contact h2{font-size:40px}
+.home-contact .two-columns>div:first-child>p:not(.eyebrow){font-size:13px;margin-top:16px}
+.home-contact .two-columns>div:first-child>.text-link{margin-top:10px}
+.home-contact form{background:transparent;box-shadow:none;border:0;padding:26px 0 0}
+.home-contact .form-row{grid-template-columns:1fr 1fr;gap:15px}
+.home-contact .form-field{margin-bottom:16px}
+.home-contact .message-review{margin-top:25px;background:#fff}
+.matricula-image-note{margin:20px 0 0 auto;width:fit-content;max-width:460px;padding:7px 11px;background:#fffffff0;border-radius:3px;font-size:9px;color:#465970}
+@media(max-width:900px){.home-contact{background-attachment:scroll;background-size:auto 410px;background-position:right top;padding:350px 0 40px}.home-contact .two-columns{width:100%;max-width:none;padding:28px;background:#fffffff5}.home-contact h2{font-size:35px}.matricula-image-note{margin-left:0;font-size:9px}.home-contact .form-row{grid-template-columns:1fr;gap:0}}
+@media(prefers-reduced-motion:reduce){.home-contact{background-attachment:scroll;background-position:center top}}
+@media print{.home-contact{background:none;padding:25px 0}.home-contact .two-columns{width:100%;max-width:none;box-shadow:none;border:0}.matricula-image-note{display:none}}
