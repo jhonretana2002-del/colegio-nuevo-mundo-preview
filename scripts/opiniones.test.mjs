@@ -10,6 +10,13 @@ test('no inventa texto, estrellas o condición de padre para una recomendación 
  assert.ok(html.includes('sin comentario escrito'));
  assert.ok(!html.includes('★★★★★')&&!html.includes('padre de familia'));
  assert.ok(html.includes('aria-hidden="true"')&&html.includes('tabindex="-1"'));
+ assert.ok(html.includes('opinion-recommend-star')&&html.includes('sin nota numérica'));
+ assert.ok(!html.includes('5 / 5'));
+});
+test('presenta una nota numérica solo cuando está informada y rechaza escalas inválidas',()=>{
+ const draft=structuredClone(data);Object.assign(draft.opiniones[0],{puntuacion:4,escala:5});
+ assert.ok(renderOpinions(draft,helpers).includes('4 / 5'));
+ draft.opiniones[0].puntuacion=6;assert.throws(()=>renderOpinions(draft,helpers));
 });
 test('ignora recomendaciones no verificadas y exige fuentes de las verificadas',()=>{
  const draft=structuredClone(data);draft.opiniones[0].verificada=false;

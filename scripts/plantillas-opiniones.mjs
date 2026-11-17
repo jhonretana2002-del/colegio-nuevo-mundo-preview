@@ -5,7 +5,15 @@ export function renderOpinions(data,{e,external}){
   assert.ok(item.autor && item.fecha && /^https:\/\//.test(item.fuente),'Una opinión debe tener autor, fecha y fuente verificable.');
   assert.ok(item.tipo==='recomendacion' || item.texto,'Una opinión escrita debe conservar el texto de la fuente.');
  }
- const cards=opinions.map(item=>`<article class="opinion-card"><p class="opinion-type">Recomendación pública · Facebook</p><div class="opinion-author"><span aria-hidden="true">${e(item.autor.slice(0,1))}</span><div><h3>${e(item.autor)}</h3><time datetime="${e(item.fecha)}">${e(item.fechaTexto)}</time></div></div>${item.texto?`<blockquote><p>${e(item.texto)}</p></blockquote>`:`<p class="opinion-message">Recomienda al Colegio Nuevo Mundo CR.</p><p class="opinion-context">Recomendación sin comentario escrito.</p>`}${external(item.fuente,'Ver recomendación original','opinion-link')}</article>`);
+ const rating=item=>{
+  if(item.puntuacion!==undefined && item.puntuacion!==null){
+   assert.ok(Number.isFinite(item.puntuacion) && item.puntuacion>=0 && item.puntuacion<=5 && item.escala===5, 'La puntuación debe proceder de la fuente y usar una escala de cinco.');
+   const stars=Array.from({length:5},(_,i)=>`<span class="${i<Math.floor(item.puntuacion)?'star-filled':'star-empty'}">${i<Math.floor(item.puntuacion)?'★':'☆'}</span>`).join('');
+   return `<div class="opinion-rating"><span class="opinion-stars" aria-hidden="true">${stars}</span><span>${e(item.puntuacion)} / 5 · ${e(item.plataforma??'Facebook')}</span></div>`;
+  }
+  return '<div class="opinion-rating"><span class="opinion-recommend-star" aria-hidden="true">★</span><span>Recomienda el colegio<small>Recomendación positiva · sin nota numérica</small></span></div>';
+ };
+ const cards=opinions.map(item=>`<article class="opinion-card"><p class="opinion-type">Recomendación pública · Facebook</p><div class="opinion-author"><span aria-hidden="true">${e(item.autor.slice(0,1))}</span><div><h3>${e(item.autor)}</h3><time datetime="${e(item.fecha)}">${e(item.fechaTexto)}</time></div></div>${item.texto?`<blockquote><p>${e(item.texto)}</p></blockquote>`:`<p class="opinion-message">Recomienda al Colegio Nuevo Mundo CR.</p><p class="opinion-context">Recomendación sin comentario escrito.</p>`}${rating(item)}${external(item.fuente,'Ver recomendación original','opinion-link')}</article>`);
  cards.push(`<article class="opinion-card opinion-invitation"><p class="opinion-type">Participa en la comunidad</p><h3>Tu experiencia puede orientar a otra familia.</h3><p class="opinion-message">Consulta las recomendaciones públicas o comparte tu experiencia en el perfil del colegio.</p>${external(data.contacto.facebook+'/reviews/','Ir a recomendaciones','opinion-link')}</article>`);
  cards.push(`<article class="opinion-card opinion-invitation"><p class="opinion-type">Conoce el colegio</p><h3>Una comunidad que aprende y comparte.</h3><p class="opinion-message">Descubre las actividades y novedades que el colegio comparte en sus redes.</p>${external(data.contacto.instagram,'Explorar nuestra comunidad','opinion-link')}</article>`);
  const originals=cards.join('');

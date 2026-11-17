@@ -35,6 +35,10 @@ Para incorporar más recomendaciones, agregar únicamente entradas comprobadas c
 
 El movimiento es continuo hacia la derecha. Se pausa con el botón, al situar el puntero sobre las tarjetas, al salir de pantalla o al ocultar la pestaña. La pausa manual se conserva. El acceso con teclado muestra las tarjetas originales estáticas y permite recorrer sus enlaces. Las copias visuales están fuera del árbol accesible y del recorrido de tabulación. Sin JavaScript o con movimiento reducido se ofrece una fila estática que puede desplazarse manualmente.
 
+La cinta mide el ancho visible y repite el bloque completo hasta cubrirlo antes de iniciar el movimiento. Los dos bloques tienen la misma anchura y la velocidad se mantiene en 24 píxeles por segundo, también al cambiar el tamaño de ventana. Las repeticiones son copias visuales de las mismas tarjetas, no nuevas opiniones.
+
+Las recomendaciones positivas sin nota numérica llevan una estrella dorada y la etiqueta «Recomienda el colegio», con la aclaración correspondiente. Una puntuación sobre cinco solo se representa si existen los campos `puntuacion` y `escala: 5` respaldados por la fuente. Las invitaciones a redes no reciben puntuaciones.
+
 ## Verificación
 
 Comprobados: escritorio de 1280 px, pantallas de 390 y 320 px sin desbordamiento horizontal, fondo fijo durante el desplazamiento, fondo normal en móvil, avance del carrusel hacia la derecha, pausa manual, copias sin tabulación y revisión del formulario con datos ficticios sin envío externo.

@@ -1,4 +1,4 @@
-import './opiniones.js';
+import './opiniones.js?v=2';
 import {createVideoController} from './lib/video-portada.mjs';
 
 const video = document.getElementById('portada-video');
