@@ -23,6 +23,14 @@ Especificación final de generación: fotografía horizontal 16:9, estudiante fi
 
 ## Contenido verificable del carrusel
 
+### Presentación ilustrativa solicitada
+
+La presentación activa se configura en `contenido/colegio.json`, en `presentacionOpiniones.modo: "ejemplos"`. Incluye tres textos representativos, nombres ficticios, avatares circulares y cinco estrellas de muestra. El aviso general y la identificación en cada tarjeta indican que no son testimonios reales. Las estrellas de estos ejemplos no se atribuyen a Facebook ni a una evaluación de una familia real.
+
+Los textos se editan en `presentacionOpiniones.ejemplos`. Cada entrada debe conservar `tipo: "ejemplo"`. Para volver a las fuentes verificadas, cambiar el modo a `"verificadas"` y regenerar. La recomendación de Mario AZ sigue conservada, con su fuente y fecha, en el campo `opiniones`; no se le asignaron cinco estrellas ficticias.
+
+### Fuentes reales conservadas
+
 Se consultaron búsquedas públicas y el apartado de recomendaciones de la página `facebook.com/colegionuevomundocr/reviews/`. La página mostraba «Aún sin calificación (1 opinión)» y una recomendación de **Mario AZ**, del **6 de octubre de 2016**, sin comentario escrito.
 
 Fuente directa: https://www.facebook.com/mario77899/posts/pfbid0ruiq3CpqbRNPB7icpE2dnyABsgiYQyexf9Prd7rWogqmdGohNLCtMh5jgxTBUHQal

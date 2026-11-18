@@ -2,7 +2,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {renderOpinions} from './plantillas-opiniones.mjs';
-const data=JSON.parse(await readFile(new URL('../contenido/colegio.json',import.meta.url),'utf8'));
+const configured=JSON.parse(await readFile(new URL('../contenido/colegio.json',import.meta.url),'utf8'));
+const data={...configured,presentacionOpiniones:{modo:'verificadas'}};
 const helpers={e:s=>String(s),external:(url,text)=>`<a href="${url}">${text}</a>`};
 test('no inventa texto, estrellas o condición de padre para una recomendación sin comentario',()=>{
  const html=renderOpinions(data,helpers);
@@ -23,4 +24,11 @@ test('ignora recomendaciones no verificadas y exige fuentes de las verificadas',
  assert.ok(!renderOpinions(draft,helpers).includes('Mario AZ'));
  draft.opiniones[0].verificada=true;draft.opiniones[0].fuente='';
  assert.throws(()=>renderOpinions(draft,helpers));
+});
+
+test('las cinco estrellas ficticias se identifican en cada tarjeta y no se atribuyen a redes sociales',()=>{
+ const html=renderOpinions(configured,helpers);
+ assert.ok(html.includes('★★★★★')&&html.includes('no corresponden a testimonios reales'));
+ assert.equal((html.match(/Reseña de ejemplo · nombre ficticio/g)||[]).length,6);
+ assert.ok(!html.includes('Recomendación pública')&&!html.includes('Ver recomendación original'));
 });

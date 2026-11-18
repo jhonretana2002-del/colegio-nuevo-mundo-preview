@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 export function renderOpinions(data,{e,external}){
+ if(data.presentacionOpiniones?.modo==='ejemplos')return renderExamples(data.presentacionOpiniones,e);
  const opinions=(data.opiniones??[]).filter(item=>item.verificada);
  for(const item of opinions){
   assert.ok(item.autor && item.fecha && /^https:\/\//.test(item.fuente),'Una opinión debe tener autor, fecha y fuente verificable.');
@@ -20,4 +21,13 @@ export function renderOpinions(data,{e,external}){
  // Copia visual para continuidad; sin duplicar elementos en el recorrido de teclado.
  const copies=originals.replaceAll('<a ', '<a tabindex="-1" ');
  return `<section class="home-opinions" id="opiniones" aria-labelledby="opinions-title"><div class="container"><p class="eyebrow">Experiencias y comunidad</p><h2 id="opinions-title">Lo que comparte<br>nuestra comunidad.</h2><p class="opinions-intro">Recomendaciones públicas y espacios para conocer el Colegio Nuevo Mundo.</p><p class="opinions-source-note">${opinions.length} recomendación pública verificada. Las tarjetas de invitación no son testimonios ni calificaciones.</p><button id="opinions-toggle" class="opinions-toggle" type="button" aria-controls="opinions-track" aria-pressed="false" hidden>Pausar carrusel</button></div><div class="opinions-marquee"><div class="opinions-track" id="opinions-track"><div class="opinions-set">${originals}</div><div class="opinions-set opinions-copy" aria-hidden="true">${copies}</div></div></div><div class="container"><p class="opinions-note">Se conserva la fecha original de cada recomendación. El vínculo del autor con una familia del colegio no está confirmado.</p></div></section>`;
+}
+
+function renderExamples(config,e){
+ assert.ok(config.ejemplos.length>0,'Se necesita al menos una tarjeta de ejemplo.');
+ const cards=config.ejemplos.map(item=>{
+  assert.ok(item.tipo==='ejemplo' && item.puntuacion===5 && item.autor && item.texto,'Los ejemplos deben identificarse como tales.');
+  return `<article class="opinion-card opinion-example"><div class="opinion-author"><span aria-hidden="true"></span><div><h3>${e(item.autor)}</h3><small class="opinion-example-label">Reseña de ejemplo · nombre ficticio</small></div></div><blockquote><p>«${e(item.texto)}»</p></blockquote><div class="opinion-rating opinion-example-rating" role="img" aria-label="Cinco estrellas de ejemplo; no es una calificación real"><span class="opinion-stars" aria-hidden="true">★★★★★</span></div></article>`;
+ }).join('');
+ return `<section class="home-opinions" id="opiniones" aria-labelledby="opinions-title"><div class="container"><p class="eyebrow">Experiencias de familias · muestra de diseño</p><h2 id="opinions-title">${e(config.titulo)}</h2><p class="opinions-intro">Así se presentarán las experiencias de las familias del Colegio Nuevo Mundo.</p><p class="opinions-example-notice">${e(config.aviso)}</p><button id="opinions-toggle" class="opinions-toggle" type="button" aria-controls="opinions-track" aria-pressed="false" hidden>Pausar carrusel</button></div><div class="opinions-marquee"><div class="opinions-track" id="opinions-track"><div class="opinions-set">${cards}</div><div class="opinions-set opinions-copy" aria-hidden="true">${cards}</div></div></div></section>`;
 }

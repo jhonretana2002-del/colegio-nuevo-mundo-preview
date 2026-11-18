@@ -41,3 +41,16 @@
 .opinions-static .opinions-marquee{overflow-x:auto}
 .opinions-marquee:focus-within .opinion-card[aria-hidden=true]{display:none}
 @media print{.opinion-card[aria-hidden=true]{display:none}}
+
+/* Tarjetas ilustrativas: estructura de avatar, comentario y cinco estrellas. */
+.opinions-example-notice{font-size:12px;line-height:1.8;color:#655437;max-width:750px;margin:17px auto 0}
+.opinion-example{width:416px;min-height:470px;padding:43px 44px;background:#fff;border:1px solid #f0ebe5;border-radius:15px;box-shadow:0 2px 5px #18345608}
+.opinion-example .opinion-author{gap:17px;align-items:center;margin-bottom:32px}
+.opinion-example .opinion-author>span{width:43px;height:43px;flex:none;background:#30316f}
+.opinion-example:nth-child(2n) .opinion-author>span{background:#f2a640}
+.opinion-example .opinion-author h3{font-family:var(--sans);font-size:17px;line-height:1.35;font-weight:500;letter-spacing:0}
+.opinion-example-label{display:block;color:#766c60;font-size:10px;line-height:1.6;margin-top:5px}
+.opinion-example blockquote{font-size:15px;line-height:1.95;margin:0 0 30px;color:#30316f}
+.opinion-example-rating{margin:auto 0 0;padding:0;border:0}
+.opinion-example-rating .opinion-stars{font-size:25px;letter-spacing:3px;color:#ffb300;line-height:1.3}
+@media(max-width:600px){.opinion-example{width:calc(100vw - 48px);min-height:470px;padding:30px 26px}.opinion-example blockquote{font-size:14px}.opinion-example .opinion-author{margin-bottom:27px}.opinions-example-notice{font-size:11px}}

@@ -317,5 +317,30 @@
       "verificada": true,
       "vinculoFamiliarConfirmado": false
     }
-  ]
+  ],
+  "presentacionOpiniones": {
+    "modo": "ejemplos",
+    "titulo": "Una comunidad que acompaña.",
+    "aviso": "Ejemplos ilustrativos: los nombres, comentarios y cinco estrellas son de muestra; no corresponden a testimonios reales.",
+    "ejemplos": [
+      {
+        "autor": "Laura Méndez",
+        "texto": "Como familia, valoramos un acompañamiento cercano y una comunicación clara. Nos gustaría que cada estudiante encontrara un espacio donde aprender con confianza, desarrollar sus habilidades y sentirse escuchado durante su etapa escolar.",
+        "puntuacion": 5,
+        "tipo": "ejemplo"
+      },
+      {
+        "autor": "Andrés Vargas",
+        "texto": "Buscamos una formación que combine el aprendizaje académico con la creatividad y los idiomas. Para nosotros, una experiencia educativa positiva también significa motivación, atención a las necesidades del estudiante y diálogo con su familia.",
+        "puntuacion": 5,
+        "tipo": "ejemplo"
+      },
+      {
+        "autor": "Daniela Rojas",
+        "texto": "Queremos que nuestros hijos disfruten aprender y crezcan con confianza. Apreciamos una comunidad que acompañe su esfuerzo, reconozca sus avances y les permita descubrir nuevos intereses dentro y fuera del aula.",
+        "puntuacion": 5,
+        "tipo": "ejemplo"
+      }
+    ]
+  }
 }
