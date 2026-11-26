@@ -45,6 +45,9 @@ test('Moderador solo recibe texto y Admin recibe campos visuales y de estado', (
   assert.ok(admin.some(field => field.path === 'admisiones.matriculaAbierta' && field.kind === 'boolean'));
   assert.ok(admin.some(field => field.path === 'historia' && field.kind === 'optional-structure'));
   assert.ok(admin.some(field => field.path === 'horarioAdministrativo' && field.kind === 'optional-structure'));
+  assert.equal(admin.find(field => field.path === 'nombre').label, 'Nombre del colegio');
+  assert.equal(admin.find(field => field.path === 'galeria.0.imagen').sectionTitle, 'Galería de fotos: Convivir y descubrir');
+  assert.equal(admin.find(field => field.path === 'inicio.tarjetas.0.imagen').sectionTitle, 'Tarjetas de oferta: III Ciclo');
 });
 
 test('lectura y escritura de rutas conservan la estructura del documento', () => {

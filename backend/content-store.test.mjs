@@ -5,7 +5,7 @@ import { ContentError, getPublished, getWorking, saveDraft } from './content-sto
 
 const source = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
-function fakeDatabase(version = 0, working = source) {
+function fakeDatabase(version = 0, working = source, uploaded = []) {
   const calls = [];
   const connection = {
     async beginTransaction() { calls.push('begin'); },
@@ -13,6 +13,7 @@ function fakeDatabase(version = 0, working = source) {
       calls.push({ sql, params });
       if (sql.includes('FROM content_documents WHERE id')) return [[{ id: 'document-1', version }]];
       if (sql.includes('FROM content_publications p')) return [[{ id: 'revision-base', payload: JSON.stringify(working) }]];
+      if (sql.includes('FROM media_assets')) return [uploaded.map(storage_key => ({ storage_key }))];
       return [{ affectedRows: 1 }];
     },
     async commit() { calls.push('commit'); },
@@ -67,6 +68,15 @@ test('Admin puede reemplazar una imagen existente, pero no una ruta externa o in
   await assert.rejects(saveDraft(invalid.pool, { documentId: 'document-1', actorId: 'user-1', role: 'admin', expectedVersion: '0', content }),
     error => error instanceof ContentError && error.code === 'INVALID_MEDIA');
   assert.deepEqual(invalid.calls.slice(-2), ['rollback', 'release']);
+});
+
+test('Admin puede usar un archivo nuevo registrado en MariaDB', async () => {
+  const storageKey = 'uploads/11111111-1111-4111-8111-111111111111.webp';
+  const db = fakeDatabase(0, source, [storageKey]);
+  const content = structuredClone(source);
+  content.inicio.acompanamiento.imagen = storageKey;
+  const result = await saveDraft(db.pool, { documentId: 'document-1', actorId: 'user-1', role: 'admin', expectedVersion: '0', content });
+  assert.deepEqual(result.changed, ['inicio.acompanamiento.imagen']);
 });
 
 test('versión obsoleta no sobrescribe otro cambio', async () => {

@@ -1,7 +1,9 @@
 import { createServer } from 'node:http';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import path from 'node:path';
 import { startSession, readSession, revokeSession } from './auth-store.mjs';
 import { getPublished, getWorking, saveDraft, ContentError } from './content-store.mjs';
+import { listMedia, openMediaPreview, uploadMedia } from './media-store.mjs';
 
 const COOKIE = '__Host-cnm_session';
 const MAX_BODY = 1024 * 1024;
@@ -46,12 +48,13 @@ async function readJson(req) {
   catch { throw new ContentError('BAD_REQUEST', 'JSON inválido.'); }
 }
 
-export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, loginGate, stores = {} }) {
-  if (!pool || !origin || !/^https:\/\//.test(origin) || !csrfSecret || csrfSecret.length < 32 || !/^[0-9a-fA-F]{64}$/.test(mfaKey ?? '') || typeof loginGate !== 'function') {
-    throw new Error('Se requiere MariaDB, origen HTTPS, secretos CSRF/MFA y límite de intentos de acceso.');
+export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot, loginGate, stores = {} }) {
+  if (!pool || !origin || !/^https:\/\//.test(origin) || !csrfSecret || csrfSecret.length < 32 || !/^[0-9a-fA-F]{64}$/.test(mfaKey ?? '') || !path.isAbsolute(mediaRoot ?? '') || typeof loginGate !== 'function') {
+    throw new Error('Se requiere MariaDB, origen HTTPS, secretos CSRF/MFA, almacenamiento de medios y límite de intentos de acceso.');
   }
   const auth = { startSession, readSession, revokeSession, ...stores.auth };
   const content = { getPublished, getWorking, saveDraft, ...stores.content };
+  const media = { listMedia, openMediaPreview, uploadMedia, ...stores.media };
   return async (req, res) => {
     try {
       const pathname = new URL(req.url, origin).pathname;
@@ -86,6 +89,20 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, loginGate
       }
       if (method === 'GET' && pathname === '/api/content/colegio/working') {
         return respond(res, 200, await content.getWorking(pool));
+      }
+      if (method === 'GET' && pathname === '/api/media') {
+        return respond(res, 200, await media.listMedia(pool));
+      }
+      if (method === 'GET' && /^\/api\/media\/preview\/[0-9a-f-]{36}$/.test(pathname)) {
+        const preview = await media.openMediaPreview(pool, pathname.split('/').at(-1), mediaRoot);
+        res.writeHead(200, { 'Content-Type': preview.mimeType, 'Content-Length': preview.bytes, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'" });
+        preview.stream.on('error', () => res.destroy());
+        preview.stream.pipe(res);
+        return;
+      }
+      if (method === 'POST' && pathname === '/api/media') {
+        if (identity.role !== 'admin') return respond(res, 403, { error: 'Solo Admin puede agregar archivos.' });
+        return respond(res, 201, await media.uploadMedia(pool, req, { actorId: identity.actor_id, role: identity.role, mediaRoot }));
       }
       if (method === 'POST' && pathname === '/api/content/colegio/drafts') {
         const body = await readJson(req);

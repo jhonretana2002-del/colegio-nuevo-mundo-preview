@@ -17,7 +17,9 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 - [x] Preparar puntero de borrador de trabajo y API de lectura autenticada; el guardado usa la revisión de trabajo sin modificar la publicada. Evidencia: `backend/migrations/004_content_working.sql`, `backend/content-store.mjs` y pruebas. Pendiente: prueba con MariaDB real.
 - [x] Conectar el prototipo a sesión y guardado de borradores cuando exista una API privada bajo el mismo origen; conservar descarga local en GitHub Pages. Evidencia: `admin/gestion.js` y `admin/index.html`. Se comprobó navegación y revisión local en navegador; pendiente integración con servidor privado.
 - [x] Exponer los valores editables de `contenido/colegio.json` en siete secciones según la política de Admin y Moderador. Evidencia: `admin/field-catalog.mjs` y prueba de cobertura de todos los valores permitidos. Pendiente: trasladar a la fuente JSON los textos aún fijos en plantillas.
-- [x] Permitir a Admin elegir imágenes, póster y video de un catálogo local existente, con vista de referencia; validar las rutas y tipos nuevamente en servidor. Evidencia: `contenido/medios-disponibles.json`, `lib/media-policy.mjs` y pruebas. Pendiente: carga de archivos nuevos y procesamiento de variantes.
+- [x] Permitir a Admin elegir imágenes, póster y video de un catálogo local existente, con vista de referencia; validar las rutas y tipos nuevamente en servidor. Evidencia: `contenido/medios-disponibles.json`, `lib/media-policy.mjs` y pruebas. Pendiente: procesamiento de variantes.
+- [x] Preparar carga privada de JPG, PNG, WebP y MP4 solo para Admin, con límites, firma básica, archivo aleatorio, registro en MariaDB y vista previa autenticada. Evidencia: `backend/media-store.mjs`, rutas de `backend/http-api.mjs` y pruebas. Pendiente: procesamiento profundo, variantes, respaldo y publicación de binarios.
+- [x] Simplificar el editor con nombres legibles, apartados plegables, selección de medios y carga desde el equipo para Admin. Evidencia: `admin/field-catalog.mjs`, `admin/gestion.js` y revisión local en navegador. Pendiente: prueba con usuarios del colegio y servidor privado.
 - [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
 - [ ] Completar inventario y esquema versionado de todos los campos editables, incluidos los textos todavía fijos en plantillas.
 - [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.
@@ -29,7 +31,7 @@ La política preparada no protege la página pública por sí sola. Es una pieza
 ## Fase 2: edición completa
 
 - [ ] Exponer todos los campos textuales del sitio en formularios por sección.
-- [ ] Implementar biblioteca y reemplazo de imágenes, posters y videos solo para Admin.
+- [ ] Completar biblioteca y reemplazo de imágenes, póster y videos con procesamiento, variantes y publicación de medios aprobados.
 - [ ] Generar vista previa con las plantillas y estilos actuales.
 - [ ] Verificar cobertura por campo, roles y vistas de escritorio y móvil.
 

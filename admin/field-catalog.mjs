@@ -1,13 +1,13 @@
 import { mayChangeField } from '../lib/content-policy.mjs';
 
 export const GROUPS = [
-  { id: 'inicio', title: 'Inicio', roots: ['inicio'] },
-  { id: 'institucion', title: 'Conócenos', roots: ['nombre', 'lema', 'presentacion', 'quienesSomos', 'mision', 'vision', 'historia', 'valores', 'beneficios'] },
-  { id: 'oferta', title: 'Oferta educativa', roots: ['oferta'] },
-  { id: 'vida', title: 'Vida en el colegio', roots: ['propuesta', 'servicios', 'galeria', 'horarioInstitucional', 'horarioAdministrativo'] },
-  { id: 'admisiones', title: 'Admisiones', roots: ['admisiones'] },
-  { id: 'contacto', title: 'Contacto', roots: ['contacto'] },
-  { id: 'opiniones', title: 'Opiniones', roots: ['opiniones', 'presentacionOpiniones'] },
+  { id: 'inicio', title: 'Inicio', description: 'Cambie el mensaje de portada y sus imágenes.', roots: ['inicio'] },
+  { id: 'institucion', title: 'Conócenos', description: 'Actualice la presentación y los valores del colegio.', roots: ['nombre', 'lema', 'presentacion', 'quienesSomos', 'mision', 'vision', 'historia', 'valores', 'beneficios'] },
+  { id: 'oferta', title: 'Oferta educativa', description: 'Revise las áreas, asignaturas e idiomas.', roots: ['oferta'] },
+  { id: 'vida', title: 'Vida en el colegio', description: 'Edite servicios, horarios y fotografías.', roots: ['propuesta', 'servicios', 'galeria', 'horarioInstitucional', 'horarioAdministrativo'] },
+  { id: 'admisiones', title: 'Admisiones', description: 'Actualice requisitos, fechas y costos.', roots: ['admisiones'] },
+  { id: 'contacto', title: 'Contacto', description: 'Mantenga al día teléfonos, correo y ubicación.', roots: ['contacto'] },
+  { id: 'opiniones', title: 'Opiniones', description: 'Revise los textos que se muestran como opiniones.', roots: ['opiniones', 'presentacionOpiniones'] },
 ];
 
 const TITLES = {
@@ -19,6 +19,23 @@ const TITLES = {
   matriculaAbierta: 'Matrícula abierta', calendarioConfirmado: 'Calendario confirmado',
   fechaTexto: 'Fecha visible', alt: 'Texto alternativo', fuente: 'Fuente', licencia: 'Licencia',
   autor: 'Autor', aviso: 'Aviso', consulta: 'Mensaje de consulta',
+  nombre: 'Nombre del colegio', lema: 'Lema', presentacion: 'Presentación general',
+  quienesSomos: 'Quiénes somos', mision: 'Misión', vision: 'Visión',
+  ofertaTitulo: 'Título de la oferta', acompanamiento: 'Acompañamiento',
+  imagenGrande: 'Imagen para pantallas grandes', mapaEmbed: 'Mapa dentro de la página',
+  prematricula: 'Prematrícula', periodo: 'Período de matrícula',
+  items: 'Asignatura o idioma', propuesta: 'Idea', requisitos: 'Requisito',
+};
+const SECTION_TITLES = {
+  titulo: 'Mensaje principal',
+  video: 'Video de portada', introduccion: 'Presentación de portada', tarjetas: 'Tarjetas de oferta',
+  acompanamiento: 'Acompañamiento', valores: 'Valores', beneficios: 'Beneficios',
+  servicios: 'Servicios', galeria: 'Galería de fotos', oferta: 'Áreas educativas',
+  propuesta: 'Nuestra propuesta', horarioInstitucional: 'Horario del colegio',
+  horarioAdministrativo: 'Horario de oficina', aranceles: 'Costos',
+  reserva: 'Reserva', horarioPrematricula: 'Horario de prematrícula',
+  telefonos: 'Teléfonos', whatsapp: 'WhatsApp', opiniones: 'Opiniones',
+  presentacionOpiniones: 'Presentación de opiniones', ejemplos: 'Opiniones de muestra',
 };
 const MEDIA_KEYS = new Set(['imagen', 'imagenGrande', 'archivo', 'poster']);
 const URL_KEYS = new Set(['facebook', 'instagram', 'mapa', 'mapaEmbed', 'fuente', 'licencia']);
@@ -42,10 +59,36 @@ function groupFor(root) {
   return GROUPS.find(group => group.roots.includes(root))?.id;
 }
 
-function labelFor(path) {
+function labelFor(path, content) {
   const parts = path.split('.');
-  return parts.map((part, index) => /^\d+$/.test(part) ? `#${Number(part) + 1}` : (TITLES[part] ?? part.replace(/([A-Z])/g, ' $1').toLowerCase()))
-    .map((part, index) => index === 0 ? part[0].toUpperCase() + part.slice(1) : part).join(' · ');
+  const key = parts.at(-1);
+  if (parts.length === 1) return TITLES[key] ?? key;
+  if (/^\d+$/.test(key)) return parts.at(-2)==='titulo'?`Línea ${Number(key)+1} del título`:`${TITLES[parts.at(-2)] ?? 'Texto'} ${Number(key) + 1}`;
+  if (parts.length === 2) return TITLES[key] ?? key.replace(/([A-Z])/g, ' $1').toLowerCase();
+  const parent = readPath(content, parts.slice(0, -1).join('.'));
+  const name = parent?.titulo ?? parent?.rubro ?? parent?.autor;
+  return name ? `${name}: ${TITLES[key] ?? key}` : (TITLES[key] ?? key.replace(/([A-Z])/g, ' $1').toLowerCase());
+}
+
+function sectionFor(path, content) {
+  const parts = path.split('.');
+  const root = parts[0];
+  let section = root;
+  if (['nombre', 'lema', 'presentacion', 'quienesSomos', 'mision', 'vision', 'historia'].includes(root)) section = 'institucion.general';
+  if (root === 'inicio' || root === 'admisiones' || root === 'contacto' || root === 'presentacionOpiniones') section = parts.length > 2 ? `${root}.${parts[1]}` : `${root}.general`;
+  if (['oferta', 'valores', 'beneficios', 'servicios', 'galeria', 'opiniones'].includes(root) && /^\d+$/.test(parts[1] ?? '')) section = `${root}.${parts[1]}`;
+  if (root === 'inicio' && parts[1] === 'tarjetas' && /^\d+$/.test(parts[2] ?? '')) section = `inicio.tarjetas.${parts[2]}`;
+  if (root === 'admisiones' && parts[1] === 'aranceles' && /^\d+$/.test(parts[2] ?? '')) section = `admisiones.aranceles.${parts[2]}`;
+  if (root === 'contacto' && parts[1] === 'telefonos' && /^\d+$/.test(parts[2] ?? '')) section = `contacto.telefonos.${parts[2]}`;
+  const sectionParts = section.split('.');
+  const number = sectionParts.find(part => /^\d+$/.test(part));
+  const parentKey = sectionParts.find(part => part in SECTION_TITLES) ?? root;
+  const item = number !== undefined ? readPath(content, section) : null;
+  const offerName = section.startsWith('inicio.tarjetas.') ? content.oferta.find(offer => offer.id === item?.id)?.titulo : null;
+  const name = item?.titulo ?? item?.rubro ?? item?.autor ?? offerName;
+  const title = number === undefined ? (SECTION_TITLES[parentKey] ?? 'Información general') :
+    `${SECTION_TITLES[parentKey] ?? 'Elemento'}: ${name ?? `n.º ${Number(number) + 1}`}`;
+  return { section, sectionTitle: title };
 }
 
 function candidate(value, path) {
@@ -79,7 +122,7 @@ export function editableFields(content, role) {
     if (after === undefined || !mayChangeField(role, { path: parts, before: value, after, kind: after !== null && typeof after === 'object' ? 'structure' : 'value' })) return;
     const group = groupFor(parts[0]);
     if (!group) return;
-    fields.push({ path, group, label: labelFor(path), kind: fieldKind(value, path), value });
+    fields.push({ path, group, label: labelFor(path, content), kind: fieldKind(value, path), value, ...sectionFor(path, content) });
   }
   visit(content, []);
   return fields;

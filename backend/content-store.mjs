@@ -4,7 +4,7 @@ import { validateContentChange } from '../lib/content-policy.mjs';
 import { invalidMediaChanges } from '../lib/media-policy.mjs';
 import { validateDraft } from '../admin/validacion.mjs';
 
-const availableMedia = JSON.parse(readFileSync(new URL('../contenido/medios-disponibles.json', import.meta.url), 'utf8'));
+const staticMedia = JSON.parse(readFileSync(new URL('../contenido/medios-disponibles.json', import.meta.url), 'utf8'));
 
 export class ContentError extends Error {
   constructor(code, message, details = []) {
@@ -19,7 +19,7 @@ function parsePayload(value) {
   return typeof value === 'string' ? JSON.parse(value) : value;
 }
 
-function validateCandidate(role, before, after) {
+function validateCandidate(role, before, after, availableMedia) {
   const access = validateContentChange(role, before, after);
   if (!access.allowed) {
     throw new ContentError('FORBIDDEN_CHANGE', 'El rol no puede guardar estos campos o el documento no tiene la forma esperada.',
@@ -87,7 +87,9 @@ export async function saveDraft(pool, { documentId, actorId, role, expectedVersi
         WHERE p.document_id = ?`, [documentId],
     );
     if (!working.length) throw new ContentError('NOT_FOUND', 'El documento todavía no tiene una revisión inicial publicada.');
-    const changed = validateCandidate(role, parsePayload(working[0].payload), content);
+    const [uploadedMedia] = await connection.execute("SELECT storage_key FROM media_assets WHERE kind IN ('image','video')");
+    const availableMedia = [...staticMedia, ...uploadedMedia.map(row => row.storage_key)];
+    const changed = validateCandidate(role, parsePayload(working[0].payload), content, availableMedia);
     const revisionId = randomUUID();
     await connection.execute(
       `INSERT INTO content_revisions

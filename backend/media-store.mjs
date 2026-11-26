@@ -1,0 +1,99 @@
+import { createHash, randomUUID } from 'node:crypto';
+import { createReadStream } from 'node:fs';
+import { mkdir, open, rename, stat, unlink } from 'node:fs/promises';
+import path from 'node:path';
+import { readFileSync } from 'node:fs';
+import { ContentError } from './content-store.mjs';
+
+const staticMedia = JSON.parse(readFileSync(new URL('../contenido/medios-disponibles.json', import.meta.url), 'utf8'));
+const TYPES = new Map([
+  ['image/jpeg', { ext: 'jpg', kind: 'image', max: 12 * 1024 * 1024 }],
+  ['image/png', { ext: 'png', kind: 'image', max: 12 * 1024 * 1024 }],
+  ['image/webp', { ext: 'webp', kind: 'image', max: 12 * 1024 * 1024 }],
+  ['video/mp4', { ext: 'mp4', kind: 'video', max: 100 * 1024 * 1024 }],
+]);
+
+function isSignature(mime, bytes) {
+  if (mime === 'image/jpeg') return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (mime === 'image/png') return bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'));
+  if (mime === 'image/webp') return bytes.length >= 12 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP';
+  if (mime === 'video/mp4') return bytes.length >= 12 && bytes.toString('ascii', 4, 8) === 'ftyp';
+  return false;
+}
+
+export async function listMedia(pool) {
+  const [rows] = await pool.execute("SELECT id, storage_key, mime_type FROM media_assets WHERE kind IN ('image','video') ORDER BY created_at DESC");
+  return [
+    ...staticMedia.map(storageKey => ({ storageKey, mimeType: storageKey.endsWith('.mp4') ? 'video/mp4' : `image/${storageKey.endsWith('.jpg') ? 'jpeg' : storageKey.split('.').at(-1)}`, previewUrl: null })),
+    ...rows.map(row => ({ storageKey: row.storage_key, mimeType: row.mime_type, previewUrl: `/api/media/preview/${row.id}` })),
+  ];
+}
+
+export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
+  if (role !== 'admin') throw new ContentError('FORBIDDEN_CHANGE', 'Solo Admin puede agregar imágenes o videos.');
+  if (typeof actorId !== 'string' || !actorId) throw new ContentError('UNAUTHORIZED', 'Sesión requerida.');
+  const mime = String(request.headers['content-type'] ?? '').toLowerCase();
+  const type = TYPES.get(mime);
+  if (!type) throw new ContentError('INVALID_MEDIA', 'Seleccione una imagen JPG, PNG o WebP, o un video MP4.');
+  await mkdir(mediaRoot, { recursive: true });
+  const id = randomUUID();
+  const tmp = path.join(mediaRoot, `.${id}.part`);
+  const final = path.join(mediaRoot, `${id}.${type.ext}`);
+  const handle = await open(tmp, 'wx');
+  const digest = createHash('sha256');
+  let count = 0;
+  let header = Buffer.alloc(0);
+  let completed = false;
+  try {
+    try {
+      for await (const chunk of request) {
+        count += chunk.length;
+        if (count > type.max) throw new ContentError('BODY_TOO_LARGE', 'El archivo supera el tamaño permitido.');
+        if (header.length < 16) header = Buffer.concat([header, chunk.subarray(0, 16 - header.length)]);
+        digest.update(chunk);
+        let offset = 0;
+        while (offset < chunk.length) offset += (await handle.write(chunk, offset, chunk.length - offset)).bytesWritten;
+      }
+    } finally { await handle.close(); }
+    if (!count || !isSignature(mime, header)) throw new ContentError('INVALID_MEDIA', 'El archivo no coincide con el formato indicado.');
+    await rename(tmp, final);
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      const storageKey = `uploads/${id}.${type.ext}`;
+      await connection.execute(
+        'INSERT INTO media_assets (id, kind, storage_key, mime_type, bytes, checksum_sha256, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [id, type.kind, storageKey, mime, count, digest.digest(), actorId],
+      );
+      await connection.execute(
+        "INSERT INTO audit_events (actor_id, action, target_type, target_id) VALUES (?, 'media.uploaded', 'media_asset', ?)",
+        [actorId, id],
+      );
+      await connection.commit();
+      completed = true;
+      return { id, storageKey, mimeType: mime, bytes: count, previewUrl: `/api/media/preview/${id}` };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally { connection.release(); }
+  } finally {
+    if (!completed) {
+      await unlink(tmp).catch(() => {});
+      await unlink(final).catch(() => {});
+    }
+  }
+}
+
+export async function openMediaPreview(pool, id, mediaRoot) {
+  if (!/^[0-9a-f-]{36}$/.test(id)) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
+  const [rows] = await pool.execute('SELECT storage_key, mime_type FROM media_assets WHERE id = ? LIMIT 1', [id]);
+  if (!rows.length) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
+  const name = path.basename(rows[0].storage_key);
+  if (!new RegExp(`^${id}\\.(jpg|png|webp|mp4)$`).test(name) || rows[0].storage_key !== `uploads/${name}`) {
+    throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
+  }
+  const file = path.join(mediaRoot, name);
+  const info = await stat(file).catch(() => null);
+  if (!info?.isFile()) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
+  return { stream: createReadStream(file), mimeType: rows[0].mime_type, bytes: info.size };
+}

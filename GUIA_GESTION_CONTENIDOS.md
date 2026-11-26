@@ -2,7 +2,7 @@
 
 ## Entrega disponible
 
-La ruta `/admin/` contiene un prototipo de edición de borradores. Organiza Inicio, Conócenos, Oferta educativa, Vida en el colegio, Admisiones, Contacto y Opiniones. Genera los formularios desde los valores editables de `contenido/colegio.json` y la política de roles: Admin puede modificar texto, estados y referencias visuales; Moderador solo recibe campos textuales. Permite revisar diferencias, deshacer el último cambio y descargar una copia completa del JSON.
+La ruta `/admin/` contiene un prototipo de edición de borradores. Organiza Inicio, Conócenos, Oferta educativa, Vida en el colegio, Admisiones, Contacto y Opiniones. Dentro de cada categoría hay apartados que se abren al tocarlos, con nombres cotidianos. Admin puede modificar texto, estados e imágenes o videos; Moderador solo recibe campos textuales. Permite revisar diferencias, deshacer el último cambio y descargar una copia completa del JSON.
 
 En GitHub Pages los cambios solo permanecen en la pestaña y pueden descargarse; no se guarda ni se publica allí. Bajo un servidor privado del mismo origen, el editor consulta la sesión, carga el borrador de trabajo y puede guardarlo en MariaDB mediante la API preparada. Esa integración aún no se ha probado con una instancia real. No se deben introducir expedientes ni datos privados en la vista pública.
 
@@ -27,7 +27,7 @@ El editor muestra la lista pendiente y no la convierte automáticamente en infor
 4. Revisar el contenido con el responsable institucional correspondiente.
 5. El responsable técnico incorpora la copia aprobada en `contenido/colegio.json`, regenera y verifica el sitio antes de publicarlo.
 
-En GitHub Pages la recarga vuelve a los datos originales; cerrar la pestaña sin descargar pierde el borrador. Admin puede seleccionar otros archivos ya presentes en el catálogo local. La carga de fotografías o videos nuevos todavía no está disponible.
+En GitHub Pages la recarga vuelve a los datos originales; cerrar la pestaña sin descargar pierde el borrador. Allí se pueden seleccionar archivos ya incluidos en la muestra. En el servidor privado, Admin también puede elegir un archivo nuevo de su equipo, esperar a que termine la carga, revisar el cambio y guardar el borrador. Moderador no ve el control para subir archivos. La carga y el guardado se han probado con dobles de MariaDB, pero no con una instancia real ni con el despliegue final.
 
 ## Integración privada pendiente
 

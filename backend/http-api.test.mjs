@@ -1,22 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createAdminHandler, createAdminServer } from './http-api.mjs';
+import path from 'node:path';
 
 const origin = 'https://admin.example.test';
 const csrfSecret = 'a-private-secret-with-at-least-32-characters';
 const mfaKey = 'aa'.repeat(32);
+const mediaRoot = path.resolve('uploads');
 
 async function withServer(options, run) {
-  const server = createAdminServer({ pool: {}, origin, csrfSecret, mfaKey, loginGate: async () => true, ...options });
+  const server = createAdminServer({ pool: {}, origin, csrfSecret, mfaKey, mediaRoot, loginGate: async () => true, ...options });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   try { await run(`http://127.0.0.1:${server.address().port}`); }
   finally { await new Promise(resolve => server.close(resolve)); }
 }
 
 test('no crea API sin límite de acceso y origen HTTPS', () => {
-  assert.throws(() => createAdminHandler({ pool: {}, origin, csrfSecret, mfaKey }), /límite/);
-  assert.throws(() => createAdminHandler({ pool: {}, origin: 'http://localhost', csrfSecret, mfaKey, loginGate: async () => true }), /HTTPS/);
-  assert.throws(() => createAdminHandler({ pool: {}, origin, csrfSecret, loginGate: async () => true }), /MFA/);
+  assert.throws(() => createAdminHandler({ pool: {}, origin, csrfSecret, mfaKey, mediaRoot }), /límite/);
+  assert.throws(() => createAdminHandler({ pool: {}, origin: 'http://localhost', csrfSecret, mfaKey, mediaRoot, loginGate: async () => true }), /HTTPS/);
+  assert.throws(() => createAdminHandler({ pool: {}, origin, csrfSecret, mediaRoot, loginGate: async () => true }), /MFA/);
+  assert.throws(() => createAdminHandler({ pool: {}, origin, csrfSecret, mfaKey, loginGate: async () => true }), /medios/);
 });
 
 test('login, CSRF y rol se obtienen de sesión, no del cuerpo', async () => {
@@ -77,5 +80,40 @@ test('solo una sesión autenticada puede leer el borrador de trabajo', async () 
     const result = await fetch(`${base}/api/content/colegio/working`, { headers: { cookie: `__Host-cnm_session=${token}` } });
     assert.equal(result.status, 200);
     assert.equal((await result.json()).version, '2');
+  });
+});
+
+test('la API de archivos exige sesión, CSRF y rol Admin', async () => {
+  const token = 'c'.repeat(64);
+  const bytes = Buffer.from('ffd8ff001122334455667788', 'hex');
+  let uploads = 0;
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'user-1', role: 'moderador' }) },
+    media: { uploadMedia: async () => { uploads++; return { storageKey: 'uploads/test.jpg' }; } },
+  } }, async base => {
+    const headers = { origin, cookie: `__Host-cnm_session=${token}`, 'content-type': 'image/jpeg' };
+    assert.equal((await fetch(`${base}/api/media`, { method: 'POST', headers: { origin, 'content-type': 'image/jpeg' }, body: bytes })).status, 401);
+    assert.equal((await fetch(`${base}/api/media`, { method: 'POST', headers, body: bytes })).status, 403);
+    const me = await fetch(`${base}/api/auth/me`, { headers: { cookie: headers.cookie } });
+    const { csrfToken } = await me.json();
+    assert.equal((await fetch(`${base}/api/media`, { method: 'POST', headers: { ...headers, 'x-csrf-token': csrfToken }, body: bytes })).status, 403);
+    assert.equal(uploads, 0);
+  });
+});
+
+test('Admin puede enviar un archivo sin declarar identidad en el cuerpo', async () => {
+  const token = 'd'.repeat(64);
+  let uploadArgs;
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'admin-real', role: 'admin' }) },
+    media: { uploadMedia: async (_pool, _req, args) => { uploadArgs = args; return { storageKey: 'uploads/nuevo.webp' }; } },
+  } }, async base => {
+    const cookie = `__Host-cnm_session=${token}`;
+    const me = await fetch(`${base}/api/auth/me`, { headers: { cookie } });
+    const { csrfToken } = await me.json();
+    const response = await fetch(`${base}/api/media`, { method: 'POST', headers: { origin, cookie, 'content-type': 'image/webp', 'x-csrf-token': csrfToken }, body: Buffer.from('RIFF1234WEBP') });
+    assert.equal(response.status, 201);
+    assert.equal(uploadArgs.actorId, 'admin-real');
+    assert.equal(uploadArgs.role, 'admin');
   });
 });
