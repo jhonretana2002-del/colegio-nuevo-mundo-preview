@@ -46,7 +46,7 @@ const OBJECT_TEMPLATES = {
 };
 const PAGE_LABELS = {
   titulo: 'Título principal', introduccion: 'Texto introductorio', antetitulo: 'Frase superior', descripcionBuscadores: 'Resumen para buscadores',
-  introAntetitulo: 'Frase de presentación', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', vidaAntetitulo: 'Frase de vida en el colegio',
+  introAntetitulo: 'Frase de presentación', consultaEnlace: 'Botón de consulta', conocenosEnlace: 'Enlace para conocer el colegio', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', tarjetasEnlace: 'Enlace de tarjetas', vidaAntetitulo: 'Frase de vida en el colegio', vidaEnlace: 'Enlace a vida en el colegio',
   quienesAntetitulo: 'Frase de quiénes somos', quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', misionTitulo: 'Título de misión', visionAntetitulo: 'Frase de visión', visionTitulo: 'Título de visión', valoresAntetitulo: 'Frase de valores', valoresTitulo: 'Título de valores', historiaTitulo: 'Título de historia', historiaAlternativaTitulo: 'Título para presentar el colegio', historiaInvitacion: 'Invitación a conocer el colegio',
   instruccion: 'Instrucción para consultar la oferta', nota: 'Nota sobre la oferta',
   propuestaAntetitulo: 'Frase de nuestra propuesta', propuestaTitulo: 'Título de nuestra propuesta', horarioAntetitulo: 'Frase del horario', horarioNota: 'Nota sobre visitas', serviciosAntetitulo: 'Frase de servicios', serviciosTitulo: 'Título de servicios', experienciasAntetitulo: 'Frase de experiencias', experienciasTitulo: 'Título de experiencias',
@@ -59,6 +59,10 @@ const PAGE_LABELS = {
   contactoAntetitulo: 'Frase de contacto', contactoTitulo: 'Título de contacto', ubicacionAntetitulo: 'Frase de ubicación', ubicacionTitulo: 'Título de ubicación', visitasNota: 'Nota sobre visitas', sinNoticias: 'Mensaje sin noticias',
   llamadaTitulo: 'Título de la invitación', llamadaTexto: 'Texto de la invitación',
   horarioTitulo: 'Título de horario', atencionTitulo: 'Título de horario de atención',
+  verificadasAntetitulo: 'Frase de opiniones verificadas', verificadasTituloLinea1: 'Título: primera línea', verificadasTituloLinea2: 'Título: segunda línea', verificadasIntroduccion: 'Introducción de opiniones',
+  invitacionFacebookAntetitulo: 'Frase de invitación a Facebook', invitacionFacebookTitulo: 'Título de invitación a Facebook', invitacionFacebookTexto: 'Texto de invitación a Facebook',
+  invitacionInstagramAntetitulo: 'Frase de invitación a Instagram', invitacionInstagramTitulo: 'Título de invitación a Instagram', invitacionInstagramTexto: 'Texto de invitación a Instagram',
+  ejemplosAntetitulo: 'Frase de la muestra de opiniones', ejemplosIntroduccion: 'Introducción de la muestra',
 };
 
 export function readPath(object, path) {
@@ -102,7 +106,8 @@ function sectionFor(path, content) {
       else if (['fechasTitulo', 'referenciaAntetitulo', 'calendarioPendiente', 'prematriculaResumen', 'periodoResumen'].includes(key)) part = 'fechas';
       else part = 'detalles';
     }
-    const title = { presentacion: 'Presentación de la página', pasos: 'Pasos de admisión', contenido: 'Textos de las secciones', fechas: 'Fechas y reserva', costos: 'Costos y aranceles', consulta: 'Formulario de consulta', detalles: 'Requisitos y detalles' }[part];
+    if (parts[1] === 'opiniones') part = key.startsWith('verificadas') ? 'verificadas' : key.startsWith('invitacionFacebook') ? 'facebook' : key.startsWith('invitacionInstagram') ? 'instagram' : 'ejemplos';
+    const title = { presentacion: 'Presentación de la página', pasos: 'Pasos de admisión', contenido: 'Textos de las secciones', fechas: 'Fechas y reserva', costos: 'Costos y aranceles', consulta: 'Formulario de consulta', detalles: 'Requisitos y detalles', verificadas: 'Opiniones verificadas', facebook: 'Invitación a Facebook', instagram: 'Invitación a Instagram', ejemplos: 'Muestra de opiniones' }[part];
     return { section: `${parts[0]}.${parts[1]}.${part}`, sectionTitle: title };
   }
   let section = root;

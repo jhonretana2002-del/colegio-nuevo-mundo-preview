@@ -5,9 +5,13 @@
   "paginas": {
     "inicio": {
       "introAntetitulo": "Colegio Nuevo Mundo · Costa Rica",
+      "consultaEnlace": "Solicitar información",
+      "conocenosEnlace": "Conozca nuestra esencia",
       "ofertaAntetitulo": "Un mundo por descubrir",
       "ofertaDescripcion": "Explore cada área y consulte sus asignaturas e idiomas.",
-      "vidaAntetitulo": "Cerca, en cada paso"
+      "tarjetasEnlace": "Conocer más",
+      "vidaAntetitulo": "Cerca, en cada paso",
+      "vidaEnlace": "Explore la vida en el colegio"
     },
     "conocenos": {
       "titulo": "Educar también es acompañar.",
@@ -99,6 +103,20 @@
     "pie": {
       "contactoTitulo": "Estamos para orientarle",
       "horarioTitulo": "Horario institucional"
+    },
+    "opiniones": {
+      "verificadasAntetitulo": "Experiencias y comunidad",
+      "verificadasTituloLinea1": "Lo que comparte",
+      "verificadasTituloLinea2": "nuestra comunidad.",
+      "verificadasIntroduccion": "Recomendaciones públicas y espacios para conocer el Colegio Nuevo Mundo.",
+      "invitacionFacebookAntetitulo": "Participa en la comunidad",
+      "invitacionFacebookTitulo": "Tu experiencia puede orientar a otra familia.",
+      "invitacionFacebookTexto": "Consulta las recomendaciones públicas o comparte tu experiencia en el perfil del colegio.",
+      "invitacionInstagramAntetitulo": "Conoce el colegio",
+      "invitacionInstagramTitulo": "Una comunidad que aprende y comparte.",
+      "invitacionInstagramTexto": "Descubre las actividades y novedades que el colegio comparte en sus redes.",
+      "ejemplosAntetitulo": "Experiencias de familias · muestra de diseño",
+      "ejemplosIntroduccion": "Así se presentarán las experiencias de las familias del Colegio Nuevo Mundo."
     },
     "noticias": {
       "titulo": "Lo que nos conecta.",
