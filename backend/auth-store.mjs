@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
+import { decryptMfaSecret, verifyTotp } from './mfa.mjs';
 
 const scrypt = promisify(scryptCallback);
 const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
@@ -27,7 +28,7 @@ function tokenHash(token) {
   return createHash('sha256').update(Buffer.from(token, 'hex')).digest();
 }
 
-export async function startSession(pool, { email, password }) {
+export async function startSession(pool, { email, password, totp, mfaKey }) {
   if (typeof email !== 'string' || email.length > 254 || typeof password !== 'string') return null;
   const [rows] = await pool.execute(
     'SELECT id, password_hash, role, active, mfa_secret_encrypted FROM admin_users WHERE email = ? LIMIT 1',
@@ -35,14 +36,42 @@ export async function startSession(pool, { email, password }) {
   );
   const user = rows[0];
   const valid = await verifyPassword(password, user?.password_hash ?? DUMMY_HASH);
-  if (!user || !valid || !user.active || user.mfa_secret_encrypted) return null;
+  if (!user || !valid || !user.active || (user.role === 'admin' && !user.mfa_secret_encrypted)) return null;
   const token = randomBytes(32).toString('hex');
   const sessionId = randomUUID();
-  await pool.execute(
-    `INSERT INTO admin_sessions (id, user_id, token_hash, expires_at)
-     VALUES (?, ?, ?, UTC_TIMESTAMP(6) + INTERVAL 8 HOUR)`,
-    [sessionId, user.id, tokenHash(token)],
-  );
+  if (user.mfa_secret_encrypted) {
+    if (typeof totp !== 'string' || !/^\d{6}$/.test(totp) || !mfaKey) return null;
+    const secret = decryptMfaSecret(user.mfa_secret_encrypted, mfaKey);
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      await connection.execute('INSERT IGNORE INTO admin_mfa_state (user_id) VALUES (?)', [user.id]);
+      const [states] = await connection.execute('SELECT last_step FROM admin_mfa_state WHERE user_id = ? FOR UPDATE', [user.id]);
+      const step = verifyTotp(secret, totp, Date.now(), states[0].last_step);
+      if (step === null) {
+        await connection.rollback();
+        return null;
+      }
+      await connection.execute('UPDATE admin_mfa_state SET last_step = ? WHERE user_id = ?', [step, user.id]);
+      await connection.execute(
+        `INSERT INTO admin_sessions (id, user_id, token_hash, expires_at)
+         VALUES (?, ?, ?, UTC_TIMESTAMP(6) + INTERVAL 8 HOUR)`,
+        [sessionId, user.id, tokenHash(token)],
+      );
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  } else {
+    await pool.execute(
+      `INSERT INTO admin_sessions (id, user_id, token_hash, expires_at)
+       VALUES (?, ?, ?, UTC_TIMESTAMP(6) + INTERVAL 8 HOUR)`,
+      [sessionId, user.id, tokenHash(token)],
+    );
+  }
   return { token, role: user.role, actorId: user.id, sessionId };
 }
 

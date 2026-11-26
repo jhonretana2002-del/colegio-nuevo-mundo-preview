@@ -46,9 +46,9 @@ async function readJson(req) {
   catch { throw new ContentError('BAD_REQUEST', 'JSON inválido.'); }
 }
 
-export function createAdminHandler({ pool, origin, csrfSecret, loginGate, stores = {} }) {
-  if (!pool || !origin || !/^https:\/\//.test(origin) || !csrfSecret || csrfSecret.length < 32 || typeof loginGate !== 'function') {
-    throw new Error('Se requiere MariaDB, origen HTTPS, secreto CSRF y límite de intentos de acceso.');
+export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, loginGate, stores = {} }) {
+  if (!pool || !origin || !/^https:\/\//.test(origin) || !csrfSecret || csrfSecret.length < 32 || !/^[0-9a-fA-F]{64}$/.test(mfaKey ?? '') || typeof loginGate !== 'function') {
+    throw new Error('Se requiere MariaDB, origen HTTPS, secretos CSRF/MFA y límite de intentos de acceso.');
   }
   const auth = { startSession, readSession, revokeSession, ...stores.auth };
   const content = { getPublished, saveDraft, ...stores.content };
@@ -64,7 +64,7 @@ export function createAdminHandler({ pool, origin, csrfSecret, loginGate, stores
         if (!body || typeof body !== 'object' || Array.isArray(body)) return respond(res, 400, { error: 'Solicitud inválida.' });
         const email = String(body.email ?? '').trim().toLowerCase();
         if (!(await loginGate({ email, ip: req.socket.remoteAddress }))) return respond(res, 429, { error: 'Demasiados intentos. Intente más tarde.' });
-        const session = await auth.startSession(pool, { email, password: body.password });
+        const session = await auth.startSession(pool, { email, password: body.password, totp: body.totp, mfaKey });
         if (!session) return respond(res, 401, { error: 'Credenciales inválidas o se requiere un segundo factor.' });
         return respond(res, 200, { role: session.role, csrfToken: csrfToken(session.token, csrfSecret) },
           { 'Set-Cookie': `${COOKIE}=${session.token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800` });

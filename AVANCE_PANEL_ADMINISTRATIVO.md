@@ -12,6 +12,7 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 - [x] Preparar hash de contraseñas y sesiones persistentes con roles leídos de MariaDB. Evidencia: `backend/auth-store.mjs` y `backend/auth-store.test.mjs`. Pendiente: MFA y recuperación.
 - [x] Preparar la API HTTP inicial de sesión y borradores con origen, cookie segura y CSRF. Evidencia: `backend/http-api.mjs` y `backend/http-api.test.mjs`. Pendiente: MFA y despliegue privado.
 - [x] Preparar límite de intentos persistente por cuenta e IP en MariaDB. Evidencia: `backend/migrations/002_login_limits.sql`, `backend/login-limit.mjs` y `backend/login-limit.test.mjs`. Pendiente: prueba contra MariaDB real.
+- [x] Preparar verificación TOTP para Admin, secreto cifrado y rechazo de códigos reutilizados. Evidencia: `backend/mfa.mjs`, `backend/auth-store.mjs`, `backend/migrations/003_mfa_state.sql` y pruebas. Pendiente: alta y recuperación MFA, integración con MariaDB real.
 - [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
 - [ ] Completar inventario y esquema versionado de todos los campos editables.
 - [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.

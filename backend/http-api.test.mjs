@@ -4,17 +4,19 @@ import { createAdminHandler, createAdminServer } from './http-api.mjs';
 
 const origin = 'https://admin.example.test';
 const csrfSecret = 'a-private-secret-with-at-least-32-characters';
+const mfaKey = 'aa'.repeat(32);
 
 async function withServer(options, run) {
-  const server = createAdminServer({ pool: {}, origin, csrfSecret, loginGate: async () => true, ...options });
+  const server = createAdminServer({ pool: {}, origin, csrfSecret, mfaKey, loginGate: async () => true, ...options });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   try { await run(`http://127.0.0.1:${server.address().port}`); }
   finally { await new Promise(resolve => server.close(resolve)); }
 }
 
 test('no crea API sin límite de acceso y origen HTTPS', () => {
-  assert.throws(() => createAdminHandler({ pool: {}, origin, csrfSecret }), /límite/);
-  assert.throws(() => createAdminHandler({ pool: {}, origin: 'http://localhost', csrfSecret, loginGate: async () => true }), /HTTPS/);
+  assert.throws(() => createAdminHandler({ pool: {}, origin, csrfSecret, mfaKey }), /límite/);
+  assert.throws(() => createAdminHandler({ pool: {}, origin: 'http://localhost', csrfSecret, mfaKey, loginGate: async () => true }), /HTTPS/);
+  assert.throws(() => createAdminHandler({ pool: {}, origin, csrfSecret, loginGate: async () => true }), /MFA/);
 });
 
 test('login, CSRF y rol se obtienen de sesión, no del cuerpo', async () => {
@@ -49,5 +51,18 @@ test('rechaza origen ajeno y límite de intentos', async () => {
     const body = JSON.stringify({ email: 'u@example.test', password: 'x' });
     assert.equal((await fetch(`${base}/api/auth/login`, { method: 'POST', headers: { ...headers, origin: 'https://otro.example' }, body })).status, 403);
     assert.equal((await fetch(`${base}/api/auth/login`, { method: 'POST', headers, body })).status, 429);
+  });
+});
+
+test('entrega TOTP al verificador de sesiones', async () => {
+  let received;
+  await withServer({ stores: { auth: { startSession: async (_pool, args) => { received = args; return null; } } } }, async base => {
+    const response = await fetch(`${base}/api/auth/login`, {
+      method: 'POST', headers: { origin, 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@example.test', password: 'clave', totp: '123456' }),
+    });
+    assert.equal(response.status, 401);
+    assert.equal(received.totp, '123456');
+    assert.equal(received.mfaKey, mfaKey);
   });
 });

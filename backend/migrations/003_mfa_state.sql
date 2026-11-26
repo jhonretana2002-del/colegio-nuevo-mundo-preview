@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS admin_mfa_state (
+  user_id CHAR(36) NOT NULL PRIMARY KEY,
+  last_step BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  CONSTRAINT fk_admin_mfa_user FOREIGN KEY (user_id) REFERENCES admin_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
