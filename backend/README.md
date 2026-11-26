@@ -18,3 +18,9 @@ Las migraciones usan un bloqueo de base de datos, checksum e identificadores de 
 - `audit_events` y `publish_jobs`: trazabilidad y resultado de despliegues.
 
 Las claves UUID se generan en la aplicación. Los tiempos se escriben en UTC. La API debe comprobar que solo Admin apruebe, publique o cambie medios; MariaDB no sustituye la autorización de servidor. Antes de producción faltan autenticación, API, respaldo, procesamiento de medios y conexión con el generador.
+
+## Borradores
+
+`content-store.mjs` expone `getPublished` y `saveDraft`. El guardado usa una transacción, bloquea la fila del documento, compara `expectedVersion`, valida el rol y el contenido frente a la revisión publicada, inserta una revisión inmutable y audita el cambio. La API HTTP deberá obtener `actorId` y `role` exclusivamente de una sesión autenticada, nunca del cuerpo de la solicitud.
+
+La importación inicial de `contenido/colegio.json`, la API HTTP y la publicación se implementarán después de conectar una instancia MariaDB real. Los tests de esta capa usan una conexión simulada; no certifican aún la migración SQL en el motor.
