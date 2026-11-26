@@ -7,5 +7,19 @@ export function validateDraft(data){
  if(a.matriculaAbierta&&!a.calendarioConfirmado)errors.push('Confirme el calendario antes de anunciar matrícula abierta.');
  if([...a.aranceles,a.reserva].some(f=>f.monto!==null&&(!Number.isFinite(f.monto)||f.monto<0)))errors.push('Los montos deben ser números iguales o mayores que cero.');
  if(data.oferta.some(item=>!item.items.length))errors.push('Cada área debe conservar su lista de asignaturas o idiomas.');
+ if(data.historia!==null&&(!data.historia.resumen.trim()||!data.historia.parrafos.length||data.historia.parrafos.some(text=>!text.trim())))errors.push('Complete la historia institucional antes de guardar.');
+ if(data.horarioAdministrativo!==null&&(!data.horarioAdministrativo.length||data.horarioAdministrativo.some(item=>!item.dias.trim()||!item.horas.trim())))errors.push('Complete los días y horas del horario administrativo.');
+ const links=[data.contacto.facebook,data.contacto.instagram,data.contacto.mapa,data.contacto.mapaEmbed,data.inicio.video.fuente,data.inicio.video.licencia,...data.opiniones.map(item=>item.fuente)];
+ if(links.some(link=>link!==null&&(!/^https:\/\//i.test(link)||!safeHttps(link))))errors.push('Los enlaces externos deben usar HTTPS y una URL válida.');
+ if(data.contacto.mapaEmbed!==null&&!isGoogleMaps(data.contacto.mapaEmbed))errors.push('El mapa incrustado debe proceder de Google Maps.');
  return errors;
+}
+
+function safeHttps(value){
+ try{const url=new URL(value);return url.protocol==='https:'&&Boolean(url.hostname)&&!url.username&&!url.password;}
+ catch{return false;}
+}
+function isGoogleMaps(value){
+ try{const host=new URL(value).hostname.toLowerCase();return host==='google.com'||host.endsWith('.google.com');}
+ catch{return false;}
 }

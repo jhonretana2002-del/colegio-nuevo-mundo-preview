@@ -1,10 +1,10 @@
-# Gestión de contenidos · siguiente fase
+# Gestión de contenidos · avance de implementación
 
 ## Entrega disponible
 
-La ruta `/admin/` contiene un prototipo funcional de edición de borradores. Se conecta por lectura a `contenido/colegio.json`; organiza Inicio, Conócenos, Contacto, Oferta educativa y Admisiones. Permite ajustar campos, revisar diferencias, deshacer el último cambio y descargar una copia completa del JSON. El borrador conserva los campos que el editor aún no expone.
+La ruta `/admin/` contiene un prototipo de edición de borradores. Organiza Inicio, Conócenos, Oferta educativa, Vida en el colegio, Admisiones, Contacto y Opiniones. Genera los formularios desde los valores editables de `contenido/colegio.json` y la política de roles: Admin puede modificar texto, estados y referencias visuales; Moderador solo recibe campos textuales. Permite revisar diferencias, deshacer el último cambio y descargar una copia completa del JSON.
 
-Los cambios solo permanecen en memoria de la pestaña. La descarga permite conservarlos, pero no actualiza el archivo del repositorio ni la página pública. No hay autenticación, base de datos, guardado ni publicación desde este prototipo. No se deben introducir expedientes ni datos privados. GitHub Pages continúa siendo una exportación estática.
+En GitHub Pages los cambios solo permanecen en la pestaña y pueden descargarse; no se guarda ni se publica allí. Bajo un servidor privado del mismo origen, el editor consulta la sesión, carga el borrador de trabajo y puede guardarlo en MariaDB mediante la API preparada. Esa integración aún no se ha probado con una instancia real. No se deben introducir expedientes ni datos privados en la vista pública.
 
 ## Validación institucional
 
@@ -23,11 +23,11 @@ El editor muestra la lista pendiente y no la convierte automáticamente en infor
 
 1. Elegir una categoría y editar sus campos.
 2. Seleccionar «Revisar borrador» y comprobar el original frente al texto propuesto.
-3. Corregir los avisos de validación y descargar `colegio-borrador.json`.
+3. Corregir los avisos de validación. En GitHub Pages, descargar `colegio-borrador.json`; en el servidor privado, guardar el borrador.
 4. Revisar el contenido con el responsable institucional correspondiente.
 5. El responsable técnico incorpora la copia aprobada en `contenido/colegio.json`, regenera y verifica el sitio antes de publicarlo.
 
-La recarga vuelve a los datos originales. Cerrar la pestaña sin descargar pierde el borrador. Las imágenes y los videos se mantienen como recursos existentes hasta disponer del material definitivo.
+En GitHub Pages la recarga vuelve a los datos originales; cerrar la pestaña sin descargar pierde el borrador. Admin puede seleccionar otros archivos ya presentes en el catálogo local. La carga de fotografías o videos nuevos todavía no está disponible.
 
 ## Integración privada pendiente
 
@@ -35,8 +35,8 @@ Se necesita identificar la ruta o repositorio del proyecto privado antes de impl
 
 El panel definitivo deberá incluir acceso del personal, permisos de editor y publicador, guardado de borradores, revisión previa, historial y recuperación. La publicación debe regenerar el sitio desde una versión aprobada y confirmar el despliegue. Las credenciales permanecen en el servidor; nunca se incluyen claves de GitHub en el navegador.
 
-Noticias, servicios, horarios y biblioteca multimedia se incorporarán al editor después de conectar el modelo de datos y almacenamiento del proyecto privado. No se inventan publicaciones ni registros de usuarios para simular una integración.
+Los valores de servicios, horarios y opiniones presentes en `contenido/colegio.json` ya aparecen en el editor. Quedan pendientes los textos escritos directamente en plantillas, la carga de medios nuevos, las noticias, la vista previa generada, el flujo de aprobación y el despliegue. No se inventan publicaciones ni registros de usuarios para simular una integración.
 
 ## Verificación
 
-Ejecutar `node --test scripts/gestion.test.mjs`. Las comprobaciones cubren montos pendientes, curso lectivo, cero, negativos y datos de contacto/listas inválidos. La revisión de navegador comprueba edición, diferencias, descarga, deshacer, navegación por categorías y adaptación móvil.
+Ejecutar `node --test admin/field-catalog.test.mjs lib/media-policy.test.mjs backend/*.test.mjs scripts/content-policy.test.mjs scripts/gestion.test.mjs`. Las pruebas cubren roles, cobertura de campos, medios disponibles, guardado, autenticación y validaciones del borrador. Se comprobó en un navegador local la navegación por siete categorías, la edición de una tarjeta y la revisión de diferencias en un ancho móvil.

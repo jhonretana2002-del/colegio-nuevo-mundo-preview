@@ -36,7 +36,7 @@ test('guarda un borrador textual y una auditoría dentro de la misma transacció
 
 test('un Moderador conserva cambios visuales previos de Admin al guardar texto', async () => {
   const working = structuredClone(source);
-  working.inicio.video.archivo = 'video-nuevo.mp4';
+  working.inicio.acompanamiento.imagen = 'estudiantes-480.webp';
   const { pool, calls } = fakeDatabase(1, working);
   const content = structuredClone(working);
   content.mision = 'Texto del moderador';
@@ -54,6 +54,19 @@ test('rechaza medio editado por Moderador y revierte la transacción', async () 
     error => error instanceof ContentError && error.code === 'FORBIDDEN_CHANGE');
   assert.deepEqual(calls.slice(-2), ['rollback', 'release']);
   assert.equal(calls.some(call => typeof call === 'object' && call.sql.includes('INSERT INTO content_revisions')), false);
+});
+
+test('Admin puede reemplazar una imagen existente, pero no una ruta externa o inexistente', async () => {
+  const db = fakeDatabase();
+  const content = structuredClone(source);
+  content.inicio.acompanamiento.imagen = 'estudiantes-480.webp';
+  assert.deepEqual((await saveDraft(db.pool, { documentId: 'document-1', actorId: 'user-1', role: 'admin', expectedVersion: '0', content })).changed,
+    ['inicio.acompanamiento.imagen']);
+  const invalid = fakeDatabase();
+  content.inicio.acompanamiento.imagen = '../archivo.webp';
+  await assert.rejects(saveDraft(invalid.pool, { documentId: 'document-1', actorId: 'user-1', role: 'admin', expectedVersion: '0', content }),
+    error => error instanceof ContentError && error.code === 'INVALID_MEDIA');
+  assert.deepEqual(invalid.calls.slice(-2), ['rollback', 'release']);
 });
 
 test('versión obsoleta no sobrescribe otro cambio', async () => {

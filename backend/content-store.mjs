@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { validateContentChange } from '../lib/content-policy.mjs';
+import { invalidMediaChanges } from '../lib/media-policy.mjs';
 import { validateDraft } from '../admin/validacion.mjs';
+
+const availableMedia = JSON.parse(readFileSync(new URL('../contenido/medios-disponibles.json', import.meta.url), 'utf8'));
 
 export class ContentError extends Error {
   constructor(code, message, details = []) {
@@ -23,6 +27,8 @@ function validateCandidate(role, before, after) {
   }
   const errors = validateDraft(after);
   if (errors.length) throw new ContentError('INVALID_CONTENT', 'El contenido no supera la validación.', errors);
+  const invalidMedia = invalidMediaChanges(before, after, availableMedia);
+  if (invalidMedia.length) throw new ContentError('INVALID_MEDIA', 'El medio no está disponible o no tiene el tipo esperado.', invalidMedia);
   if (!access.changed.length) throw new ContentError('NO_CHANGES', 'No hay cambios para guardar.');
   return access.changed;
 }
