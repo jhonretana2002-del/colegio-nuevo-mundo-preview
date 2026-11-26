@@ -44,6 +44,16 @@ const OBJECT_TEMPLATES = {
   historia: { resumen: '', parrafos: [''] },
   horarioAdministrativo: [{ dias: '', horas: '' }],
 };
+const PAGE_LABELS = {
+  titulo: 'Título principal', introduccion: 'Texto introductorio', antetitulo: 'Frase superior', descripcionBuscadores: 'Resumen para buscadores',
+  introAntetitulo: 'Frase de presentación', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', vidaAntetitulo: 'Frase de vida en el colegio',
+  quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', visionAntetitulo: 'Frase de visión', valoresAntetitulo: 'Frase de valores', historiaInvitacion: 'Invitación a conocer el colegio',
+  instruccion: 'Instrucción para consultar la oferta', nota: 'Nota sobre la oferta',
+  propuestaTitulo: 'Título de nuestra propuesta', horarioNota: 'Nota sobre visitas', serviciosTitulo: 'Título de servicios', experienciasTitulo: 'Título de experiencias',
+  procesoTitulo: 'Título del proceso', detallesTitulo: 'Título de detalles',
+  paso1Titulo: 'Paso 1: título', paso1Texto: 'Paso 1: explicación', paso2Titulo: 'Paso 2: título', paso2Texto: 'Paso 2: explicación', paso3Titulo: 'Paso 3: título', paso3Texto: 'Paso 3: explicación',
+  contactoTitulo: 'Título de contacto', ubicacionTitulo: 'Título de ubicación', sinNoticias: 'Mensaje sin noticias',
+};
 
 export function readPath(object, path) {
   return path.split('.').reduce((value, key) => value?.[key], object);
@@ -64,7 +74,7 @@ function groupFor(parts) {
 function labelFor(path, content) {
   const parts = path.split('.');
   const key = parts.at(-1);
-  if (parts[0] === 'paginas') return ({titulo:'Título principal',introduccion:'Texto introductorio',antetitulo:'Frase superior',descripcionBuscadores:'Resumen para buscadores'})[key] ?? key;
+  if (parts[0] === 'paginas') return PAGE_LABELS[key] ?? key;
   if (parts.length === 1) return TITLES[key] ?? key;
   if (/^\d+$/.test(key)) return parts.at(-2)==='titulo'?`Línea ${Number(key)+1} del título`:`${TITLES[parts.at(-2)] ?? 'Texto'} ${Number(key) + 1}`;
   if (parts.length === 2) return TITLES[key] ?? key.replace(/([A-Z])/g, ' $1').toLowerCase();
@@ -76,7 +86,11 @@ function labelFor(path, content) {
 function sectionFor(path, content) {
   const parts = path.split('.');
   const root = parts[0];
-  if (root === 'paginas') return { section: parts.slice(0, 2).join('.'), sectionTitle: 'Presentación de la página' };
+  if (root === 'paginas') {
+    const part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(parts[2]) ? 'presentacion' : parts[2].startsWith('paso') ? 'pasos' : 'contenido';
+    const title = { presentacion: 'Presentación de la página', pasos: 'Pasos de admisión', contenido: 'Textos de las secciones' }[part];
+    return { section: `${parts[0]}.${parts[1]}.${part}`, sectionTitle: title };
+  }
   let section = root;
   if (['nombre', 'lema', 'presentacion', 'quienesSomos', 'mision', 'vision', 'historia'].includes(root)) section = 'institucion.general';
   if (root === 'inicio' || root === 'admisiones' || root === 'contacto' || root === 'presentacionOpiniones') section = parts.length > 2 ? `${root}.${parts[1]}` : `${root}.general`;

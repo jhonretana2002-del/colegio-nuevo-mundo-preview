@@ -3,41 +3,69 @@
   "publicUrl": "https://jhonretana2002-del.github.io/colegio-nuevo-mundo-preview/",
   "revision": "2026-11-17",
   "paginas": {
+    "inicio": {
+      "introAntetitulo": "Colegio Nuevo Mundo · Costa Rica",
+      "ofertaAntetitulo": "Un mundo por descubrir",
+      "ofertaDescripcion": "Explore cada área y consulte sus asignaturas e idiomas.",
+      "vidaAntetitulo": "Cerca, en cada paso"
+    },
     "conocenos": {
       "titulo": "Educar también es acompañar.",
       "introduccion": "Conozca nuestra identidad, nuestro propósito y los valores que orientan a nuestra comunidad educativa.",
       "antetitulo": "Identidad institucional",
-      "descripcionBuscadores": "Identidad, misión, visión y valores del Colegio Nuevo Mundo."
+      "descripcionBuscadores": "Identidad, misión, visión y valores del Colegio Nuevo Mundo.",
+      "quienesTitulo": "Una comunidad cercana.",
+      "misionAntetitulo": "Nuestro propósito",
+      "visionAntetitulo": "Hacia dónde vamos",
+      "valoresAntetitulo": "Lo que nos guía",
+      "historiaInvitacion": "Converse con nuestro equipo para conocer más sobre el colegio y su trayectoria."
     },
     "oferta": {
       "titulo": "Una formación para aprender y crecer.",
       "introduccion": "Conozca las asignaturas de III Ciclo y Educación Diversificada, las materias complementarias y nuestra educación multilingüe.",
       "antetitulo": "Nuestra oferta educativa",
-      "descripcionBuscadores": "III Ciclo, Educación Diversificada, materias complementarias e idiomas."
+      "descripcionBuscadores": "III Ciclo, Educación Diversificada, materias complementarias e idiomas.",
+      "instruccion": "Seleccione un tema para consultar su información. Al abrir otra opción, la anterior se cierra.",
+      "nota": "Consulte con el colegio el alcance de las asignaturas y los idiomas para el nivel de su interés."
     },
     "vida": {
       "titulo": "Aprender también es sentirse acompañado.",
       "introduccion": "Una propuesta que combina clases presenciales, atención personalizada y comunicación permanente con las familias.",
       "antetitulo": "Vida en el colegio",
-      "descripcionBuscadores": "Propuesta educativa, tecnología, alimentación, transporte y horario institucional."
+      "descripcionBuscadores": "Propuesta educativa, tecnología, alimentación, transporte y horario institucional.",
+      "propuestaTitulo": "Cerca, en cada paso.",
+      "horarioNota": "Para coordinar una visita, confirme el horario de atención con nuestro equipo.",
+      "serviciosTitulo": "Lo que acompaña la jornada.",
+      "experienciasTitulo": "Espacios para compartir."
     },
     "admisiones": {
       "titulo": "Únase a nuestra comunidad educativa.",
       "introduccion": "Conozca los requisitos, consulte las fechas y coordine con nuestro equipo los pasos para iniciar el proceso de admisión.",
       "antetitulo": "Admisiones",
-      "descripcionBuscadores": "Requisitos, prematrícula, fechas, aranceles y consulta de admisión."
+      "descripcionBuscadores": "Requisitos, prematrícula, fechas, aranceles y consulta de admisión.",
+      "procesoTitulo": "Su proceso, paso a paso.",
+      "detallesTitulo": "Lo que necesita conocer.",
+      "paso1Titulo": "Consulte con Admisiones",
+      "paso1Texto": "Comparta el nivel de interés y las dudas de su familia.",
+      "paso2Titulo": "Revise los requisitos",
+      "paso2Texto": "Conozca qué documentación necesita para iniciar el proceso.",
+      "paso3Titulo": "Coordine el siguiente paso",
+      "paso3Texto": "Confirme disponibilidad y condiciones directamente con el colegio."
     },
     "contacto": {
       "titulo": "Estamos para orientarle.",
       "introduccion": "Conversemos sobre la oferta educativa, los servicios y el próximo paso de su familia.",
       "antetitulo": "Contacto y ubicación",
-      "descripcionBuscadores": "Teléfonos, WhatsApp, correo y ubicación del Colegio Nuevo Mundo."
+      "descripcionBuscadores": "Teléfonos, WhatsApp, correo y ubicación del Colegio Nuevo Mundo.",
+      "contactoTitulo": "Contacte al colegio.",
+      "ubicacionTitulo": "San Francisco de Dos Ríos."
     },
     "noticias": {
       "titulo": "Lo que nos conecta.",
       "introduccion": "Un espacio para las noticias, actividades y comunicados de nuestra comunidad educativa.",
       "antetitulo": "Noticias y actividades",
-      "descripcionBuscadores": "Noticias y actividades de nuestra comunidad educativa."
+      "descripcionBuscadores": "Noticias y actividades de nuestra comunidad educativa.",
+      "sinNoticias": "Esta vista previa todavía no incluye noticias. Compartiremos las novedades cuando estén disponibles."
     }
   },
   "nombre": "Colegio Nuevo Mundo",

@@ -15,6 +15,16 @@ test('Moderador puede modificar texto existente en varias secciones', () => {
   assert.deepEqual(validateContentChange('moderador', source, next).rejected, []);
 });
 
+test('Moderador puede corregir textos de páginas sin alterar su estructura', () => {
+  const next = edit(data => {
+    data.paginas.inicio.ofertaDescripcion = 'Conozca nuestras áreas educativas.';
+    data.paginas.admisiones.paso2Texto = 'Prepare la documentación necesaria.';
+  });
+  assert.equal(validateContentChange('moderador', source, next).allowed, true);
+  next.paginas.admisiones.paso4Texto = 'Paso nuevo';
+  assert.equal(validateContentChange('moderador', source, next).allowed, false);
+});
+
 test('Moderador no puede cambiar medio, estado, dato técnico ni estructura', () => {
   const next = edit(data => {
     data.inicio.video.archivo = 'otro.mp4';
