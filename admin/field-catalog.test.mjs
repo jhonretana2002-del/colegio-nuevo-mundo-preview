@@ -48,6 +48,9 @@ test('Moderador solo recibe texto y Admin recibe campos visuales y de estado', (
   assert.equal(admin.find(field => field.path === 'nombre').label, 'Nombre del colegio');
   assert.equal(admin.find(field => field.path === 'galeria.0.imagen').sectionTitle, 'Galería de fotos: Convivir y descubrir');
   assert.equal(admin.find(field => field.path === 'inicio.tarjetas.0.imagen').sectionTitle, 'Tarjetas de oferta: III Ciclo');
+  assert.equal(moderator.find(field => field.path === 'paginas.conocenos.titulo').group, 'institucion');
+  assert.equal(moderator.find(field => field.path === 'paginas.noticias.descripcionBuscadores').group, 'noticias');
+  assert.equal(admin.find(field => field.path === 'paginas.admisiones.introduccion').label, 'Texto introductorio');
 });
 
 test('lectura y escritura de rutas conservan la estructura del documento', () => {

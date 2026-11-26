@@ -1,6 +1,7 @@
 export function validateDraft(data){
  const errors=[];const a=data.admisiones;
  if(!data.nombre.trim()||data.inicio.titulo.some(line=>!line.trim()))errors.push('Complete el nombre del colegio y las tres líneas del título.');
+ if(data.paginas&&Object.values(data.paginas).some(page=>Object.values(page).some(value=>typeof value!=='string'||!value.trim())))errors.push('Complete los títulos y textos de presentación de las páginas.');
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contacto.correo))errors.push('Revise el correo electrónico.');
  if(!/^\d{8,15}$/.test(data.contacto.whatsapp.numero))errors.push('WhatsApp debe contener entre 8 y 15 dígitos, incluido el código de país.');
  if((a.calendarioConfirmado||a.matriculaAbierta||a.aranceles.some(f=>f.monto!==null))&&!a.cursoLectivo)errors.push('Indique el curso lectivo antes de confirmar fechas o registrar aranceles.');

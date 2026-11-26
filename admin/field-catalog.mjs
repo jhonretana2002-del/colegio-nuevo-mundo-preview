@@ -8,6 +8,7 @@ export const GROUPS = [
   { id: 'admisiones', title: 'Admisiones', description: 'Actualice requisitos, fechas y costos.', roots: ['admisiones'] },
   { id: 'contacto', title: 'Contacto', description: 'Mantenga al día teléfonos, correo y ubicación.', roots: ['contacto'] },
   { id: 'opiniones', title: 'Opiniones', description: 'Revise los textos que se muestran como opiniones.', roots: ['opiniones', 'presentacionOpiniones'] },
+  { id: 'noticias', title: 'Noticias', description: 'Edite la presentación de la página de noticias.', roots: [] },
 ];
 
 const TITLES = {
@@ -55,13 +56,15 @@ export function writePath(object, path, value) {
   parent[key] = value;
 }
 
-function groupFor(root) {
-  return GROUPS.find(group => group.roots.includes(root))?.id;
+function groupFor(parts) {
+  if (parts[0] === 'paginas') return parts[1] === 'conocenos' ? 'institucion' : parts[1];
+  return GROUPS.find(group => group.roots.includes(parts[0]))?.id;
 }
 
 function labelFor(path, content) {
   const parts = path.split('.');
   const key = parts.at(-1);
+  if (parts[0] === 'paginas') return ({titulo:'Título principal',introduccion:'Texto introductorio',antetitulo:'Frase superior',descripcionBuscadores:'Resumen para buscadores'})[key] ?? key;
   if (parts.length === 1) return TITLES[key] ?? key;
   if (/^\d+$/.test(key)) return parts.at(-2)==='titulo'?`Línea ${Number(key)+1} del título`:`${TITLES[parts.at(-2)] ?? 'Texto'} ${Number(key) + 1}`;
   if (parts.length === 2) return TITLES[key] ?? key.replace(/([A-Z])/g, ' $1').toLowerCase();
@@ -73,6 +76,7 @@ function labelFor(path, content) {
 function sectionFor(path, content) {
   const parts = path.split('.');
   const root = parts[0];
+  if (root === 'paginas') return { section: parts.slice(0, 2).join('.'), sectionTitle: 'Presentación de la página' };
   let section = root;
   if (['nombre', 'lema', 'presentacion', 'quienesSomos', 'mision', 'vision', 'historia'].includes(root)) section = 'institucion.general';
   if (root === 'inicio' || root === 'admisiones' || root === 'contacto' || root === 'presentacionOpiniones') section = parts.length > 2 ? `${root}.${parts[1]}` : `${root}.general`;
@@ -120,7 +124,7 @@ export function editableFields(content, role) {
     if (value !== null && typeof value === 'object') return Object.entries(value).forEach(([key, item]) => visit(item, [...parts, key]));
     const after = candidate(value, path);
     if (after === undefined || !mayChangeField(role, { path: parts, before: value, after, kind: after !== null && typeof after === 'object' ? 'structure' : 'value' })) return;
-    const group = groupFor(parts[0]);
+    const group = groupFor(parts);
     if (!group) return;
     fields.push({ path, group, label: labelFor(path, content), kind: fieldKind(value, path), value, ...sectionFor(path, content) });
   }

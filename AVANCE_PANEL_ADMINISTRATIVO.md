@@ -23,8 +23,9 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 - [x] Preparar alta interactiva de la primera cuenta Admin con contraseña oculta y confirmación MFA; importación inicial repetible de `colegio.json`. Evidencia: `backend/setup-first-admin.mjs`, `backend/seed-content.mjs` y pruebas de importación. Pendiente: ejecución con MariaDB real.
 - [x] Preparar servidor privado de panel y API en loopback, con origen HTTPS obligatorio y lista explícita de archivos públicos necesarios. Evidencia: `backend/private-server.mjs` y pruebas de rutas y video. Pendiente: proxy HTTPS y despliegue real.
 - [x] Preparar estados de revisión y aprobación en MariaDB: el autor o Admin envía un borrador; solo Admin aprueba la revisión vigente, con control de versión y auditoría. El panel muestra acciones y mensajes sencillos según el estado. Evidencia: `backend/content-store.mjs`, `backend/http-api.mjs`, `admin/gestion.js` y pruebas. Pendiente: prueba contra MariaDB real y validación de uso con personal del colegio.
+- [x] Trasladar títulos, introducciones, frases superiores y resúmenes de buscadores de las seis páginas interiores a `contenido/colegio.json`, accesibles por página para Admin y Moderador. Evidencia: `scripts/generar-sitio.mjs`, `admin/field-catalog.mjs` y pruebas; la generación conserva el HTML actual.
 - [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
-- [ ] Completar inventario y esquema versionado de todos los campos editables, incluidos los textos todavía fijos en plantillas.
+- [ ] Completar inventario y esquema versionado de todos los campos editables; todavía quedan textos fijos en plantillas, formularios, navegación y pie de página.
 - [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.
 - [ ] Implementar inicio de sesión, recuperación, MFA para Admin y autorización por campo en cada operación del servidor.
 - [ ] Probar el prototipo con guardado real y repetir pruebas de permisos contra la API y MariaDB.

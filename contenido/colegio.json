@@ -2,6 +2,44 @@
   "basePath": "/colegio-nuevo-mundo-preview/",
   "publicUrl": "https://jhonretana2002-del.github.io/colegio-nuevo-mundo-preview/",
   "revision": "2026-11-17",
+  "paginas": {
+    "conocenos": {
+      "titulo": "Educar también es acompañar.",
+      "introduccion": "Conozca nuestra identidad, nuestro propósito y los valores que orientan a nuestra comunidad educativa.",
+      "antetitulo": "Identidad institucional",
+      "descripcionBuscadores": "Identidad, misión, visión y valores del Colegio Nuevo Mundo."
+    },
+    "oferta": {
+      "titulo": "Una formación para aprender y crecer.",
+      "introduccion": "Conozca las asignaturas de III Ciclo y Educación Diversificada, las materias complementarias y nuestra educación multilingüe.",
+      "antetitulo": "Nuestra oferta educativa",
+      "descripcionBuscadores": "III Ciclo, Educación Diversificada, materias complementarias e idiomas."
+    },
+    "vida": {
+      "titulo": "Aprender también es sentirse acompañado.",
+      "introduccion": "Una propuesta que combina clases presenciales, atención personalizada y comunicación permanente con las familias.",
+      "antetitulo": "Vida en el colegio",
+      "descripcionBuscadores": "Propuesta educativa, tecnología, alimentación, transporte y horario institucional."
+    },
+    "admisiones": {
+      "titulo": "Únase a nuestra comunidad educativa.",
+      "introduccion": "Conozca los requisitos, consulte las fechas y coordine con nuestro equipo los pasos para iniciar el proceso de admisión.",
+      "antetitulo": "Admisiones",
+      "descripcionBuscadores": "Requisitos, prematrícula, fechas, aranceles y consulta de admisión."
+    },
+    "contacto": {
+      "titulo": "Estamos para orientarle.",
+      "introduccion": "Conversemos sobre la oferta educativa, los servicios y el próximo paso de su familia.",
+      "antetitulo": "Contacto y ubicación",
+      "descripcionBuscadores": "Teléfonos, WhatsApp, correo y ubicación del Colegio Nuevo Mundo."
+    },
+    "noticias": {
+      "titulo": "Lo que nos conecta.",
+      "introduccion": "Un espacio para las noticias, actividades y comunicados de nuestra comunidad educativa.",
+      "antetitulo": "Noticias y actividades",
+      "descripcionBuscadores": "Noticias y actividades de nuestra comunidad educativa."
+    }
+  },
   "nombre": "Colegio Nuevo Mundo",
   "lema": "Aprender hoy, transformar mañana.",
   "presentacion": "En el Colegio Nuevo Mundo acompañamos a cada estudiante con una educación inclusiva, atención personalizada y formación integral. Conozca nuestra oferta educativa, nuestra forma de aprender y los pasos para iniciar una consulta de admisión.",
