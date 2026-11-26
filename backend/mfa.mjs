@@ -29,6 +29,15 @@ export function base32(secret) {
   return result;
 }
 
+export function enrollmentUri(email, secret) {
+  if (typeof email !== 'string' || !email || !Buffer.isBuffer(secret) || secret.length !== 20) {
+    throw new Error('Datos de inscripción MFA inválidos.');
+  }
+  const label = `Colegio Nuevo Mundo:${email}`;
+  const params = new URLSearchParams({ secret: base32(secret), issuer: 'Colegio Nuevo Mundo', algorithm: 'SHA1', digits: '6', period: '30' });
+  return `otpauth://totp/${encodeURIComponent(label)}?${params}`;
+}
+
 export function encryptMfaSecret(secret, keyHex) {
   if (!Buffer.isBuffer(secret) || secret.length !== 20) throw new Error('Secreto MFA inválido.');
   const iv = randomBytes(12);
