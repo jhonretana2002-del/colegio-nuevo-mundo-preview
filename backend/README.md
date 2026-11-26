@@ -1,12 +1,15 @@
 # Base administrativa con MariaDB
 
-Esta carpeta prepara el almacenamiento del panel. El sitio público sigue siendo estático y se genera desde la revisión aprobada; este código no activa por sí solo el acceso `/admin/`.
+Esta carpeta prepara el almacenamiento y un servidor privado para el panel. El sitio público sigue siendo estático; iniciar este servidor no publica borradores ni cambia el diseño público.
 
 ## Inicio
 
 1. Crear una base MariaDB con `utf8mb4` y un usuario de aplicación con privilegios sobre esa base. Usar MariaDB 10.6 o posterior como objetivo de compatibilidad.
-2. Configurar `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `MFA_ENCRYPTION_KEY` y `MEDIA_ROOT` en el entorno privado del servidor. `MEDIA_ROOT` debe ser una carpeta absoluta y privada con permisos de escritura para el proceso; se pasa como `mediaRoot` a `createAdminHandler`. La clave MFA debe ser aleatoria, de 32 bytes expresados en 64 caracteres hexadecimales. `.env.example` solo muestra los nombres; no cargar secretos al repositorio.
-3. En esta carpeta, ejecutar `pnpm install --frozen-lockfile` y `pnpm db:migrate` desde el servidor que pueda conectar con MariaDB.
+2. Configurar las variables de `.env.example` en el entorno privado del servidor. `MEDIA_ROOT` debe ser una carpeta absoluta, privada y respaldada con permiso de escritura. `PUBLIC_ORIGIN` debe ser el origen HTTPS del panel. Los secretos CSRF y de límite de acceso deben ser aleatorios e independientes, con al menos 32 caracteres; la clave MFA debe tener 32 bytes en 64 caracteres hexadecimales. No cargar secretos al repositorio.
+3. En `backend/`, ejecutar `pnpm install --frozen-lockfile` y `pnpm db:migrate`.
+4. En una terminal privada e interactiva, ejecutar `pnpm db:first-admin`. La contraseña no se muestra. Configurar la aplicación de autenticación con el código que aparece y confirmar un código de seis dígitos. Guardar el ID de cuenta indicado y cerrar la terminal para retirar el secreto de la pantalla. El asistente solo funciona cuando no existe ninguna cuenta Admin.
+5. Ejecutar `pnpm db:seed <id-de-Admin>`. Esto importa `contenido/colegio.json` una sola vez como base de trabajo; volver a ejecutarlo no sobrescribe cambios. La importación inicial no equivale a aprobación institucional ni despliega la página.
+6. Configurar un proxy HTTPS que envíe **todas** las rutas del origen privado al servicio local y ejecutar `pnpm start`. El proxy debe reemplazar `X-Forwarded-For` con una única IP de cliente válida, sin conservar valores enviados por el visitante; el servidor solo la acepta desde loopback. El proceso escucha solo en `127.0.0.1:PORT`, sirve el panel y su API desde el mismo origen y comprueba que la base y el contenido inicial existan antes de abrir el puerto. No exponer directamente el puerto interno.
 
 Las migraciones usan un bloqueo de base de datos, checksum e identificadores de archivo ordenados. No se modifican migraciones ya aplicadas; se crea una nueva para cada cambio. Los DDL de MariaDB confirman implícitamente y las tablas usan `IF NOT EXISTS` para poder reintentar tras una interrupción.
 
@@ -24,7 +27,7 @@ Las migraciones usan un bloqueo de base de datos, checksum e identificadores de 
 
 `content-store.mjs` expone `getPublished`, `getWorking` y `saveDraft`. El guardado usa una transacción, bloquea la fila del documento, compara `expectedVersion`, valida el rol y el contenido frente a la revisión de trabajo, inserta una revisión inmutable, mueve el puntero de trabajo y audita el cambio. El contenido publicado no cambia al guardar un borrador. La API obtiene `actorId` y `role` exclusivamente de una sesión autenticada, nunca del cuerpo de la solicitud.
 
-La importación inicial de `contenido/colegio.json` y la publicación se implementarán después de conectar una instancia MariaDB real. Los tests de esta capa usan una conexión simulada; no certifican aún la migración SQL en el motor.
+`seed-content.mjs` importa una revisión base y su puntero de lectura en una transacción solo con una cuenta Admin activa que tenga MFA. Es repetible sin sobrescribir. La publicación real queda pendiente. Los tests de esta capa usan una conexión simulada; no certifican aún la migración SQL en MariaDB.
 
 ## Identidad y sesiones
 
@@ -32,7 +35,7 @@ La importación inicial de `contenido/colegio.json` y la publicación se impleme
 
 `account-provision.mjs` contiene las operaciones de alta, reemplazo MFA y restablecimiento de contraseña para una herramienta privada de operación. El alta Admin exige confirmar un TOTP generado con `generateMfaSecret()` y presentado mediante `enrollmentUri()`. El intervalo confirmado se marca como usado. Los dos procesos de recuperación exigen registrar responsable y motivo, revocan todas las sesiones y se auditan en la misma transacción que el cambio. **No son rutas HTTP ni validan por sí mismas la identidad del operador**: una herramienta privada debe autenticar y autorizar al responsable, verificar la identidad de la persona solicitante y limitar el acceso a la base. No mostrar el URI de inscripción por correo ni registrarlo en logs. Faltan esa herramienta y la validación operativa de recuperación.
 
-`http-api.mjs` contiene la API HTTP inicial para login, sesión, logout, lectura publicada y borradores. Exige origen HTTPS, secretos CSRF/MFA y una función `loginGate`; no incluye un ejecutable que abra un puerto. `login-limit.mjs` proporciona esa función con contadores de quince minutos almacenados en MariaDB y claves HMAC para no guardar IP o correo en claro en la tabla de límites. La API obtiene rol e identidad de la sesión, usa cookie segura y comprueba origen y CSRF en mutaciones. Antes de activarla faltan aprovisionamiento y recuperación de cuentas, TLS/proxy confiable y pruebas de integración con MariaDB.
+`http-api.mjs` contiene la API HTTP inicial para login, sesión, logout, lectura publicada y borradores. Exige origen HTTPS, secretos CSRF/MFA y una función `loginGate`; `private-server.mjs` la sirve junto a los archivos estrictamente necesarios del panel. `login-limit.mjs` proporciona contadores de quince minutos en MariaDB y claves HMAC para no guardar IP o correo en claro. La API obtiene rol e identidad de la sesión, usa cookie segura y comprueba origen y CSRF en mutaciones. Antes de activarla en producción faltan un proxy TLS confiable, pruebas de integración con MariaDB y el procedimiento operativo de recuperación de cuentas.
 
 El prototipo `admin/` consulta `/api/auth/me` al iniciar. Cuando la API privada existe, ofrece acceso, lee `/api/content/colegio/working` y guarda con versión y CSRF; si no existe (404, como en GitHub Pages), conserva la descarga local del borrador. La API y el prototipo deben estar bajo el mismo origen HTTPS. `admin/field-catalog.mjs` construye formularios para todos los valores editables de `contenido/colegio.json` según el rol; la política del servidor vuelve a validar cada cambio. El formulario agrupa los campos, muestra nombres comprensibles y permite elegir medios con una vista previa.
 

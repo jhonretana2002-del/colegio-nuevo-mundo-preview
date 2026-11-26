@@ -84,7 +84,7 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
   }
 }
 
-export async function openMediaPreview(pool, id, mediaRoot) {
+export async function openMediaPreview(pool, id, mediaRoot, range = null) {
   if (!/^[0-9a-f-]{36}$/.test(id)) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
   const [rows] = await pool.execute('SELECT storage_key, mime_type FROM media_assets WHERE id = ? LIMIT 1', [id]);
   if (!rows.length) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
@@ -95,5 +95,14 @@ export async function openMediaPreview(pool, id, mediaRoot) {
   const file = path.join(mediaRoot, name);
   const info = await stat(file).catch(() => null);
   if (!info?.isFile()) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
-  return { stream: createReadStream(file), mimeType: rows[0].mime_type, bytes: info.size };
+  let start = 0;
+  let end = info.size - 1;
+  if (range) {
+    const match = /^bytes=(\d+)-(\d*)$/.exec(range);
+    if (!match) throw new ContentError('INVALID_RANGE', 'Rango de archivo inválido.');
+    start = Number(match[1]);
+    end = match[2] ? Number(match[2]) : end;
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || end >= info.size) throw new ContentError('INVALID_RANGE', 'Rango de archivo inválido.');
+  }
+  return { stream: createReadStream(file, { start, end }), mimeType: rows[0].mime_type, bytes: end - start + 1, range: range ? `bytes ${start}-${end}/${info.size}` : null };
 }

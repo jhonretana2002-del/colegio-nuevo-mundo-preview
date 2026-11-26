@@ -117,3 +117,13 @@ test('Admin puede enviar un archivo sin declarar identidad en el cuerpo', async 
     assert.equal(uploadArgs.role, 'admin');
   });
 });
+
+test('límite de acceso usa IP del proxy local solo si se configura y es válida', async () => {
+  const seen = [];
+  const gate = async input => { seen.push(input.ip); return true; };
+  const send = base => fetch(`${base}/api/auth/login`, { method: 'POST', headers: { origin, 'content-type': 'application/json', 'x-forwarded-for': '198.51.100.8' }, body: JSON.stringify({ email: 'a@example.org', password: 'x' }) });
+  await withServer({ loginGate: gate, stores: { auth: { startSession: async () => null } } }, async base => { await send(base); });
+  assert.equal(seen[0], '127.0.0.1');
+  await withServer({ loginGate: gate, trustedProxy: true, stores: { auth: { startSession: async () => null } } }, async base => { await send(base); });
+  assert.equal(seen[1], '198.51.100.8');
+});

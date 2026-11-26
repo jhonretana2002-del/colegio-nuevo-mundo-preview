@@ -45,6 +45,11 @@ test('Admin sube imagen validada, la registra y puede previsualizarla', async ()
     const chunks = [];
     for await (const chunk of preview.stream) chunks.push(chunk);
     assert.deepEqual(Buffer.concat(chunks), jpeg);
+    const ranged = await openMediaPreview(db.pool, uploaded.id, mediaRoot, 'bytes=0-2');
+    assert.equal(ranged.range, `bytes 0-2/${jpeg.length}`);
+    const pieces = [];
+    for await (const chunk of ranged.stream) pieces.push(chunk);
+    assert.deepEqual(Buffer.concat(pieces), jpeg.subarray(0, 3));
     assert.equal(db.queries.some(item => item.sql.includes('audit_events')), true);
   } finally { await rm(mediaRoot, { recursive: true, force: true }); }
 });

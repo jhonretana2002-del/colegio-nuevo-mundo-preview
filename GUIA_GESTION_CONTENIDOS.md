@@ -31,7 +31,7 @@ En GitHub Pages la recarga vuelve a los datos originales; cerrar la pestaña sin
 
 ## Integración privada pendiente
 
-Se necesita identificar la ruta o repositorio del proyecto privado antes de implementar su integración. El repositorio público no contiene el servidor citado en el acceso administrativo anterior.
+Se necesita identificar el alojamiento y repositorio privado de producción antes de desplegar la integración. Este repositorio de vista previa ya incluye un servidor privado de referencia en `backend/`, pero todavía no está conectado al proyecto completo ni a una instancia MariaDB real.
 
 El panel definitivo deberá incluir acceso del personal, permisos de editor y publicador, guardado de borradores, revisión previa, historial y recuperación. La publicación debe regenerar el sitio desde una versión aprobada y confirmar el despliegue. Las credenciales permanecen en el servidor; nunca se incluyen claves de GitHub en el navegador.
 
