@@ -37,6 +37,15 @@ test('Admin puede sustituir medios y listas, sin cambiar configuración de despl
   assert.deepEqual(validateContentChange('admin', source, next).rejected, ['basePath']);
 });
 
+test('Admin no puede inyectar propiedades desconocidas ni alterar estructuras fijas', () => {
+  const next = edit(data => {
+    data.inicio.tarjetas[0].estilo = 'otro';
+    data.inicio.titulo.push('cuarta línea');
+  });
+  assert.deepEqual(validateContentChange('admin', source, next).rejected,
+    ['inicio.titulo', 'inicio.tarjetas.0.estilo']);
+});
+
 test('Una identidad desconocida no puede modificar nada', () => {
   assert.equal(validateContentChange('visitante', source, edit(data => { data.mision = 'X'; })).allowed, false);
 });
