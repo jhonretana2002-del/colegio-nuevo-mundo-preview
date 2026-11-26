@@ -48,7 +48,7 @@ export async function getPublished(pool, contentKey = 'colegio', locale = 'es-CR
 
 export async function getWorking(pool, contentKey = 'colegio', locale = 'es-CR') {
   const [rows] = await pool.execute(
-    `SELECT d.id AS document_id, d.version, r.id AS revision_id, r.payload
+    `SELECT d.id AS document_id, d.version, r.id AS revision_id, r.payload, r.status, r.author_id
        FROM content_documents d
        JOIN content_publications p ON p.document_id = d.id
        LEFT JOIN content_working w ON w.document_id = d.id
@@ -57,7 +57,70 @@ export async function getWorking(pool, contentKey = 'colegio', locale = 'es-CR')
     [contentKey, locale],
   );
   if (!rows.length) throw new ContentError('NOT_FOUND', 'No existe contenido de trabajo.');
-  return { documentId: rows[0].document_id, version: String(rows[0].version), revisionId: rows[0].revision_id, content: parsePayload(rows[0].payload) };
+  return { documentId: rows[0].document_id, version: String(rows[0].version), revisionId: rows[0].revision_id, status: rows[0].status, authorId: rows[0].author_id, content: parsePayload(rows[0].payload) };
+}
+
+async function changeReviewStatus(pool, { documentId, revisionId, expectedVersion, actorId, role }, nextStatus) {
+  if (!documentId || !revisionId || !actorId || !['admin', 'moderador'].includes(role)) {
+    throw new ContentError('UNAUTHORIZED', 'Identidad o revisión inválida.');
+  }
+  if (!/^(0|[1-9]\d*)$/.test(String(expectedVersion ?? ''))) {
+    throw new ContentError('INVALID_VERSION', 'Se requiere la versión de lectura.');
+  }
+  if (nextStatus === 'aprobado' && role !== 'admin') {
+    throw new ContentError('FORBIDDEN_CHANGE', 'Solo Admin puede aprobar contenido.');
+  }
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [documents] = await connection.execute(
+      'SELECT id, version FROM content_documents WHERE id = ? FOR UPDATE', [documentId],
+    );
+    if (!documents.length) throw new ContentError('NOT_FOUND', 'Documento inexistente.');
+    if (BigInt(documents[0].version) !== BigInt(expectedVersion)) {
+      throw new ContentError('CONFLICT', 'Otro editor guardó cambios. Recargue la página.');
+    }
+    const [revisions] = await connection.execute(
+      `SELECT r.id, r.status, r.author_id FROM content_working w
+         JOIN content_revisions r ON r.document_id = w.document_id AND r.id = w.revision_id
+        WHERE w.document_id = ?`, [documentId],
+    );
+    const revision = revisions[0];
+    if (!revision || revision.id !== revisionId) {
+      throw new ContentError('CONFLICT', 'Este borrador ya no es el actual. Recargue la página.');
+    }
+    if (nextStatus === 'en_revision' && role !== 'admin' && revision.author_id !== actorId) {
+      throw new ContentError('FORBIDDEN_CHANGE', 'Solo quien guardó el borrador o Admin puede enviarlo a revisión.');
+    }
+    const requiredStatus = nextStatus === 'en_revision' ? 'borrador' : 'en_revision';
+    if (revision.status !== requiredStatus) {
+      throw new ContentError('CONFLICT', 'El borrador cambió de estado. Recargue la página.');
+    }
+    await connection.execute(
+      'UPDATE content_revisions SET status = ? WHERE id = ? AND document_id = ?',
+      [nextStatus, revisionId, documentId],
+    );
+    await connection.execute(
+      `INSERT INTO audit_events (actor_id, action, target_type, target_id, metadata)
+       VALUES (?, ?, 'content_revision', ?, ?)`,
+      [actorId, nextStatus === 'en_revision' ? 'draft.submitted' : 'draft.approved', revisionId, JSON.stringify({ documentId })],
+    );
+    await connection.commit();
+    return { revisionId, status: nextStatus, version: String(documents[0].version) };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+export function submitWorking(pool, input) {
+  return changeReviewStatus(pool, input, 'en_revision');
+}
+
+export function approveWorking(pool, input) {
+  return changeReviewStatus(pool, input, 'aprobado');
 }
 
 export async function saveDraft(pool, { documentId, actorId, role, expectedVersion, content, comment = null }) {

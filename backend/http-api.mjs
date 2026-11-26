@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import path from 'node:path';
 import { isIP } from 'node:net';
 import { startSession, readSession, revokeSession } from './auth-store.mjs';
-import { getPublished, getWorking, saveDraft, ContentError } from './content-store.mjs';
+import { getPublished, getWorking, saveDraft, submitWorking, approveWorking, ContentError } from './content-store.mjs';
 import { listMedia, openMediaPreview, uploadMedia } from './media-store.mjs';
 
 const COOKIE = '__Host-cnm_session';
@@ -62,7 +62,7 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot
     throw new Error('Se requiere MariaDB, origen HTTPS, secretos CSRF/MFA, almacenamiento de medios y límite de intentos de acceso.');
   }
   const auth = { startSession, readSession, revokeSession, ...stores.auth };
-  const content = { getPublished, getWorking, saveDraft, ...stores.content };
+  const content = { getPublished, getWorking, saveDraft, submitWorking, approveWorking, ...stores.content };
   const media = { listMedia, openMediaPreview, uploadMedia, ...stores.media };
   return async (req, res) => {
     try {
@@ -97,7 +97,9 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot
         return respond(res, 200, await content.getPublished(pool));
       }
       if (method === 'GET' && pathname === '/api/content/colegio/working') {
-        return respond(res, 200, await content.getWorking(pool));
+        const working = await content.getWorking(pool);
+        const { authorId, ...visible } = working;
+        return respond(res, 200, { ...visible, canSubmit: identity.role === 'admin' || authorId === identity.actor_id });
       }
       if (method === 'GET' && pathname === '/api/media') {
         return respond(res, 200, await media.listMedia(pool));
@@ -125,6 +127,18 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot
           role: identity.role,
         });
         return respond(res, 201, result);
+      }
+      if (method === 'POST' && (pathname === '/api/content/colegio/submit' || pathname === '/api/content/colegio/approve')) {
+        const body = await readJson(req);
+        if (!body || typeof body !== 'object' || Array.isArray(body)) return respond(res, 400, { error: 'Solicitud inválida.' });
+        const action = pathname.endsWith('/submit') ? content.submitWorking : content.approveWorking;
+        return respond(res, 200, await action(pool, {
+          documentId: body.documentId,
+          revisionId: body.revisionId,
+          expectedVersion: body.expectedVersion,
+          actorId: identity.actor_id,
+          role: identity.role,
+        }));
       }
       return respond(res, 404, { error: 'Ruta no encontrada.' });
     } catch (error) {

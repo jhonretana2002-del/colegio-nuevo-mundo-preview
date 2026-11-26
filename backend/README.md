@@ -25,7 +25,7 @@ Las migraciones usan un bloqueo de base de datos, checksum e identificadores de 
 
 ## Borradores
 
-`content-store.mjs` expone `getPublished`, `getWorking` y `saveDraft`. El guardado usa una transacción, bloquea la fila del documento, compara `expectedVersion`, valida el rol y el contenido frente a la revisión de trabajo, inserta una revisión inmutable, mueve el puntero de trabajo y audita el cambio. El contenido publicado no cambia al guardar un borrador. La API obtiene `actorId` y `role` exclusivamente de una sesión autenticada, nunca del cuerpo de la solicitud.
+`content-store.mjs` expone `getPublished`, `getWorking`, `saveDraft`, `submitWorking` y `approveWorking`. El guardado usa una transacción, bloquea la fila del documento, compara `expectedVersion`, valida el rol y el contenido frente a la revisión de trabajo, inserta una revisión con contenido inmutable, mueve el puntero de trabajo y audita el cambio. El autor del borrador o Admin puede enviarlo a revisión; solo Admin puede aprobar la revisión actual. Ambas transiciones comparan versión, identificador y estado dentro de una transacción, y generan auditoría. La aprobación **no mueve** `content_publications` ni modifica la página pública. La API obtiene `actorId` y `role` exclusivamente de una sesión autenticada, nunca del cuerpo de la solicitud.
 
 `seed-content.mjs` importa una revisión base y su puntero de lectura en una transacción solo con una cuenta Admin activa que tenga MFA. Es repetible sin sobrescribir. La publicación real queda pendiente. Los tests de esta capa usan una conexión simulada; no certifican aún la migración SQL en MariaDB.
 

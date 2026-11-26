@@ -2,7 +2,7 @@ import {validateDraft} from './validacion.mjs';
 import {GROUPS, editableFields, optionalTemplate, readPath, writePath} from './field-catalog.mjs';
 import {invalidMediaChanges} from '../lib/media-policy.mjs';
 const $=id=>document.getElementById(id);
-let original,draft,undo,active=0,privateMode=false,csrfToken=null,documentId=null,version=null,role='admin',fields=[];
+let original,draft,undo,active=0,privateMode=false,csrfToken=null,documentId=null,version=null,revisionId=null,revisionStatus=null,canSubmit=false,role='admin',fields=[];
 let availableMedia=[];
 const labels=new Map();
 const get=readPath;
@@ -43,6 +43,18 @@ async function uploadFile(file,path,select,preview){
 function update(){
  $('preview-eyebrow').textContent=draft.inicio.antetitulo;$('preview-title').textContent=draft.inicio.titulo.join('\n');$('preview-description').textContent=draft.inicio.descripcion;
  const n=changes().length;$('state').textContent=n?`${n} ${n===1?"campo modificado":"campos modificados"} · sin guardar`:(privateMode?'Borrador de trabajo · sin cambios':'Contenido original · sin cambios');$('undo').disabled=!undo;
+ renderWorkflow();
+}
+function renderWorkflow(){
+ if(!privateMode||!revisionStatus)return;
+ $('workflow').hidden=false;
+ const names={borrador:'Borrador guardado',en_revision:'En revisión',aprobado:'Aprobado'};
+ $('workflow-status').textContent=names[revisionStatus]??'Contenido de trabajo';
+ $('workflow-help').textContent=revisionStatus==='aprobado'?'El contenido está aprobado. La página pública todavía no ha cambiado.':revisionStatus==='en_revision'?'Admin puede revisar y aprobar este contenido. La página pública todavía no ha cambiado.':'Guarde todos sus cambios antes de enviar el borrador a revisión.';
+ $('submit-review').hidden=revisionStatus!=='borrador'||!canSubmit;
+ $('submit-review').disabled=changes().length>0;
+ $('approve-review').hidden=role!=='admin'||revisionStatus!=='en_revision';
+ $('approve-review').disabled=changes().length>0;
 }
 function render(focusSection=null){
  fields=editableFields(draft,role);for(const field of fields)labels.set(field.path,field.label);
@@ -114,7 +126,7 @@ async function loadContent(){
   const response=await fetch('/api/content/colegio/working',{cache:'no-store'});
   if(response.status===401){showLogin();return;}
   if(!response.ok)throw Error('No se pudo cargar el borrador de trabajo.');
-  const result=await response.json();documentId=result.documentId;version=result.version;content=result.content;
+  const result=await response.json();documentId=result.documentId;version=result.version;revisionId=result.revisionId;revisionStatus=result.status;canSubmit=result.canSubmit;content=result.content;
  }else{
   const response=await fetch('../contenido/colegio.json',{cache:'no-store'});
   if(!response.ok)throw Error('No se pudo cargar el contenido.');content=await response.json();
@@ -132,7 +144,7 @@ async function loadContent(){
  GROUPS.forEach((group,i)=>{const button=make('button',group.title);button.type='button';button.setAttribute('aria-controls','form');button.addEventListener('click',()=>{active=i;render();});$('categories').append(button);});
  original.pendientes.forEach(text=>$('pending').append(make('li',text)));$('workspace').hidden=false;$('form').hidden=false;render();update();
 }
-function showLogin(){csrfToken=null;documentId=null;version=null;$('workspace').hidden=true;$('login').hidden=false;$('state').textContent='Inicie sesión para editar el contenido.';}
+function showLogin(){csrfToken=null;documentId=null;version=null;revisionId=null;revisionStatus=null;canSubmit=false;$('workspace').hidden=true;$('login').hidden=false;$('state').textContent='Inicie sesión para editar el contenido.';}
 function configurePrivate(identityRole){
  privateMode=true;role=identityRole;$('login').hidden=true;$('notice').textContent='Sus cambios se guardan como borrador. La página del colegio no cambia hasta su aprobación.';
  $('connection-title').textContent=`Sesión: ${role==='admin'?'Admin':'Moderador'}`;
@@ -157,10 +169,27 @@ $('save').addEventListener('click',async()=>{
   if(response.status===401){showLogin();return;}
   if(response.status===409){$('state').textContent='Otro editor guardó cambios. Recargue la página antes de continuar.';return;}
   if(!response.ok){const result=await response.json();$('state').textContent=result.error??'No se pudo guardar el borrador.';return;}
-  const result=await response.json();version=result.version;original=structuredClone(draft);undo=null;$('review').hidden=true;update();$('state').textContent='Borrador guardado en el servidor · pendiente de publicación';
+  const result=await response.json();version=result.version;revisionId=result.revisionId;revisionStatus='borrador';canSubmit=true;original=structuredClone(draft);undo=null;$('review').hidden=true;update();$('state').textContent='Borrador guardado. Puede enviarlo a revisión.';
  }catch{$('state').textContent='No se pudo conectar con el servidor. El borrador sigue en esta pestaña.';}
  finally{$('save').disabled=false;}
 });
+$('submit-review').addEventListener('click',()=>{void changeWorkflow('submit');});
+$('approve-review').addEventListener('click',()=>{void changeWorkflow('approve');});
+async function changeWorkflow(action){
+ const button=$(action==='submit'?'submit-review':'approve-review');
+ if(!privateMode||changes().length||!revisionId||!version)return;
+ button.disabled=true;$('state').textContent=action==='submit'?'Enviando a revisión…':'Aprobando contenido…';
+ try{
+  const response=await fetch(`/api/content/colegio/${action}`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrfToken},body:JSON.stringify({documentId,revisionId,expectedVersion:version})});
+  if(response.status===401){showLogin();return;}
+  if(response.status===409){$('state').textContent='El borrador cambió. Recargue la página antes de continuar.';return;}
+  const result=await response.json();
+  if(!response.ok){$('state').textContent=result.error??'No se pudo cambiar el estado del borrador.';return;}
+  revisionStatus=result.status;renderWorkflow();
+  $('state').textContent=action==='submit'?'Borrador enviado a revisión.':'Contenido aprobado. La página pública todavía no ha cambiado.';
+ }catch{$('state').textContent='No se pudo conectar con el servidor. Intente de nuevo.';}
+ finally{renderWorkflow();}
+}
 $('logout').addEventListener('click',async()=>{
  try{await fetch('/api/auth/logout',{method:'POST',headers:{'X-CSRF-Token':csrfToken}});}catch{}finally{showLogin();$('login-email').value='';}
 });

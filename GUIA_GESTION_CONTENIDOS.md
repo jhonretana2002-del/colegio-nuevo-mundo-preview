@@ -33,7 +33,7 @@ En GitHub Pages la recarga vuelve a los datos originales; cerrar la pestaña sin
 
 Se necesita identificar el alojamiento y repositorio privado de producción antes de desplegar la integración. Este repositorio de vista previa ya incluye un servidor privado de referencia en `backend/`, pero todavía no está conectado al proyecto completo ni a una instancia MariaDB real.
 
-El panel definitivo deberá incluir acceso del personal, permisos de editor y publicador, guardado de borradores, revisión previa, historial y recuperación. La publicación debe regenerar el sitio desde una versión aprobada y confirmar el despliegue. Las credenciales permanecen en el servidor; nunca se incluyen claves de GitHub en el navegador.
+El panel privado preparado incluye acceso del personal, permisos de Admin y Moderador, guardado de borradores y transición a revisión y aprobación. Moderador puede enviar a revisión un borrador propio; solo Admin lo aprueba. Aprobar todavía no cambia la página pública. Faltan vista previa completa con las plantillas actuales, historial y recuperación desde la interfaz, publicación y despliegue. La publicación debe regenerar el sitio desde una versión aprobada y confirmar el despliegue. Las credenciales permanecen en el servidor; nunca se incluyen claves de GitHub en el navegador.
 
 Los valores de servicios, horarios y opiniones presentes en `contenido/colegio.json` ya aparecen en el editor. Quedan pendientes los textos escritos directamente en plantillas, la carga de medios nuevos, las noticias, la vista previa generada, el flujo de aprobación y el despliegue. No se inventan publicaciones ni registros de usuarios para simular una integración.
 

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { ContentError, getPublished, getWorking, saveDraft } from './content-store.mjs';
+import { ContentError, getPublished, getWorking, saveDraft, submitWorking, approveWorking } from './content-store.mjs';
 
 const source = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
@@ -101,9 +101,65 @@ test('lectura de trabajo devuelve revisión y versión actuales', async () => {
   const pool = { async execute(sql, params) {
     assert.ok(sql.includes('content_working'));
     assert.deepEqual(params, ['colegio', 'es-CR']);
-    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', payload: JSON.stringify(source) }]];
+    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', payload: JSON.stringify(source) }]];
   } };
   const result = await getWorking(pool);
   assert.equal(result.version, '3');
   assert.equal(result.revisionId, 'draft-3');
+  assert.equal(result.status, 'borrador');
+  assert.equal(result.authorId, 'user-1');
+});
+
+function reviewDatabase({ version = 2, id = 'draft-2', status = 'borrador', authorId = 'user-1' } = {}) {
+  const calls = [];
+  const revision = { id, status, author_id: authorId };
+  const connection = {
+    async beginTransaction() { calls.push('begin'); },
+    async execute(sql, params) {
+      calls.push({ sql, params });
+      if (sql.includes('FROM content_documents WHERE id')) return [[{ id: 'document-1', version }]];
+      if (sql.includes('FROM content_working w')) return [[revision]];
+      if (sql.startsWith('UPDATE content_revisions')) revision.status = params[0];
+      return [{ affectedRows: 1 }];
+    },
+    async commit() { calls.push('commit'); },
+    async rollback() { calls.push('rollback'); },
+    release() { calls.push('release'); },
+  };
+  return { calls, revision, pool: { async getConnection() { return connection; } } };
+}
+
+const reviewInput = { documentId: 'document-1', revisionId: 'draft-2', expectedVersion: '2', actorId: 'user-1', role: 'moderador' };
+
+test('Moderador autor envía a revisión; Admin aprueba sin mover publicación', async () => {
+  const db = reviewDatabase();
+  const submitted = await submitWorking(db.pool, reviewInput);
+  assert.equal(submitted.status, 'en_revision');
+  assert.equal(submitted.version, '2');
+  const approved = await approveWorking(db.pool, { ...reviewInput, actorId: 'admin-1', role: 'admin' });
+  assert.equal(approved.status, 'aprobado');
+  assert.equal(db.revision.status, 'aprobado');
+  assert.equal(db.calls.filter(call => typeof call === 'object' && call.sql.includes('INSERT INTO audit_events')).length, 2);
+  assert.equal(db.calls.some(call => typeof call === 'object' && call.sql.includes('content_publications')), false);
+});
+
+test('un Moderador ajeno no puede enviar a revisión ni aprobar', async () => {
+  const db = reviewDatabase();
+  await assert.rejects(submitWorking(db.pool, { ...reviewInput, actorId: 'user-2' }),
+    error => error instanceof ContentError && error.code === 'FORBIDDEN_CHANGE');
+  await assert.rejects(approveWorking(db.pool, reviewInput),
+    error => error instanceof ContentError && error.code === 'FORBIDDEN_CHANGE');
+  assert.equal(db.revision.status, 'borrador');
+  assert.equal(db.calls.some(call => typeof call === 'object' && call.sql.startsWith('UPDATE content_revisions')), false);
+});
+
+test('revisión o versión obsoletas no se aprueban', async () => {
+  const staleRevision = reviewDatabase({ status: 'en_revision', id: 'draft-3' });
+  await assert.rejects(approveWorking(staleRevision.pool, { ...reviewInput, actorId: 'admin-1', role: 'admin' }),
+    error => error instanceof ContentError && error.code === 'CONFLICT');
+  const staleVersion = reviewDatabase({ status: 'en_revision', version: 3 });
+  await assert.rejects(approveWorking(staleVersion.pool, { ...reviewInput, actorId: 'admin-1', role: 'admin' }),
+    error => error instanceof ContentError && error.code === 'CONFLICT');
+  assert.equal(staleRevision.revision.status, 'en_revision');
+  assert.equal(staleVersion.revision.status, 'en_revision');
 });

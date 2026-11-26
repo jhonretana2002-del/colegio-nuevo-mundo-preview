@@ -83,6 +83,41 @@ test('solo una sesión autenticada puede leer el borrador de trabajo', async () 
   });
 });
 
+test('lectura de trabajo indica quién puede enviar a revisión sin exponer el autor', async () => {
+  const token = 'e'.repeat(64);
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'other-user', role: 'moderador' }) },
+    content: { getWorking: async () => ({ documentId: 'doc', revisionId: 'draft', status: 'borrador', authorId: 'author-user', content: {} }) },
+  } }, async base => {
+    const response = await fetch(`${base}/api/content/colegio/working`, { headers: { cookie: `__Host-cnm_session=${token}` } });
+    const body = await response.json();
+    assert.equal(body.canSubmit, false);
+    assert.equal(body.authorId, undefined);
+  });
+});
+
+test('rutas de revisión usan sesión y CSRF y no aceptan roles declarados en el cuerpo', async () => {
+  const token = 'f'.repeat(64);
+  const calls = [];
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'real-user', role: 'moderador' }) },
+    content: {
+      submitWorking: async (_pool, input) => { calls.push(['submit', input]); return { status: 'en_revision' }; },
+      approveWorking: async (_pool, input) => { calls.push(['approve', input]); return { status: 'aprobado' }; },
+    },
+  } }, async base => {
+    const cookie = `__Host-cnm_session=${token}`;
+    const { csrfToken } = await (await fetch(`${base}/api/auth/me`, { headers: { cookie } })).json();
+    const body = JSON.stringify({ documentId: 'doc', revisionId: 'rev', expectedVersion: '2', actorId: 'forged', role: 'admin' });
+    const headers = { origin, cookie, 'content-type': 'application/json' };
+    assert.equal((await fetch(`${base}/api/content/colegio/submit`, { method: 'POST', headers, body })).status, 403);
+    assert.equal((await fetch(`${base}/api/content/colegio/submit`, { method: 'POST', headers: { ...headers, 'x-csrf-token': csrfToken }, body })).status, 200);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][1].role, 'moderador');
+    assert.equal(calls[0][1].actorId, 'real-user');
+  });
+});
+
 test('la API de archivos exige sesión, CSRF y rol Admin', async () => {
   const token = 'c'.repeat(64);
   const bytes = Buffer.from('ffd8ff001122334455667788', 'hex');

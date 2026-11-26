@@ -1,6 +1,6 @@
 # Avance del panel administrativo
 
-Este checklist corresponde a la guía de implementación del panel administrativo entregada el 25 de noviembre de 2026. El repositorio actual es una exportación pública; en GitHub Pages `/admin/` solo prepara descargas locales. Con la API privada bajo el mismo origen puede autenticar y guardar borradores, pero aún no publica. Las casillas se marcan solo cuando hay evidencia.
+Este checklist corresponde a la guía de implementación del panel administrativo entregada el 25 de noviembre de 2026. El repositorio actual es una exportación pública; en GitHub Pages `/admin/` solo prepara descargas locales. Con la API privada bajo el mismo origen puede autenticar, guardar borradores, enviarlos a revisión y aprobarlos, pero aún no publica. Las casillas se marcan solo cuando hay evidencia.
 
 ## Fase 1: base y permisos
 
@@ -22,6 +22,7 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 - [x] Simplificar el editor con nombres legibles, apartados plegables, selección de medios y carga desde el equipo para Admin. Evidencia: `admin/field-catalog.mjs`, `admin/gestion.js` y revisión local en navegador. Pendiente: prueba con usuarios del colegio y servidor privado.
 - [x] Preparar alta interactiva de la primera cuenta Admin con contraseña oculta y confirmación MFA; importación inicial repetible de `colegio.json`. Evidencia: `backend/setup-first-admin.mjs`, `backend/seed-content.mjs` y pruebas de importación. Pendiente: ejecución con MariaDB real.
 - [x] Preparar servidor privado de panel y API en loopback, con origen HTTPS obligatorio y lista explícita de archivos públicos necesarios. Evidencia: `backend/private-server.mjs` y pruebas de rutas y video. Pendiente: proxy HTTPS y despliegue real.
+- [x] Preparar estados de revisión y aprobación en MariaDB: el autor o Admin envía un borrador; solo Admin aprueba la revisión vigente, con control de versión y auditoría. El panel muestra acciones y mensajes sencillos según el estado. Evidencia: `backend/content-store.mjs`, `backend/http-api.mjs`, `admin/gestion.js` y pruebas. Pendiente: prueba contra MariaDB real y validación de uso con personal del colegio.
 - [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
 - [ ] Completar inventario y esquema versionado de todos los campos editables, incluidos los textos todavía fijos en plantillas.
 - [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.
@@ -39,7 +40,7 @@ La política preparada no protege la página pública por sí sola. Es una pieza
 
 ## Fase 3: publicación y entrega
 
-- [ ] Implementar revisión, aprobación, generación y despliegue reversible.
+- [ ] Completar publicación de revisiones aprobadas, generación del sitio y despliegue reversible. Revisión y aprobación están preparadas en la API privada, sin cambiar la página pública.
 - [ ] Ejecutar pruebas de seguridad, contenido, accesibilidad y regresión visual.
 - [ ] Probar fallo de despliegue, restauración y respaldo.
 - [ ] Entregar manual y completar aceptación con los responsables del colegio.
