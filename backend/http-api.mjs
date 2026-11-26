@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { startSession, readSession, revokeSession } from './auth-store.mjs';
-import { getPublished, saveDraft, ContentError } from './content-store.mjs';
+import { getPublished, getWorking, saveDraft, ContentError } from './content-store.mjs';
 
 const COOKIE = '__Host-cnm_session';
 const MAX_BODY = 1024 * 1024;
@@ -51,7 +51,7 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, loginGate
     throw new Error('Se requiere MariaDB, origen HTTPS, secretos CSRF/MFA y límite de intentos de acceso.');
   }
   const auth = { startSession, readSession, revokeSession, ...stores.auth };
-  const content = { getPublished, saveDraft, ...stores.content };
+  const content = { getPublished, getWorking, saveDraft, ...stores.content };
   return async (req, res) => {
     try {
       const pathname = new URL(req.url, origin).pathname;
@@ -83,6 +83,9 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, loginGate
       }
       if (method === 'GET' && pathname === '/api/content/colegio') {
         return respond(res, 200, await content.getPublished(pool));
+      }
+      if (method === 'GET' && pathname === '/api/content/colegio/working') {
+        return respond(res, 200, await content.getWorking(pool));
       }
       if (method === 'POST' && pathname === '/api/content/colegio/drafts') {
         const body = await readJson(req);

@@ -66,3 +66,16 @@ test('entrega TOTP al verificador de sesiones', async () => {
     assert.equal(received.mfaKey, mfaKey);
   });
 });
+
+test('solo una sesión autenticada puede leer el borrador de trabajo', async () => {
+  const token = 'b'.repeat(64);
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'user-1', role: 'moderador' }) },
+    content: { getWorking: async () => ({ documentId: 'doc', version: '2', content: { nombre: 'Colegio' } }) },
+  } }, async base => {
+    assert.equal((await fetch(`${base}/api/content/colegio/working`)).status, 401);
+    const result = await fetch(`${base}/api/content/colegio/working`, { headers: { cookie: `__Host-cnm_session=${token}` } });
+    assert.equal(result.status, 200);
+    assert.equal((await result.json()).version, '2');
+  });
+});

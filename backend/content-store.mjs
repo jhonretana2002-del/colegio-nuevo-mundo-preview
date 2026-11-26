@@ -40,6 +40,20 @@ export async function getPublished(pool, contentKey = 'colegio', locale = 'es-CR
   return { documentId: rows[0].document_id, version: String(rows[0].version), revisionId: rows[0].revision_id, content: parsePayload(rows[0].payload) };
 }
 
+export async function getWorking(pool, contentKey = 'colegio', locale = 'es-CR') {
+  const [rows] = await pool.execute(
+    `SELECT d.id AS document_id, d.version, r.id AS revision_id, r.payload
+       FROM content_documents d
+       JOIN content_publications p ON p.document_id = d.id
+       LEFT JOIN content_working w ON w.document_id = d.id
+       JOIN content_revisions r ON r.document_id = d.id AND r.id = COALESCE(w.revision_id, p.revision_id)
+      WHERE d.content_key = ? AND d.locale = ?`,
+    [contentKey, locale],
+  );
+  if (!rows.length) throw new ContentError('NOT_FOUND', 'No existe contenido de trabajo.');
+  return { documentId: rows[0].document_id, version: String(rows[0].version), revisionId: rows[0].revision_id, content: parsePayload(rows[0].payload) };
+}
+
 export async function saveDraft(pool, { documentId, actorId, role, expectedVersion, content, comment = null }) {
   if (!documentId || !actorId || !['admin', 'moderador'].includes(role)) {
     throw new ContentError('UNAUTHORIZED', 'Identidad o rol inválido.');
@@ -60,19 +74,24 @@ export async function saveDraft(pool, { documentId, actorId, role, expectedVersi
     if (BigInt(documents[0].version) !== BigInt(expectedVersion)) {
       throw new ContentError('CONFLICT', 'Otro editor guardó cambios. Recargue y compare las versiones.');
     }
-    const [published] = await connection.execute(
+    const [working] = await connection.execute(
       `SELECT r.id, r.payload FROM content_publications p
-         JOIN content_revisions r ON r.id = p.revision_id
+         LEFT JOIN content_working w ON w.document_id = p.document_id
+         JOIN content_revisions r ON r.document_id = p.document_id AND r.id = COALESCE(w.revision_id, p.revision_id)
         WHERE p.document_id = ?`, [documentId],
     );
-    if (!published.length) throw new ContentError('NOT_FOUND', 'El documento todavía no tiene una revisión inicial publicada.');
-    const changed = validateCandidate(role, parsePayload(published[0].payload), content);
+    if (!working.length) throw new ContentError('NOT_FOUND', 'El documento todavía no tiene una revisión inicial publicada.');
+    const changed = validateCandidate(role, parsePayload(working[0].payload), content);
     const revisionId = randomUUID();
     await connection.execute(
       `INSERT INTO content_revisions
        (id, document_id, base_revision_id, author_id, payload, schema_version, status, comment)
        VALUES (?, ?, ?, ?, ?, 1, 'borrador', ?)`,
-      [revisionId, documentId, published[0].id, actorId, JSON.stringify(content), comment],
+      [revisionId, documentId, working[0].id, actorId, JSON.stringify(content), comment],
+    );
+    await connection.execute(
+      'INSERT INTO content_working (document_id, revision_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE revision_id = VALUES(revision_id)',
+      [documentId, revisionId],
     );
     await connection.execute('UPDATE content_documents SET version = version + 1 WHERE id = ?', [documentId]);
     await connection.execute(

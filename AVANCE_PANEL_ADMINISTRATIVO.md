@@ -14,11 +14,13 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 - [x] Preparar límite de intentos persistente por cuenta e IP en MariaDB. Evidencia: `backend/migrations/002_login_limits.sql`, `backend/login-limit.mjs` y `backend/login-limit.test.mjs`. Pendiente: prueba contra MariaDB real.
 - [x] Preparar verificación TOTP para Admin, secreto cifrado y rechazo de códigos reutilizados. Evidencia: `backend/mfa.mjs`, `backend/auth-store.mjs`, `backend/migrations/003_mfa_state.sql` y pruebas. Pendiente: integración con MariaDB real.
 - [x] Preparar operaciones transaccionales de alta y recuperación de cuentas con confirmación MFA, revocación de sesiones y auditoría. Evidencia: `backend/account-provision.mjs` y pruebas. Pendiente: herramienta privada para operadores y verificación presencial de identidad.
+- [x] Preparar puntero de borrador de trabajo y API de lectura autenticada; el guardado usa la revisión de trabajo sin modificar la publicada. Evidencia: `backend/migrations/004_content_working.sql`, `backend/content-store.mjs` y pruebas. Pendiente: prueba con MariaDB real.
+- [x] Conectar el prototipo a sesión y guardado de borradores cuando exista una API privada bajo el mismo origen; conservar descarga local en GitHub Pages. Evidencia: `admin/gestion.js` y `admin/index.html`. Pendiente: prueba visual e integración con servidor privado.
 - [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
 - [ ] Completar inventario y esquema versionado de todos los campos editables.
 - [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.
 - [ ] Implementar inicio de sesión, recuperación, MFA para Admin y autorización por campo en cada operación del servidor.
-- [ ] Conectar el prototipo con guardado real y repetir pruebas de permisos contra la API.
+- [ ] Probar el prototipo con guardado real y repetir pruebas de permisos contra la API y MariaDB.
 
 La política preparada no protege la página pública por sí sola. Es una pieza para ejecutar dentro del servidor antes de guardar cambios.
 
