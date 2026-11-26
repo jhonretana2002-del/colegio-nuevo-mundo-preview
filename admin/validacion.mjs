@@ -1,7 +1,16 @@
 export function validateDraft(data){
  const errors=[];const a=data.admisiones;
  if(!data.nombre.trim()||data.inicio.titulo.some(line=>!line.trim()))errors.push('Complete el nombre del colegio y las tres líneas del título.');
+ if(!data.lema.trim()||Array.from(data.lema).length>100)errors.push('Complete el lema del colegio en un máximo de 100 caracteres.');
  if(data.paginas&&Object.values(data.paginas).some(page=>Object.values(page).some(value=>typeof value!=='string'||!value.trim())))errors.push('Complete los títulos y textos de presentación de las páginas.');
+ if(data.paginas){
+  const names={inicio:'Inicio',conocenos:'Conócenos',oferta:'Oferta educativa',vida:'Vida en el colegio',admisiones:'Admisiones',contacto:'Contacto',pie:'Pie de página',noticias:'Noticias'};
+  for(const [page,items] of Object.entries(data.paginas))for(const [key,value] of Object.entries(items)){
+   if(typeof value!=='string')continue;
+   const limit=key==='descripcionBuscadores'?180:key==='titulo'||key.endsWith('Titulo')?100:key==='antetitulo'||key.endsWith('Antetitulo')?80:500;
+   if(Array.from(value).length>limit)errors.push(`Acorte el texto «${value.slice(0,30)}…» en ${names[page]??page}: máximo ${limit} caracteres.`);
+  }
+ }
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contacto.correo))errors.push('Revise el correo electrónico.');
  if(!/^\d{8,15}$/.test(data.contacto.whatsapp.numero))errors.push('WhatsApp debe contener entre 8 y 15 dígitos, incluido el código de país.');
  if((a.calendarioConfirmado||a.matriculaAbierta||a.aranceles.some(f=>f.monto!==null))&&!a.cursoLectivo)errors.push('Indique el curso lectivo antes de confirmar fechas o registrar aranceles.');

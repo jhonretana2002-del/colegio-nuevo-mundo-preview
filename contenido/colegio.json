@@ -14,11 +14,19 @@
       "introduccion": "Conozca nuestra identidad, nuestro propósito y los valores que orientan a nuestra comunidad educativa.",
       "antetitulo": "Identidad institucional",
       "descripcionBuscadores": "Identidad, misión, visión y valores del Colegio Nuevo Mundo.",
+      "quienesAntetitulo": "Quiénes somos",
       "quienesTitulo": "Una comunidad cercana.",
       "misionAntetitulo": "Nuestro propósito",
+      "misionTitulo": "Misión",
       "visionAntetitulo": "Hacia dónde vamos",
+      "visionTitulo": "Visión",
       "valoresAntetitulo": "Lo que nos guía",
-      "historiaInvitacion": "Converse con nuestro equipo para conocer más sobre el colegio y su trayectoria."
+      "valoresTitulo": "Nuestros valores",
+      "historiaTitulo": "Nuestra historia",
+      "historiaAlternativaTitulo": "Conozcámonos",
+      "historiaInvitacion": "Converse con nuestro equipo para conocer más sobre el colegio y su trayectoria.",
+      "llamadaTitulo": "Descubra lo que podemos aprender juntos.",
+      "llamadaTexto": "Conozca las asignaturas, las materias complementarias y los idiomas."
     },
     "oferta": {
       "titulo": "Una formación para aprender y crecer.",
@@ -26,17 +34,26 @@
       "antetitulo": "Nuestra oferta educativa",
       "descripcionBuscadores": "III Ciclo, Educación Diversificada, materias complementarias e idiomas.",
       "instruccion": "Seleccione un tema para consultar su información. Al abrir otra opción, la anterior se cierra.",
-      "nota": "Consulte con el colegio el alcance de las asignaturas y los idiomas para el nivel de su interés."
+      "nota": "Consulte con el colegio el alcance de las asignaturas y los idiomas para el nivel de su interés.",
+      "llamadaTitulo": "¿Desea conocer más sobre nuestra oferta?",
+      "llamadaTexto": "Nuestro equipo puede orientarle según el nivel de interés de su familia."
     },
     "vida": {
       "titulo": "Aprender también es sentirse acompañado.",
       "introduccion": "Una propuesta que combina clases presenciales, atención personalizada y comunicación permanente con las familias.",
       "antetitulo": "Vida en el colegio",
       "descripcionBuscadores": "Propuesta educativa, tecnología, alimentación, transporte y horario institucional.",
+      "propuestaAntetitulo": "Nuestra forma de aprender",
       "propuestaTitulo": "Cerca, en cada paso.",
+      "horarioAntetitulo": "La jornada en el colegio",
+      "horarioTitulo": "Horario institucional",
       "horarioNota": "Para coordinar una visita, confirme el horario de atención con nuestro equipo.",
+      "serviciosAntetitulo": "Recursos y servicios",
       "serviciosTitulo": "Lo que acompaña la jornada.",
-      "experienciasTitulo": "Espacios para compartir."
+      "experienciasAntetitulo": "Experiencias que nos unen",
+      "experienciasTitulo": "Espacios para compartir.",
+      "llamadaTitulo": "Conversemos sobre su próximo paso.",
+      "llamadaTexto": "Consulte nuestra propuesta y las condiciones de los servicios."
     },
     "admisiones": {
       "titulo": "Únase a nuestra comunidad educativa.",
@@ -50,15 +67,38 @@
       "paso2Titulo": "Revise los requisitos",
       "paso2Texto": "Conozca qué documentación necesita para iniciar el proceso.",
       "paso3Titulo": "Coordine el siguiente paso",
-      "paso3Texto": "Confirme disponibilidad y condiciones directamente con el colegio."
+      "paso3Texto": "Confirme disponibilidad y condiciones directamente con el colegio.",
+      "fechasTitulo": "Fechas y reserva",
+      "referenciaAntetitulo": "Información de referencia",
+      "calendarioPendiente": "Confirme el curso lectivo, las fechas y las condiciones vigentes con Admisiones.",
+      "detalleAntetitulo": "Prepare su próximo paso",
+      "requisitosResumen": "Documentación para preparar su proceso.",
+      "prematriculaResumen": "Fechas de referencia, horario y condiciones de reserva.",
+      "periodoResumen": "Orientación para coordinar el proceso.",
+      "arancelesPendientes": "Consulte los aranceles vigentes del curso lectivo de su interés.",
+      "arancelesNota": "El monto de reserva no representa el costo total de matrícula. Confirme las condiciones de pago con Admisiones.",
+      "consultaTitulo": "Inicie su consulta de admisión.",
+      "consultaAntetitulo": "Conversemos",
+      "consultaTexto": "Comparta sus datos y el nivel de interés. Podrá revisar la consulta antes de abrir WhatsApp y decidir enviarla."
     },
     "contacto": {
       "titulo": "Estamos para orientarle.",
       "introduccion": "Conversemos sobre la oferta educativa, los servicios y el próximo paso de su familia.",
       "antetitulo": "Contacto y ubicación",
       "descripcionBuscadores": "Teléfonos, WhatsApp, correo y ubicación del Colegio Nuevo Mundo.",
+      "contactoAntetitulo": "Conversemos",
       "contactoTitulo": "Contacte al colegio.",
-      "ubicacionTitulo": "San Francisco de Dos Ríos."
+      "ubicacionAntetitulo": "Encuéntrenos",
+      "ubicacionTitulo": "San Francisco de Dos Ríos.",
+      "horarioTitulo": "Horario institucional",
+      "atencionTitulo": "Horario de atención",
+      "visitasNota": "Para visitas y trámites, confirme el horario de atención administrativa al contactar al colegio.",
+      "llamadaTitulo": "¿Desea iniciar una consulta de admisión?",
+      "llamadaTexto": "Prepare su consulta y revísela antes de enviarla por WhatsApp."
+    },
+    "pie": {
+      "contactoTitulo": "Estamos para orientarle",
+      "horarioTitulo": "Horario institucional"
     },
     "noticias": {
       "titulo": "Lo que nos conecta.",

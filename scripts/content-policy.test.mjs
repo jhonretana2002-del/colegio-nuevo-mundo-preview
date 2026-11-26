@@ -25,6 +25,16 @@ test('Moderador puede corregir textos de páginas sin alterar su estructura', ()
   assert.equal(validateContentChange('moderador', source, next).allowed, false);
 });
 
+test('Moderador puede actualizar avisos de admisión y el pie sin cambiar configuración', () => {
+  const next = edit(data => {
+    data.paginas.admisiones.calendarioPendiente = 'Confirme las fechas con el colegio.';
+    data.lema = 'Aprender hoy, crecer mañana.';
+  });
+  assert.equal(validateContentChange('moderador', source, next).allowed, true);
+  next.publicUrl = 'https://otro.example/';
+  assert.equal(validateContentChange('moderador', source, next).allowed, false);
+});
+
 test('Moderador no puede cambiar medio, estado, dato técnico ni estructura', () => {
   const next = edit(data => {
     data.inicio.video.archivo = 'otro.mp4';

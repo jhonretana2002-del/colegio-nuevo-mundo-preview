@@ -6,7 +6,7 @@ export const GROUPS = [
   { id: 'oferta', title: 'Oferta educativa', description: 'Revise las áreas, asignaturas e idiomas.', roots: ['oferta'] },
   { id: 'vida', title: 'Vida en el colegio', description: 'Edite servicios, horarios y fotografías.', roots: ['propuesta', 'servicios', 'galeria', 'horarioInstitucional', 'horarioAdministrativo'] },
   { id: 'admisiones', title: 'Admisiones', description: 'Actualice requisitos, fechas y costos.', roots: ['admisiones'] },
-  { id: 'contacto', title: 'Contacto', description: 'Mantenga al día teléfonos, correo y ubicación.', roots: ['contacto'] },
+  { id: 'contacto', title: 'Contacto', description: 'Mantenga al día teléfonos, ubicación y textos del pie de página.', roots: ['contacto'] },
   { id: 'opiniones', title: 'Opiniones', description: 'Revise los textos que se muestran como opiniones.', roots: ['opiniones', 'presentacionOpiniones'] },
   { id: 'noticias', title: 'Noticias', description: 'Edite la presentación de la página de noticias.', roots: [] },
 ];
@@ -20,7 +20,7 @@ const TITLES = {
   matriculaAbierta: 'Matrícula abierta', calendarioConfirmado: 'Calendario confirmado',
   fechaTexto: 'Fecha visible', alt: 'Texto alternativo', fuente: 'Fuente', licencia: 'Licencia',
   autor: 'Autor', aviso: 'Aviso', consulta: 'Mensaje de consulta',
-  nombre: 'Nombre del colegio', lema: 'Lema', presentacion: 'Presentación general',
+  nombre: 'Nombre del colegio', lema: 'Lema del colegio (pie de página)', presentacion: 'Presentación general',
   quienesSomos: 'Quiénes somos', mision: 'Misión', vision: 'Visión',
   ofertaTitulo: 'Título de la oferta', acompanamiento: 'Acompañamiento',
   imagenGrande: 'Imagen para pantallas grandes', mapaEmbed: 'Mapa dentro de la página',
@@ -47,12 +47,18 @@ const OBJECT_TEMPLATES = {
 const PAGE_LABELS = {
   titulo: 'Título principal', introduccion: 'Texto introductorio', antetitulo: 'Frase superior', descripcionBuscadores: 'Resumen para buscadores',
   introAntetitulo: 'Frase de presentación', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', vidaAntetitulo: 'Frase de vida en el colegio',
-  quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', visionAntetitulo: 'Frase de visión', valoresAntetitulo: 'Frase de valores', historiaInvitacion: 'Invitación a conocer el colegio',
+  quienesAntetitulo: 'Frase de quiénes somos', quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', misionTitulo: 'Título de misión', visionAntetitulo: 'Frase de visión', visionTitulo: 'Título de visión', valoresAntetitulo: 'Frase de valores', valoresTitulo: 'Título de valores', historiaTitulo: 'Título de historia', historiaAlternativaTitulo: 'Título para presentar el colegio', historiaInvitacion: 'Invitación a conocer el colegio',
   instruccion: 'Instrucción para consultar la oferta', nota: 'Nota sobre la oferta',
-  propuestaTitulo: 'Título de nuestra propuesta', horarioNota: 'Nota sobre visitas', serviciosTitulo: 'Título de servicios', experienciasTitulo: 'Título de experiencias',
+  propuestaAntetitulo: 'Frase de nuestra propuesta', propuestaTitulo: 'Título de nuestra propuesta', horarioAntetitulo: 'Frase del horario', horarioNota: 'Nota sobre visitas', serviciosAntetitulo: 'Frase de servicios', serviciosTitulo: 'Título de servicios', experienciasAntetitulo: 'Frase de experiencias', experienciasTitulo: 'Título de experiencias',
   procesoTitulo: 'Título del proceso', detallesTitulo: 'Título de detalles',
+  fechasTitulo: 'Título de fechas y reserva', calendarioPendiente: 'Aviso de fechas pendientes', detalleAntetitulo: 'Frase de los detalles',
+  requisitosResumen: 'Resumen de requisitos', prematriculaResumen: 'Resumen de prematrícula', periodoResumen: 'Resumen del período',
+  arancelesPendientes: 'Aviso de aranceles pendientes', arancelesNota: 'Nota sobre la reserva',
+  referenciaAntetitulo: 'Frase de fechas y reserva', consultaAntetitulo: 'Frase del formulario', consultaTitulo: 'Título del formulario de consulta', consultaTexto: 'Explicación del formulario',
   paso1Titulo: 'Paso 1: título', paso1Texto: 'Paso 1: explicación', paso2Titulo: 'Paso 2: título', paso2Texto: 'Paso 2: explicación', paso3Titulo: 'Paso 3: título', paso3Texto: 'Paso 3: explicación',
-  contactoTitulo: 'Título de contacto', ubicacionTitulo: 'Título de ubicación', sinNoticias: 'Mensaje sin noticias',
+  contactoAntetitulo: 'Frase de contacto', contactoTitulo: 'Título de contacto', ubicacionAntetitulo: 'Frase de ubicación', ubicacionTitulo: 'Título de ubicación', visitasNota: 'Nota sobre visitas', sinNoticias: 'Mensaje sin noticias',
+  llamadaTitulo: 'Título de la invitación', llamadaTexto: 'Texto de la invitación',
+  horarioTitulo: 'Título de horario', atencionTitulo: 'Título de horario de atención',
 };
 
 export function readPath(object, path) {
@@ -67,7 +73,7 @@ export function writePath(object, path, value) {
 }
 
 function groupFor(parts) {
-  if (parts[0] === 'paginas') return parts[1] === 'conocenos' ? 'institucion' : parts[1];
+  if (parts[0] === 'paginas') return parts[1] === 'conocenos' ? 'institucion' : parts[1] === 'pie' ? 'contacto' : parts[1];
   return GROUPS.find(group => group.roots.includes(parts[0]))?.id;
 }
 
@@ -87,8 +93,16 @@ function sectionFor(path, content) {
   const parts = path.split('.');
   const root = parts[0];
   if (root === 'paginas') {
-    const part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(parts[2]) ? 'presentacion' : parts[2].startsWith('paso') ? 'pasos' : 'contenido';
-    const title = { presentacion: 'Presentación de la página', pasos: 'Pasos de admisión', contenido: 'Textos de las secciones' }[part];
+    if (parts[1] === 'pie') return { section: 'paginas.pie', sectionTitle: 'Pie de página' };
+    const key = parts[2];
+    let part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(key) ? 'presentacion' : key.startsWith('paso') ? 'pasos' : 'contenido';
+    if (parts[1] === 'admisiones' && part === 'contenido') {
+      if (key.startsWith('consulta')) part = 'consulta';
+      else if (key.startsWith('aranceles')) part = 'costos';
+      else if (['fechasTitulo', 'referenciaAntetitulo', 'calendarioPendiente', 'prematriculaResumen', 'periodoResumen'].includes(key)) part = 'fechas';
+      else part = 'detalles';
+    }
+    const title = { presentacion: 'Presentación de la página', pasos: 'Pasos de admisión', contenido: 'Textos de las secciones', fechas: 'Fechas y reserva', costos: 'Costos y aranceles', consulta: 'Formulario de consulta', detalles: 'Requisitos y detalles' }[part];
     return { section: `${parts[0]}.${parts[1]}.${part}`, sectionTitle: title };
   }
   let section = root;
