@@ -24,3 +24,7 @@ Las claves UUID se generan en la aplicación. Los tiempos se escriben en UTC. La
 `content-store.mjs` expone `getPublished` y `saveDraft`. El guardado usa una transacción, bloquea la fila del documento, compara `expectedVersion`, valida el rol y el contenido frente a la revisión publicada, inserta una revisión inmutable y audita el cambio. La API HTTP deberá obtener `actorId` y `role` exclusivamente de una sesión autenticada, nunca del cuerpo de la solicitud.
 
 La importación inicial de `contenido/colegio.json`, la API HTTP y la publicación se implementarán después de conectar una instancia MariaDB real. Los tests de esta capa usan una conexión simulada; no certifican aún la migración SQL en el motor.
+
+## Identidad y sesiones
+
+`auth-store.mjs` prepara contraseñas con `scrypt` y sal individual, sesiones de ocho horas con token aleatorio de 256 bits y almacenamiento exclusivo de su hash. `readSession` obtiene la identidad y el rol desde la base; nunca se aceptan esos valores enviados por el navegador. Las cuentas que tienen un secreto MFA configurado no inician una sesión normal hasta integrar la verificación del segundo factor. Faltan protección de intentos de login, recuperación y flujo MFA para activar el servidor público.
