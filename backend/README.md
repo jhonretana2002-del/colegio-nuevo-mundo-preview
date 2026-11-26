@@ -28,3 +28,5 @@ La importación inicial de `contenido/colegio.json`, la API HTTP y la publicaci�
 ## Identidad y sesiones
 
 `auth-store.mjs` prepara contraseñas con `scrypt` y sal individual, sesiones de ocho horas con token aleatorio de 256 bits y almacenamiento exclusivo de su hash. `readSession` obtiene la identidad y el rol desde la base; nunca se aceptan esos valores enviados por el navegador. Las cuentas que tienen un secreto MFA configurado no inician una sesión normal hasta integrar la verificación del segundo factor. Faltan protección de intentos de login, recuperación y flujo MFA para activar el servidor público.
+
+`http-api.mjs` contiene la API HTTP inicial para login, sesión, logout, lectura publicada y borradores. Exige origen HTTPS, secreto CSRF y una función `loginGate` de límite de intentos; no incluye un ejecutable que abra un puerto. La API obtiene rol e identidad de la sesión, usa cookie segura y comprueba origen y CSRF en mutaciones. Antes de activarla faltan la implementación persistente de `loginGate`, MFA, aprovisionamiento de cuentas, TLS/proxy confiable y pruebas de integración con MariaDB.
