@@ -5,14 +5,14 @@ import { ContentError, getPublished, getWorking, listRevisions, saveDraft, submi
 
 const source = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
-function fakeDatabase(version = 0, working = source, uploaded = []) {
+function fakeDatabase(version = 0, working = source, uploaded = [], schemaVersion = 2) {
   const calls = [];
   const connection = {
     async beginTransaction() { calls.push('begin'); },
     async execute(sql, params) {
       calls.push({ sql, params });
       if (sql.includes('FROM content_documents WHERE id')) return [[{ id: 'document-1', version }]];
-      if (sql.includes('FROM content_publications p')) return [[{ id: 'revision-base', payload: JSON.stringify(working) }]];
+      if (sql.includes('FROM content_publications p')) return [[{ id: 'revision-base', payload: JSON.stringify(working), schema_version: schemaVersion }]];
       if (sql.includes('FROM media_assets')) return [uploaded.map(storage_key => ({ storage_key }))];
       return [{ affectedRows: 1 }];
     },
@@ -88,6 +88,22 @@ test('versión obsoleta no sobrescribe otro cambio', async () => {
   assert.deepEqual(calls.slice(-2), ['rollback', 'release']);
 });
 
+test('impide editar una revisión cuya estructura necesita actualización', async () => {
+  const db = fakeDatabase(0, source, [], 1);
+  const content = structuredClone(source);content.mision = 'Cambio nuevo';
+  await assert.rejects(saveDraft(db.pool, { documentId: 'document-1', actorId: 'user-1', role: 'admin', expectedVersion: '0', content }),
+    error => error instanceof ContentError && error.code === 'SCHEMA_UPDATE_REQUIRED');
+  assert.equal(db.calls.some(call => typeof call === 'object' && call.sql.includes('INSERT INTO content_revisions')), false);
+});
+
+test('impide guardar si faltan campos aunque el número de esquema coincida', async () => {
+  const old = structuredClone(source);delete old.paginas.opiniones;
+  const db = fakeDatabase(0, old, [], 2);
+  const content = structuredClone(old);content.mision = 'Cambio nuevo';
+  await assert.rejects(saveDraft(db.pool, { documentId: 'document-1', actorId: 'user-1', role: 'admin', expectedVersion: '0', content }),
+    error => error instanceof ContentError && error.code === 'SCHEMA_UPDATE_REQUIRED');
+});
+
 test('lectura pública usa parámetros y devuelve el JSON', async () => {
   const pool = { async execute(sql, params) {
     assert.deepEqual(params, ['colegio', 'es-CR']);
@@ -101,7 +117,7 @@ test('lectura de trabajo devuelve revisión y versión actuales', async () => {
   const pool = { async execute(sql, params) {
     assert.ok(sql.includes('content_working'));
     assert.deepEqual(params, ['colegio', 'es-CR']);
-    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', review_reason: null, payload: JSON.stringify(source) }]];
+    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', schema_version: 2, review_reason: null, payload: JSON.stringify(source) }]];
   } };
   const result = await getWorking(pool);
   assert.equal(result.version, '3');
@@ -111,10 +127,21 @@ test('lectura de trabajo devuelve revisión y versión actuales', async () => {
   assert.equal(result.reviewReason, null);
 });
 
+test('lectura privada pide actualización si la estructura es antigua', async () => {
+  const pool = { async execute() { return [[{ document_id: 'doc', version: 1, revision_id: 'old', schema_version: 1 }]]; } };
+  await assert.rejects(getWorking(pool), error => error instanceof ContentError && error.code === 'SCHEMA_UPDATE_REQUIRED');
+});
+
+test('lectura privada detecta campos faltantes en una revisión marcada como actual', async () => {
+  const old = structuredClone(source);delete old.paginas.opiniones;
+  const pool = { async execute() { return [[{ document_id: 'doc', version: 1, revision_id: 'old', schema_version: 2, payload: JSON.stringify(old) }]]; } };
+  await assert.rejects(getWorking(pool), error => error instanceof ContentError && error.code === 'SCHEMA_UPDATE_REQUIRED');
+});
+
 test('lectura de un borrador devuelto incluye la corrección solicitada', async () => {
   const pool = { async execute(sql) {
     assert.match(sql, /content_review_decisions/);
-    return [[{ document_id: 'doc', version: 4, revision_id: 'draft-4', status: 'rechazado', author_id: 'user-1', review_reason: 'Revise el costo', payload: JSON.stringify(source) }]];
+    return [[{ document_id: 'doc', version: 4, revision_id: 'draft-4', status: 'rechazado', author_id: 'user-1', schema_version: 2, review_reason: 'Revise el costo', payload: JSON.stringify(source) }]];
   } };
   const result = await getWorking(pool);
   assert.equal(result.status, 'rechazado');

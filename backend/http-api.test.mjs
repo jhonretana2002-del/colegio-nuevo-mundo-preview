@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createAdminHandler, createAdminServer } from './http-api.mjs';
+import { ContentError } from './content-store.mjs';
 import path from 'node:path';
 
 const origin = 'https://admin.example.test';
@@ -80,6 +81,18 @@ test('solo una sesión autenticada puede leer el borrador de trabajo', async () 
     const result = await fetch(`${base}/api/content/colegio/working`, { headers: { cookie: `__Host-cnm_session=${token}` } });
     assert.equal(result.status, 200);
     assert.equal((await result.json()).version, '2');
+  });
+});
+
+test('API informa conflicto de estructura antigua antes de abrir el panel', async () => {
+  const token = '3'.repeat(64);
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'user-1', role: 'admin' }) },
+    content: { getWorking: async () => { throw new ContentError('SCHEMA_UPDATE_REQUIRED', 'Actualice la estructura del contenido.'); } },
+  } }, async base => {
+    const response = await fetch(`${base}/api/content/colegio/working`, { headers: { cookie: `__Host-cnm_session=${token}` } });
+    assert.equal(response.status, 409);
+    assert.match((await response.json()).error, /Actualice/);
   });
 });
 

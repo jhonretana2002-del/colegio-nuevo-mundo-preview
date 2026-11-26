@@ -6,6 +6,7 @@
     "db:migrate": "node migrate.mjs",
     "db:first-admin": "node setup-first-admin.mjs",
     "db:seed": "node seed-content.mjs",
+    "db:upgrade-content": "node upgrade-content.mjs",
     "start": "node private-server.mjs",
     "test": "node --test *.test.mjs"
   },

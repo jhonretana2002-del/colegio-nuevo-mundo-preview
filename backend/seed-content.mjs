@@ -5,6 +5,7 @@ import path from 'node:path';
 import { createDatabasePool } from './db.mjs';
 import { validateDraft } from '../admin/validacion.mjs';
 import { validateContentShape } from '../lib/content-shape.mjs';
+import { CONTENT_SCHEMA_VERSION } from './content-schema.mjs';
 
 const reference = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
@@ -27,8 +28,8 @@ export async function seedContent(pool, { actorId, source }) {
     const revisionId = randomUUID();
     await connection.execute('INSERT INTO content_documents (id, content_key, locale) VALUES (?, ?, ?)', [documentId, 'colegio', 'es-CR']);
     await connection.execute(
-      "INSERT INTO content_revisions (id, document_id, author_id, payload, schema_version, status, comment) VALUES (?, ?, ?, ?, 1, 'aprobado', ?)",
-      [revisionId, documentId, actorId, JSON.stringify(source), 'Importación inicial desde contenido/colegio.json'],
+      "INSERT INTO content_revisions (id, document_id, author_id, payload, schema_version, status, comment) VALUES (?, ?, ?, ?, ?, 'aprobado', ?)",
+      [revisionId, documentId, actorId, JSON.stringify(source), CONTENT_SCHEMA_VERSION, 'Importación inicial desde contenido/colegio.json'],
     );
     await connection.execute('INSERT INTO content_publications (document_id, revision_id, published_by) VALUES (?, ?, ?)', [documentId, revisionId, actorId]);
     await connection.execute(

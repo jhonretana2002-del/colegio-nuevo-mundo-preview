@@ -169,6 +169,7 @@ async function loadContent(){
  if(privateMode){
   const response=await fetch('/api/content/colegio/working',{cache:'no-store'});
   if(response.status===401){showLogin();return;}
+  if(response.status===409){$('state').textContent='El panel necesita una actualización de contenido. Avise a la persona encargada del sistema.';return;}
   if(!response.ok)throw Error('No se pudo cargar el borrador de trabajo.');
   const result=await response.json();documentId=result.documentId;version=result.version;revisionId=result.revisionId;revisionStatus=result.status;reviewReason=result.reviewReason;canSubmit=result.canSubmit;content=result.content;
   const publicResponse=await fetch('/api/content/colegio',{cache:'no-store'});

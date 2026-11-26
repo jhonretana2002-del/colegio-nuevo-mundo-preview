@@ -148,7 +148,7 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot
       return respond(res, 404, { error: 'Ruta no encontrada.' });
     } catch (error) {
       if (error instanceof ContentError) {
-        const status = { UNAUTHORIZED: 401, FORBIDDEN_CHANGE: 403, NOT_FOUND: 404, CONFLICT: 409, BODY_TOO_LARGE: 413, INVALID_RANGE: 416 }[error.code] ?? 400;
+        const status = { UNAUTHORIZED: 401, FORBIDDEN_CHANGE: 403, NOT_FOUND: 404, CONFLICT: 409, SCHEMA_UPDATE_REQUIRED: 409, BODY_TOO_LARGE: 413, INVALID_RANGE: 416 }[error.code] ?? 400;
         return respond(res, status, { error: error.message, details: error.details });
       }
       return respond(res, 500, { error: 'Error interno.' });

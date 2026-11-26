@@ -2,9 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { validateContentChange } from '../lib/content-policy.mjs';
 import { invalidMediaChanges } from '../lib/media-policy.mjs';
+import { validateContentShape } from '../lib/content-shape.mjs';
 import { validateDraft } from '../admin/validacion.mjs';
+import { CONTENT_SCHEMA_VERSION } from './content-schema.mjs';
 
 const staticMedia = JSON.parse(readFileSync(new URL('../contenido/medios-disponibles.json', import.meta.url), 'utf8'));
+const currentTemplate = JSON.parse(readFileSync(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
 export class ContentError extends Error {
   constructor(code, message, details = []) {
@@ -48,7 +51,7 @@ export async function getPublished(pool, contentKey = 'colegio', locale = 'es-CR
 
 export async function getWorking(pool, contentKey = 'colegio', locale = 'es-CR') {
   const [rows] = await pool.execute(
-    `SELECT d.id AS document_id, d.version, r.id AS revision_id, r.payload, r.status, r.author_id, q.reason AS review_reason
+    `SELECT d.id AS document_id, d.version, r.id AS revision_id, r.payload, r.status, r.author_id, r.schema_version, q.reason AS review_reason
        FROM content_documents d
        JOIN content_publications p ON p.document_id = d.id
        LEFT JOIN content_working w ON w.document_id = d.id
@@ -58,7 +61,10 @@ export async function getWorking(pool, contentKey = 'colegio', locale = 'es-CR')
     [contentKey, locale],
   );
   if (!rows.length) throw new ContentError('NOT_FOUND', 'No existe contenido de trabajo.');
-  return { documentId: rows[0].document_id, version: String(rows[0].version), revisionId: rows[0].revision_id, status: rows[0].status, authorId: rows[0].author_id, reviewReason: rows[0].review_reason ?? null, content: parsePayload(rows[0].payload) };
+  if (Number(rows[0].schema_version) !== CONTENT_SCHEMA_VERSION) throw new ContentError('SCHEMA_UPDATE_REQUIRED', 'Actualice la estructura del contenido antes de abrir el panel.');
+  const content = parsePayload(rows[0].payload);
+  if (validateContentShape(currentTemplate, content).length) throw new ContentError('SCHEMA_UPDATE_REQUIRED', 'La estructura del contenido necesita actualización antes de abrir el panel.');
+  return { documentId: rows[0].document_id, version: String(rows[0].version), revisionId: rows[0].revision_id, status: rows[0].status, authorId: rows[0].author_id, reviewReason: rows[0].review_reason ?? null, content };
 }
 
 export async function listRevisions(pool, contentKey = 'colegio', locale = 'es-CR') {
@@ -178,21 +184,24 @@ export async function saveDraft(pool, { documentId, actorId, role, expectedVersi
       throw new ContentError('CONFLICT', 'Otro editor guardó cambios. Recargue y compare las versiones.');
     }
     const [working] = await connection.execute(
-      `SELECT r.id, r.payload FROM content_publications p
+      `SELECT r.id, r.payload, r.schema_version FROM content_publications p
          LEFT JOIN content_working w ON w.document_id = p.document_id
          JOIN content_revisions r ON r.document_id = p.document_id AND r.id = COALESCE(w.revision_id, p.revision_id)
         WHERE p.document_id = ?`, [documentId],
     );
     if (!working.length) throw new ContentError('NOT_FOUND', 'El documento todavía no tiene una revisión inicial publicada.');
+    if (Number(working[0].schema_version) !== CONTENT_SCHEMA_VERSION) throw new ContentError('SCHEMA_UPDATE_REQUIRED', 'Actualice la estructura del contenido antes de guardar.');
+    const workingContent = parsePayload(working[0].payload);
+    if (validateContentShape(currentTemplate, workingContent).length) throw new ContentError('SCHEMA_UPDATE_REQUIRED', 'La estructura del contenido necesita actualización antes de guardar.');
     const [uploadedMedia] = await connection.execute("SELECT storage_key FROM media_assets WHERE kind IN ('image','video')");
     const availableMedia = [...staticMedia, ...uploadedMedia.map(row => row.storage_key)];
-    const changed = validateCandidate(role, parsePayload(working[0].payload), content, availableMedia);
+    const changed = validateCandidate(role, workingContent, content, availableMedia);
     const revisionId = randomUUID();
     await connection.execute(
       `INSERT INTO content_revisions
        (id, document_id, base_revision_id, author_id, payload, schema_version, status, comment)
-       VALUES (?, ?, ?, ?, ?, 1, 'borrador', ?)`,
-      [revisionId, documentId, working[0].id, actorId, JSON.stringify(content), comment],
+       VALUES (?, ?, ?, ?, ?, ?, 'borrador', ?)`,
+      [revisionId, documentId, working[0].id, actorId, JSON.stringify(content), CONTENT_SCHEMA_VERSION, comment],
     );
     await connection.execute(
       'INSERT INTO content_working (document_id, revision_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE revision_id = VALUES(revision_id)',
