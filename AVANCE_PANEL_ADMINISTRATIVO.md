@@ -6,6 +6,7 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 
 - [x] Identificar la fuente de contenido (`contenido/colegio.json`), el generador (`scripts/generar-sitio.mjs`) y el prototipo `/admin/`. Evidencia: `README.md` y `GUIA_GESTION_CONTENIDOS.md`.
 - [x] Preparar una política inicial de cambios por rol y pruebas automatizadas. Evidencia: `lib/content-policy.mjs` y `scripts/content-policy.test.mjs`.
+- [x] Validar tipos, campos desconocidos, listas repetibles e identificadores duplicados antes de aceptar un borrador. Evidencia: `lib/content-shape.mjs` y `scripts/content-policy.test.mjs`.
 - [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
 - [ ] Completar inventario y esquema versionado de todos los campos editables.
 - [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.

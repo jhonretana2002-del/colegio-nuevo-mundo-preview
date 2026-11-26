@@ -48,4 +48,45 @@ test('Admin no puede inyectar propiedades desconocidas ni alterar estructuras fi
 
 test('Una identidad desconocida no puede modificar nada', () => {
   assert.equal(validateContentChange('visitante', source, edit(data => { data.mision = 'X'; })).allowed, false);
+  assert.equal(validateContentChange('visitante', source, structuredClone(source)).allowed, false);
+});
+
+test('Rechaza sustitución de texto por número y elementos de lista mal formados', () => {
+  const next = edit(data => {
+    data.mision = 4;
+    data.galeria.push({ imagen: 'foto.webp' });
+  });
+  const result = validateContentChange('admin', source, next);
+  assert.equal(result.allowed, false);
+  assert.ok(result.shapeErrors.some(error => error.startsWith('mision:')));
+  assert.ok(result.shapeErrors.some(error => error.includes('galeria.3.titulo')));
+});
+
+test('Campos nulos conocidos aceptan su tipo esperado', () => {
+  const next = edit(data => {
+    data.admisiones.cursoLectivo = '2027';
+    data.admisiones.aranceles[0].monto = 50000;
+  });
+  assert.equal(validateContentChange('admin', source, next).allowed, true);
+});
+
+test('Campos nulos con estructura exigen la forma prevista', () => {
+  const next = edit(data => { data.historia = { resumen: 'Origen', parrafos: ['Primer año'] }; });
+  assert.equal(validateContentChange('admin', source, next).allowed, true);
+  next.historia.codigo = '<script>';
+  assert.equal(validateContentChange('admin', source, next).allowed, false);
+});
+
+test('Moderador puede completar un texto nulo, pero no un medio nulo', () => {
+  const next = edit(data => { data.opiniones[0].texto = 'Comentario verificado'; });
+  assert.equal(validateContentChange('moderador', source, next).allowed, true);
+  next.contacto.mapaEmbed = 'https://example.com/mapa';
+  assert.equal(validateContentChange('moderador', source, next).allowed, false);
+});
+
+test('Admin no puede duplicar identificadores de tarjetas', () => {
+  const next = edit(data => { data.inicio.tarjetas.push(structuredClone(data.inicio.tarjetas[0])); });
+  const result = validateContentChange('admin', source, next);
+  assert.equal(result.allowed, false);
+  assert.ok(result.shapeErrors.some(error => error.includes('identificadores')));
 });
