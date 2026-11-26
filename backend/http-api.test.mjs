@@ -83,6 +83,19 @@ test('solo una sesión autenticada puede leer el borrador de trabajo', async () 
   });
 });
 
+test('comparación pública del panel exige sesión y devuelve la revisión publicada', async () => {
+  const token = '2'.repeat(64);
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'user-1', role: 'moderador' }) },
+    content: { getPublished: async () => ({ revisionId: 'publicada', content: { nombre: 'Colegio' } }) },
+  } }, async base => {
+    assert.equal((await fetch(`${base}/api/content/colegio`)).status, 401);
+    const response = await fetch(`${base}/api/content/colegio`, { headers: { cookie: `__Host-cnm_session=${token}` } });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).revisionId, 'publicada');
+  });
+});
+
 test('lectura de trabajo indica quién puede enviar a revisión sin exponer el autor', async () => {
   const token = 'e'.repeat(64);
   await withServer({ stores: {
@@ -115,6 +128,34 @@ test('rutas de revisión usan sesión y CSRF y no aceptan roles declarados en el
     assert.equal(calls.length, 1);
     assert.equal(calls[0][1].role, 'moderador');
     assert.equal(calls[0][1].actorId, 'real-user');
+    assert.equal((await fetch(`${base}/api/content/colegio/approve`, { method: 'POST', headers: { ...headers, 'x-csrf-token': csrfToken }, body })).status, 403);
+    assert.equal((await fetch(`${base}/api/content/colegio/reject`, { method: 'POST', headers: { ...headers, 'x-csrf-token': csrfToken }, body })).status, 403);
+  });
+});
+
+test('Admin puede devolver una revisión y consultar historial con sesión', async () => {
+  const token = '1'.repeat(64);
+  let rejected;
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'admin-real', role: 'admin' }) },
+    content: {
+      rejectWorking: async (_pool, input) => { rejected = input; return { status: 'rechazado', reviewReason: input.reason }; },
+      listRevisions: async () => [{ revisionId: 'rev', status: 'en_revision', reason: null }],
+    },
+  } }, async base => {
+    const cookie = `__Host-cnm_session=${token}`;
+    assert.equal((await fetch(`${base}/api/content/colegio/revisions`)).status, 401);
+    const history = await fetch(`${base}/api/content/colegio/revisions`, { headers: { cookie } });
+    assert.equal((await history.json())[0].revisionId, 'rev');
+    const { csrfToken } = await (await fetch(`${base}/api/auth/me`, { headers: { cookie } })).json();
+    const response = await fetch(`${base}/api/content/colegio/reject`, {
+      method: 'POST', headers: { origin, cookie, 'content-type': 'application/json', 'x-csrf-token': csrfToken },
+      body: JSON.stringify({ documentId: 'doc', revisionId: 'rev', expectedVersion: '3', reason: 'Corrija el horario', role: 'moderador' }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(rejected.actorId, 'admin-real');
+    assert.equal(rejected.role, 'admin');
+    assert.equal(rejected.reason, 'Corrija el horario');
   });
 });
 

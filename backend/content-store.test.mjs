@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { ContentError, getPublished, getWorking, saveDraft, submitWorking, approveWorking } from './content-store.mjs';
+import { ContentError, getPublished, getWorking, listRevisions, saveDraft, submitWorking, approveWorking, rejectWorking } from './content-store.mjs';
 
 const source = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
@@ -101,16 +101,36 @@ test('lectura de trabajo devuelve revisión y versión actuales', async () => {
   const pool = { async execute(sql, params) {
     assert.ok(sql.includes('content_working'));
     assert.deepEqual(params, ['colegio', 'es-CR']);
-    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', payload: JSON.stringify(source) }]];
+    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', review_reason: null, payload: JSON.stringify(source) }]];
   } };
   const result = await getWorking(pool);
   assert.equal(result.version, '3');
   assert.equal(result.revisionId, 'draft-3');
   assert.equal(result.status, 'borrador');
   assert.equal(result.authorId, 'user-1');
+  assert.equal(result.reviewReason, null);
 });
 
-function reviewDatabase({ version = 2, id = 'draft-2', status = 'borrador', authorId = 'user-1' } = {}) {
+test('lectura de un borrador devuelto incluye la corrección solicitada', async () => {
+  const pool = { async execute(sql) {
+    assert.match(sql, /content_review_decisions/);
+    return [[{ document_id: 'doc', version: 4, revision_id: 'draft-4', status: 'rechazado', author_id: 'user-1', review_reason: 'Revise el costo', payload: JSON.stringify(source) }]];
+  } };
+  const result = await getWorking(pool);
+  assert.equal(result.status, 'rechazado');
+  assert.equal(result.reviewReason, 'Revise el costo');
+});
+
+test('historial limitado muestra estado, motivo y versión pública sin entregar contenido', async () => {
+  const pool = { async execute(sql, params) {
+    assert.match(sql, /LIMIT 20/);
+    assert.deepEqual(params, ['colegio', 'es-CR']);
+    return [[{ id: 'draft-2', status: 'rechazado', created_at: new Date('2026-11-26T12:00:00Z'), reason: 'Revise el horario', published_id: 'base', current_id: 'draft-2' }]];
+  } };
+  assert.deepEqual(await listRevisions(pool), [{ revisionId: 'draft-2', status: 'rechazado', createdAt: new Date('2026-11-26T12:00:00Z'), reason: 'Revise el horario', isPublished: false, isCurrent: true }]);
+});
+
+function reviewDatabase({ version = 2, id = 'draft-2', status = 'borrador', authorId = 'user-1', failDecision = false } = {}) {
   const calls = [];
   const revision = { id, status, author_id: authorId };
   const connection = {
@@ -119,11 +139,12 @@ function reviewDatabase({ version = 2, id = 'draft-2', status = 'borrador', auth
       calls.push({ sql, params });
       if (sql.includes('FROM content_documents WHERE id')) return [[{ id: 'document-1', version }]];
       if (sql.includes('FROM content_working w')) return [[revision]];
+      if (sql.includes('INSERT INTO content_review_decisions') && failDecision) throw new Error('Fallo al guardar decisión');
       if (sql.startsWith('UPDATE content_revisions')) revision.status = params[0];
       return [{ affectedRows: 1 }];
     },
     async commit() { calls.push('commit'); },
-    async rollback() { calls.push('rollback'); },
+    async rollback() { calls.push('rollback'); revision.status = status; },
     release() { calls.push('release'); },
   };
   return { calls, revision, pool: { async getConnection() { return connection; } } };
@@ -140,7 +161,31 @@ test('Moderador autor envía a revisión; Admin aprueba sin mover publicación',
   assert.equal(approved.status, 'aprobado');
   assert.equal(db.revision.status, 'aprobado');
   assert.equal(db.calls.filter(call => typeof call === 'object' && call.sql.includes('INSERT INTO audit_events')).length, 2);
+  assert.equal(db.calls.filter(call => typeof call === 'object' && call.sql.includes('INSERT INTO content_review_decisions')).length, 1);
   assert.equal(db.calls.some(call => typeof call === 'object' && call.sql.includes('content_publications')), false);
+});
+
+test('Admin devuelve una revisión con motivo y auditoría; Moderador no puede hacerlo', async () => {
+  const db = reviewDatabase({ status: 'en_revision' });
+  await assert.rejects(rejectWorking(db.pool, { ...reviewInput, reason: 'Cambie el horario' }),
+    error => error instanceof ContentError && error.code === 'FORBIDDEN_CHANGE');
+  await assert.rejects(rejectWorking(db.pool, { ...reviewInput, actorId: 'admin-1', role: 'admin', reason: '  ' }),
+    error => error instanceof ContentError && error.code === 'INVALID_COMMENT');
+  const result = await rejectWorking(db.pool, { ...reviewInput, actorId: 'admin-1', role: 'admin', reason: '  Corrija el horario publicado.  ' });
+  assert.equal(result.status, 'rechazado');
+  assert.equal(result.reviewReason, 'Corrija el horario publicado.');
+  assert.equal(db.revision.status, 'rechazado');
+  const decision = db.calls.find(call => typeof call === 'object' && call.sql.includes('INSERT INTO content_review_decisions'));
+  assert.deepEqual(decision.params, ['draft-2', 'document-1', 'admin-1', 'rechazado', 'Corrija el horario publicado.']);
+  assert.ok(db.calls.some(call => typeof call === 'object' && call.sql.includes('INSERT INTO audit_events') && call.params[1] === 'draft.rejected'));
+});
+
+test('fallo al registrar la decisión revierte la devolución', async () => {
+  const db = reviewDatabase({ status: 'en_revision', failDecision: true });
+  await assert.rejects(rejectWorking(db.pool, { ...reviewInput, actorId: 'admin-1', role: 'admin', reason: 'Corrija el horario' }), /Fallo al guardar decisión/);
+  assert.equal(db.revision.status, 'en_revision');
+  assert.deepEqual(db.calls.slice(-2), ['rollback', 'release']);
+  assert.equal(db.calls.includes('commit'), false);
 });
 
 test('un Moderador ajeno no puede enviar a revisión ni aprobar', async () => {

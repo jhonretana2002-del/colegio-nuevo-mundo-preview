@@ -1,8 +1,9 @@
 import {validateDraft} from './validacion.mjs';
 import {GROUPS, editableFields, optionalTemplate, readPath, writePath} from './field-catalog.mjs';
 import {invalidMediaChanges} from '../lib/media-policy.mjs';
+import {changedFields} from '../lib/content-policy.mjs';
 const $=id=>document.getElementById(id);
-let original,draft,undo,active=0,privateMode=false,csrfToken=null,documentId=null,version=null,revisionId=null,revisionStatus=null,canSubmit=false,role='admin',fields=[];
+let original,draft,published,undo,active=0,privateMode=false,csrfToken=null,documentId=null,version=null,revisionId=null,revisionStatus=null,reviewReason=null,canSubmit=false,role='admin',fields=[];
 let availableMedia=[];
 const labels=new Map();
 const get=readPath;
@@ -48,13 +49,56 @@ function update(){
 function renderWorkflow(){
  if(!privateMode||!revisionStatus)return;
  $('workflow').hidden=false;
- const names={borrador:'Borrador guardado',en_revision:'En revisión',aprobado:'Aprobado'};
+ const names={borrador:'Borrador guardado',en_revision:'En revisión',aprobado:'Aprobado',rechazado:'Devuelto para corrección'};
  $('workflow-status').textContent=names[revisionStatus]??'Contenido de trabajo';
- $('workflow-help').textContent=revisionStatus==='aprobado'?'El contenido está aprobado. La página pública todavía no ha cambiado.':revisionStatus==='en_revision'?'Admin puede revisar y aprobar este contenido. La página pública todavía no ha cambiado.':'Guarde todos sus cambios antes de enviar el borrador a revisión.';
+ $('workflow-help').textContent=revisionStatus==='aprobado'?'El contenido está aprobado. La página pública todavía no ha cambiado.':revisionStatus==='en_revision'?'Admin puede aprobarlo o devolverlo con una explicación. La página pública todavía no ha cambiado.':revisionStatus==='rechazado'?'Corrija el contenido indicado y guarde un borrador nuevo.':'Guarde todos sus cambios antes de enviar el borrador a revisión.';
+ $('review-reason').hidden=revisionStatus!=='rechazado'||!reviewReason;
+ $('review-reason').textContent=reviewReason?`Corrección solicitada: ${reviewReason}`:'';
  $('submit-review').hidden=revisionStatus!=='borrador'||!canSubmit;
  $('submit-review').disabled=changes().length>0;
  $('approve-review').hidden=role!=='admin'||revisionStatus!=='en_revision';
  $('approve-review').disabled=changes().length>0;
+ $('reject-box').hidden=role!=='admin'||revisionStatus!=='en_revision';
+ $('reject-review').disabled=changes().length>0;
+}
+async function loadRevisions(){
+ if(!privateMode)return;
+ try{
+  const response=await fetch('/api/content/colegio/revisions',{cache:'no-store'});
+  if(!response.ok)return;
+  const items=await response.json();const list=$('history-list');list.replaceChildren();
+  for(const item of items){
+   const date=new Date(item.createdAt);const when=Number.isNaN(date.getTime())?'Fecha no disponible':new Intl.DateTimeFormat('es-CR',{dateStyle:'medium',timeStyle:'short'}).format(date);
+   const status={borrador:'Borrador',en_revision:'En revisión',aprobado:'Aprobado',rechazado:'Devuelto'}[item.status]??'Versión';
+   const line=make('li');line.append(make('strong',status),document.createTextNode(` · ${when}${item.isCurrent?' · versión actual':''}${item.isPublished?' · página pública':''}`));
+   if(item.reason)line.append(make('p',`Corrección solicitada: ${item.reason}`));
+   list.append(line);
+  }
+  if(!items.length)list.append(make('li','Todavía no hay versiones guardadas.'));
+  $('revision-history').hidden=false;
+ }catch{$('revision-history').hidden=true;}
+}
+function renderPublishedDiff(){
+ if(!privateMode||!published)return;
+ const differences=changedFields(published,original);
+ const byPath=new Map(editableFields(original,'admin').map(field=>[field.path,field]));
+ const list=$('published-diff-list');list.replaceChildren();
+ $('published-diff-summary').textContent=differences.length?`${differences.length} ${differences.length===1?'cambio guardado':'cambios guardados'} respecto a la página pública. Revise también las imágenes y videos en sus apartados antes de aprobar.`:'Esta versión coincide con el contenido de la página pública.';
+ const format=value=>value===null||value===undefined?'Pendiente':typeof value==='object'?JSON.stringify(value,null,2):String(value);
+ for(const change of differences){
+  const path=change.path.join('.');const root=change.path[0];
+  const field=byPath.get(path);const name=field?.label??GROUPS.find(group=>group.roots.includes(root))?.title??root;
+  const mediaChanged=['imagen','imagenGrande','poster','archivo'].includes(change.path.at(-1));
+  const describe=value=>{if(!mediaChanged)return format(value);const item=availableMedia.find(media=>media.storageKey===value);return item?mediaLabel(item):'Archivo seleccionado';};
+  const box=make('div',undefined,'published-change');box.append(make('strong',name),make('p','Página pública: '+describe(change.before)),make('p','Versión guardada: '+describe(change.after)));
+  if(mediaChanged){
+   const item=availableMedia.find(media=>media.storageKey===change.after);
+   if(item){const preview=make(item.mimeType==='video/mp4'?'video':'img');preview.className='asset-preview';preview.src=previewUrl(item);if(preview.tagName==='VIDEO')preview.controls=true;else preview.alt=`Vista de ${name}`;box.append(preview);}
+  }
+  if(field){const open=make('button','Ver en el editor');open.type='button';open.addEventListener('click',()=>{active=GROUPS.findIndex(group=>group.id===field.group);render(field.section);$('field-'+path.replaceAll('.','-'))?.focus();});box.append(open);}
+  list.append(box);
+ }
+ $('published-diff').hidden=false;
 }
 function render(focusSection=null){
  fields=editableFields(draft,role);for(const field of fields)labels.set(field.path,field.label);
@@ -126,10 +170,15 @@ async function loadContent(){
   const response=await fetch('/api/content/colegio/working',{cache:'no-store'});
   if(response.status===401){showLogin();return;}
   if(!response.ok)throw Error('No se pudo cargar el borrador de trabajo.');
-  const result=await response.json();documentId=result.documentId;version=result.version;revisionId=result.revisionId;revisionStatus=result.status;canSubmit=result.canSubmit;content=result.content;
+  const result=await response.json();documentId=result.documentId;version=result.version;revisionId=result.revisionId;revisionStatus=result.status;reviewReason=result.reviewReason;canSubmit=result.canSubmit;content=result.content;
+  const publicResponse=await fetch('/api/content/colegio',{cache:'no-store'});
+  if(publicResponse.status===401){showLogin();return;}
+  if(!publicResponse.ok)throw Error('No se pudo comparar el borrador con la página pública.');
+  published=(await publicResponse.json()).content;
  }else{
   const response=await fetch('../contenido/colegio.json',{cache:'no-store'});
   if(!response.ok)throw Error('No se pudo cargar el contenido.');content=await response.json();
+  published=structuredClone(content);
   $('connection-title').textContent='Esta es una muestra';
   $('connection-text').textContent='Descargue el borrador para conservar sus cambios.';
  }
@@ -142,16 +191,17 @@ async function loadContent(){
  }catch{availableMedia=[];}
  labels.clear();$('categories').replaceChildren();$('pending').replaceChildren();undo=null;
  GROUPS.forEach((group,i)=>{const button=make('button',group.title);button.type='button';button.setAttribute('aria-controls','form');button.addEventListener('click',()=>{active=i;render();});$('categories').append(button);});
- original.pendientes.forEach(text=>$('pending').append(make('li',text)));$('workspace').hidden=false;$('form').hidden=false;render();update();
+ original.pendientes.forEach(text=>$('pending').append(make('li',text)));$('workspace').hidden=false;$('form').hidden=false;render();update();renderPublishedDiff();
+ await loadRevisions();
 }
-function showLogin(){csrfToken=null;documentId=null;version=null;revisionId=null;revisionStatus=null;canSubmit=false;$('workspace').hidden=true;$('login').hidden=false;$('state').textContent='Inicie sesión para editar el contenido.';}
+function showLogin(){csrfToken=null;documentId=null;version=null;revisionId=null;revisionStatus=null;reviewReason=null;published=null;canSubmit=false;$('workspace').hidden=true;$('login').hidden=false;$('state').textContent='Inicie sesión para editar el contenido.';}
 function configurePrivate(identityRole){
- privateMode=true;role=identityRole;$('login').hidden=true;$('notice').textContent='Sus cambios se guardan como borrador. La página del colegio no cambia hasta su aprobación.';
+ privateMode=true;role=identityRole;$('login').hidden=true;$('notice').textContent='Sus cambios se guardan como borrador. Revisar o aprobar no modifica todavía la página pública.';
  $('connection-title').textContent=`Sesión: ${role==='admin'?'Admin':'Moderador'}`;
  $('connection-text').textContent='Puede guardar sus cambios y continuar más tarde.';
- $('review-help').textContent='Guarde el borrador para conservarlo. La página publicada no cambia hasta su aprobación.';
+ $('review-help').textContent='Guarde el borrador para conservarlo. La página pública no cambia al guardarlo ni al aprobarlo.';
  $('download').hidden=true;$('save').hidden=false;$('logout').hidden=false;
- $('footer').textContent='Los cambios guardados permanecen en el servidor. La publicación requiere aprobación.';
+ $('footer').textContent='Los cambios guardados permanecen en el servidor. La publicación se realiza por separado.';
 }
 $('login').addEventListener('submit',async event=>{
  event.preventDefault();$('state').textContent='Verificando acceso…';
@@ -169,24 +219,27 @@ $('save').addEventListener('click',async()=>{
   if(response.status===401){showLogin();return;}
   if(response.status===409){$('state').textContent='Otro editor guardó cambios. Recargue la página antes de continuar.';return;}
   if(!response.ok){const result=await response.json();$('state').textContent=result.error??'No se pudo guardar el borrador.';return;}
-  const result=await response.json();version=result.version;revisionId=result.revisionId;revisionStatus='borrador';canSubmit=true;original=structuredClone(draft);undo=null;$('review').hidden=true;update();$('state').textContent='Borrador guardado. Puede enviarlo a revisión.';
+  const result=await response.json();version=result.version;revisionId=result.revisionId;revisionStatus='borrador';reviewReason=null;canSubmit=true;original=structuredClone(draft);undo=null;$('review').hidden=true;update();renderPublishedDiff();$('state').textContent='Borrador guardado. Puede enviarlo a revisión.';await loadRevisions();
  }catch{$('state').textContent='No se pudo conectar con el servidor. El borrador sigue en esta pestaña.';}
  finally{$('save').disabled=false;}
 });
 $('submit-review').addEventListener('click',()=>{void changeWorkflow('submit');});
 $('approve-review').addEventListener('click',()=>{void changeWorkflow('approve');});
+$('reject-review').addEventListener('click',()=>{void changeWorkflow('reject');});
 async function changeWorkflow(action){
- const button=$(action==='submit'?'submit-review':'approve-review');
+ const button=$(action==='submit'?'submit-review':action==='approve'?'approve-review':'reject-review');
  if(!privateMode||changes().length||!revisionId||!version)return;
- button.disabled=true;$('state').textContent=action==='submit'?'Enviando a revisión…':'Aprobando contenido…';
+ const reason=$('reject-reason').value.trim();
+ if(action==='reject'&&(reason.length<5||reason.length>1000)){$('state').textContent='Explique qué debe corregirse en al menos 5 caracteres.';$('reject-reason').focus();return;}
+ button.disabled=true;$('state').textContent=action==='submit'?'Enviando a revisión…':action==='approve'?'Aprobando contenido…':'Devolviendo para corrección…';
  try{
-  const response=await fetch(`/api/content/colegio/${action}`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrfToken},body:JSON.stringify({documentId,revisionId,expectedVersion:version})});
+  const response=await fetch(`/api/content/colegio/${action}`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrfToken},body:JSON.stringify({documentId,revisionId,expectedVersion:version,...(action==='reject'?{reason}:{})})});
   if(response.status===401){showLogin();return;}
   if(response.status===409){$('state').textContent='El borrador cambió. Recargue la página antes de continuar.';return;}
   const result=await response.json();
   if(!response.ok){$('state').textContent=result.error??'No se pudo cambiar el estado del borrador.';return;}
-  revisionStatus=result.status;renderWorkflow();
-  $('state').textContent=action==='submit'?'Borrador enviado a revisión.':'Contenido aprobado. La página pública todavía no ha cambiado.';
+  revisionStatus=result.status;reviewReason=result.reviewReason;$('reject-reason').value='';renderWorkflow();await loadRevisions();
+  $('state').textContent=action==='submit'?'Borrador enviado a revisión.':action==='approve'?'Contenido aprobado. La página pública todavía no ha cambiado.':'Contenido devuelto con instrucciones de corrección.';
  }catch{$('state').textContent='No se pudo conectar con el servidor. Intente de nuevo.';}
  finally{renderWorkflow();}
 }

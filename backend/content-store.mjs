@@ -48,27 +48,50 @@ export async function getPublished(pool, contentKey = 'colegio', locale = 'es-CR
 
 export async function getWorking(pool, contentKey = 'colegio', locale = 'es-CR') {
   const [rows] = await pool.execute(
-    `SELECT d.id AS document_id, d.version, r.id AS revision_id, r.payload, r.status, r.author_id
+    `SELECT d.id AS document_id, d.version, r.id AS revision_id, r.payload, r.status, r.author_id, q.reason AS review_reason
        FROM content_documents d
        JOIN content_publications p ON p.document_id = d.id
        LEFT JOIN content_working w ON w.document_id = d.id
        JOIN content_revisions r ON r.document_id = d.id AND r.id = COALESCE(w.revision_id, p.revision_id)
+       LEFT JOIN content_review_decisions q ON q.document_id = d.id AND q.revision_id = r.id
       WHERE d.content_key = ? AND d.locale = ?`,
     [contentKey, locale],
   );
   if (!rows.length) throw new ContentError('NOT_FOUND', 'No existe contenido de trabajo.');
-  return { documentId: rows[0].document_id, version: String(rows[0].version), revisionId: rows[0].revision_id, status: rows[0].status, authorId: rows[0].author_id, content: parsePayload(rows[0].payload) };
+  return { documentId: rows[0].document_id, version: String(rows[0].version), revisionId: rows[0].revision_id, status: rows[0].status, authorId: rows[0].author_id, reviewReason: rows[0].review_reason ?? null, content: parsePayload(rows[0].payload) };
 }
 
-async function changeReviewStatus(pool, { documentId, revisionId, expectedVersion, actorId, role }, nextStatus) {
+export async function listRevisions(pool, contentKey = 'colegio', locale = 'es-CR') {
+  const [rows] = await pool.execute(
+    `SELECT r.id, r.status, r.created_at, q.reason, p.revision_id AS published_id,
+            COALESCE(w.revision_id, p.revision_id) AS current_id
+       FROM content_documents d
+       JOIN content_revisions r ON r.document_id = d.id
+       JOIN content_publications p ON p.document_id = d.id
+       LEFT JOIN content_working w ON w.document_id = d.id
+       LEFT JOIN content_review_decisions q ON q.document_id = d.id AND q.revision_id = r.id
+      WHERE d.content_key = ? AND d.locale = ?
+      ORDER BY r.created_at DESC, r.id DESC LIMIT 20`,
+    [contentKey, locale],
+  );
+  return rows.map(row => ({
+    revisionId: row.id, status: row.status, createdAt: row.created_at,
+    reason: row.reason ?? null, isPublished: row.id === row.published_id, isCurrent: row.id === row.current_id,
+  }));
+}
+
+async function changeReviewStatus(pool, { documentId, revisionId, expectedVersion, actorId, role, reason = null }, nextStatus) {
   if (!documentId || !revisionId || !actorId || !['admin', 'moderador'].includes(role)) {
     throw new ContentError('UNAUTHORIZED', 'Identidad o revisión inválida.');
   }
   if (!/^(0|[1-9]\d*)$/.test(String(expectedVersion ?? ''))) {
     throw new ContentError('INVALID_VERSION', 'Se requiere la versión de lectura.');
   }
-  if (nextStatus === 'aprobado' && role !== 'admin') {
-    throw new ContentError('FORBIDDEN_CHANGE', 'Solo Admin puede aprobar contenido.');
+  if (nextStatus !== 'en_revision' && role !== 'admin') {
+    throw new ContentError('FORBIDDEN_CHANGE', 'Solo Admin puede aprobar o devolver contenido.');
+  }
+  if (nextStatus === 'rechazado' && (typeof reason !== 'string' || reason.trim().length < 5 || reason.trim().length > 1000)) {
+    throw new ContentError('INVALID_COMMENT', 'Explique qué debe corregirse en 5 a 1000 caracteres.');
   }
   const connection = await pool.getConnection();
   try {
@@ -100,13 +123,20 @@ async function changeReviewStatus(pool, { documentId, revisionId, expectedVersio
       'UPDATE content_revisions SET status = ? WHERE id = ? AND document_id = ?',
       [nextStatus, revisionId, documentId],
     );
+    if (nextStatus !== 'en_revision') {
+      await connection.execute(
+        'INSERT INTO content_review_decisions (revision_id, document_id, reviewer_id, decision, reason) VALUES (?, ?, ?, ?, ?)',
+        [revisionId, documentId, actorId, nextStatus, nextStatus === 'rechazado' ? reason.trim() : null],
+      );
+    }
     await connection.execute(
       `INSERT INTO audit_events (actor_id, action, target_type, target_id, metadata)
        VALUES (?, ?, 'content_revision', ?, ?)`,
-      [actorId, nextStatus === 'en_revision' ? 'draft.submitted' : 'draft.approved', revisionId, JSON.stringify({ documentId })],
+      [actorId, { en_revision: 'draft.submitted', aprobado: 'draft.approved', rechazado: 'draft.rejected' }[nextStatus], revisionId,
+        JSON.stringify({ documentId, ...(nextStatus === 'rechazado' ? { reason: reason.trim() } : {}) })],
     );
     await connection.commit();
-    return { revisionId, status: nextStatus, version: String(documents[0].version) };
+    return { revisionId, status: nextStatus, version: String(documents[0].version), reviewReason: nextStatus === 'rechazado' ? reason.trim() : null };
   } catch (error) {
     await connection.rollback();
     throw error;
@@ -121,6 +151,10 @@ export function submitWorking(pool, input) {
 
 export function approveWorking(pool, input) {
   return changeReviewStatus(pool, input, 'aprobado');
+}
+
+export function rejectWorking(pool, input) {
+  return changeReviewStatus(pool, input, 'rechazado');
 }
 
 export async function saveDraft(pool, { documentId, actorId, role, expectedVersion, content, comment = null }) {

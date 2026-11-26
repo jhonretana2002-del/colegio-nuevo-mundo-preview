@@ -1,6 +1,6 @@
 # Avance del panel administrativo
 
-Este checklist corresponde a la guía de implementación del panel administrativo entregada el 25 de noviembre de 2026. El repositorio actual es una exportación pública; en GitHub Pages `/admin/` solo prepara descargas locales. Con la API privada bajo el mismo origen puede autenticar, guardar borradores, enviarlos a revisión y aprobarlos, pero aún no publica. Las casillas se marcan solo cuando hay evidencia.
+Este checklist corresponde a la guía de implementación del panel administrativo entregada el 25 de noviembre de 2026. El repositorio actual es una exportación pública; en GitHub Pages `/admin/` solo prepara descargas locales. Con la API privada bajo el mismo origen puede autenticar, guardar borradores, enviarlos a revisión, aprobarlos o devolverlos con instrucciones, pero aún no publica. Las casillas se marcan solo cuando hay evidencia.
 
 ## Fase 1: base y permisos
 
@@ -25,6 +25,7 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 - [x] Preparar estados de revisión y aprobación en MariaDB: el autor o Admin envía un borrador; solo Admin aprueba la revisión vigente, con control de versión y auditoría. El panel muestra acciones y mensajes sencillos según el estado. Evidencia: `backend/content-store.mjs`, `backend/http-api.mjs`, `admin/gestion.js` y pruebas. Pendiente: prueba contra MariaDB real y validación de uso con personal del colegio.
 - [x] Trasladar títulos, introducciones, frases superiores y resúmenes de buscadores de las seis páginas interiores a `contenido/colegio.json`, accesibles por página para Admin y Moderador. Evidencia: `scripts/generar-sitio.mjs`, `admin/field-catalog.mjs` y pruebas; la generación conserva el HTML actual.
 - [x] Trasladar textos de secciones principales: presentación y oferta en Inicio, identidad, propuesta, servicios, pasos de admisión, contacto y mensaje de Noticias. Los campos aparecen con nombres legibles para ambos roles. Evidencia: `contenido/colegio.json`, `scripts/plantillas-portada.mjs`, `scripts/generar-sitio.mjs` y pruebas; el HTML público generado sigue idéntico.
+- [x] Preparar devolución con motivo obligatorio por Admin, historial de 20 revisiones y comparación de la versión guardada frente al contenido público antes de aprobar. Evidencia: `backend/migrations/005_review_decisions.sql`, `backend/content-store.mjs`, `backend/http-api.mjs`, `admin/gestion.js` y pruebas. Pendiente: prueba con MariaDB real y revisión de facilidad de uso con el personal.
 - [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
 - [ ] Completar inventario y esquema versionado de todos los campos editables; todavía quedan textos fijos en plantillas, formularios, navegación y pie de página.
 - [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.

@@ -24,3 +24,10 @@ test('migración inicial contiene las nueve tablas y se divide en sentencias ind
   assert.ok(sql.includes('FOREIGN KEY (document_id, revision_id)'));
   assert.ok(sql.includes('CHECK (JSON_VALID(payload))'));
 });
+
+test('decisiones de revisión quedan vinculadas a revisión y responsable', async () => {
+  const sql = await readFile(new URL('./migrations/005_review_decisions.sql', import.meta.url), 'utf8');
+  assert.equal(splitStatements(sql).length, 1);
+  assert.match(sql, /FOREIGN KEY \(document_id, revision_id\)/);
+  assert.match(sql, /FOREIGN KEY \(reviewer_id\)/);
+});

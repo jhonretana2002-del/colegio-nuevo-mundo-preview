@@ -10,7 +10,7 @@ El inicio incluye una portada audiovisual de ancho completo, presentación breve
 
 ## Gestión de contenidos
 
-El acceso `/admin/` incluye un prototipo para preparar, revisar y descargar borradores de contenido en GitHub Pages. Su conexión con la API privada para autenticación y guardado está preparada en `backend/`, pero aún no se ha desplegado ni probado con MariaDB real. No publica cambios. Consultar `GUIA_GESTION_CONTENIDOS.md` para los campos disponibles y la validación institucional pendiente.
+El acceso `/admin/` incluye un prototipo para preparar, revisar y descargar borradores de contenido en GitHub Pages. Su conexión con la API privada para autenticación, guardado, revisión con devolución motivada e historial está preparada en `backend/`, pero aún no se ha desplegado ni probado con MariaDB real. No publica cambios. Consultar `GUIA_GESTION_CONTENIDOS.md` para los campos disponibles y la validación institucional pendiente.
 
 ## Lumi
 
