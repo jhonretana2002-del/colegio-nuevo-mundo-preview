@@ -32,7 +32,7 @@ test('importa documento, revisión publicada y auditoría en una transacción', 
   const inserts = db.calls.filter(call => typeof call === 'object' && call.sql.startsWith('INSERT'));
   assert.deepEqual(inserts.map(call => call.sql.match(/^INSERT INTO (\w+)/)[1]), ['content_documents', 'content_revisions', 'content_publications', 'audit_events']);
   assert.equal(JSON.parse(inserts[1].params[3]).nombre, source.nombre);
-  assert.equal(inserts[1].params[4], 8);
+  assert.equal(inserts[1].params[4], 9);
   assert.equal(inserts[2].params[1], result.revisionId);
 });
 

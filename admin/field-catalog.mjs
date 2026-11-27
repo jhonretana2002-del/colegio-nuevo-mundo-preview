@@ -89,6 +89,13 @@ const PAGE_LABELS = {
   cuposPregunta: 'Pregunta sobre cupos', cuposResumen: 'Tema: cupos y fechas', cuposCursoEtiqueta: 'Etiqueta del curso lectivo', cuposPendiente: 'Aviso de fechas pendientes', cuposNota: 'Aviso sobre disponibilidad', cuposEnlace: 'Enlace a fechas de matrícula',
   ofertaPregunta: 'Pregunta sobre materias e idiomas', ofertaResumen: 'Tema: oferta educativa', ofertaNota: 'Aviso sobre la oferta', ofertaEnlace: 'Enlace a materias e idiomas',
   visitaPregunta: 'Pregunta sobre visitas', visitaResumen: 'Tema: visitas', visitaIntroduccion: 'Texto antes de la dirección', visitaHorarioEtiqueta: 'Etiqueta del horario', visitaNota: 'Aviso sobre coordinación', visitaEnlace: 'Enlace a contacto',
+  launcherAria: 'Descripción del botón de Lumi', launcherSign: 'Texto del botón de Lumi', launcherName: 'Nombre del asistente',
+  minimizeAria: 'Descripción para minimizar Lumi', maximizeAria: 'Descripción para mostrar Lumi', chatTitle: 'Título de la ventana', schoolName: 'Nombre del colegio en la ventana', closeAria: 'Descripción para cerrar la ventana',
+  homeAria: 'Descripción de preguntas frecuentes', kicker: 'Frase superior de la ventana', heading1: 'Título: primera línea', heading2: 'Título: segunda línea', welcome: 'Mensaje de bienvenida', questionsHeading: 'Título de las preguntas',
+  advisorButton: 'Botón para hablar con asesor', advisorSubtext: 'Nota bajo el botón del asesor', conversationAria: 'Descripción de la consulta', logAria: 'Descripción de la conversación',
+  advisorNoticeTitle: 'Título del aviso del asesor', advisorNoticeText: 'Aviso del asesor', inputLabel: 'Etiqueta del campo de consulta', inputPlaceholder: 'Ejemplo en el campo de consulta', advisorPlaceholder: 'Ejemplo al consultar al asesor',
+  sendAria: 'Descripción para enviar pregunta', advisorSendAria: 'Descripción para probar consulta', demoNote: 'Aviso de demostración', contactLink: 'Enlace a contacto', authorVisitor: 'Nombre de quien consulta',
+  advisorQuestion: 'Pregunta de ejemplo al asesor', advisorAnswer: 'Respuesta de ejemplo del asesor', advisorConfirmation: 'Confirmación de consulta de prueba', fallbackAnswer: 'Respuesta cuando no hay tema relacionado',
   titulo: 'Título principal', introduccion: 'Texto introductorio', antetitulo: 'Frase superior', descripcionBuscadores: 'Resumen para buscadores',
   introAntetitulo: 'Frase de presentación', consultaEnlace: 'Botón de consulta', conocenosEnlace: 'Enlace para conocer el colegio', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', tarjetasEnlace: 'Enlace de tarjetas', vidaAntetitulo: 'Frase de vida en el colegio', vidaEnlace: 'Enlace a vida en el colegio',
   quienesAntetitulo: 'Frase de quiénes somos', quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', misionTitulo: 'Título de misión', visionAntetitulo: 'Frase de visión', visionTitulo: 'Título de visión', valoresAntetitulo: 'Frase de valores', valoresTitulo: 'Título de valores', historiaTitulo: 'Título de historia', historiaAlternativaTitulo: 'Título para presentar el colegio', historiaInvitacion: 'Invitación a conocer el colegio',
@@ -146,7 +153,8 @@ function sectionFor(path, content) {
     if (parts[1] === 'lumi') {
       const topic = ['matricula', 'requisitos', 'costos', 'cupos', 'oferta', 'visita'].find(name => parts[2].startsWith(name));
       const titles = { matricula: 'Matrícula', requisitos: 'Requisitos', costos: 'Costos y reserva', cupos: 'Cupos y fechas', oferta: 'Materias e idiomas', visita: 'Visitas' };
-      return { section: `paginas.lumi.${topic}`, sectionTitle: titles[topic] };
+      const shell = ['launcherAria','launcherSign','launcherName','minimizeAria','maximizeAria'].includes(parts[2]) ? 'acceso' : parts[2].startsWith('advisor') ? 'asesor' : 'ventana';
+      return { section: `paginas.lumi.${topic ?? shell}`, sectionTitle: titles[topic] ?? { acceso: 'Acceso a Lumi', asesor: 'Consulta con asesor', ventana: 'Ventana y mensajes' }[shell] };
     }
     const key = parts[2];
     let part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(key) ? 'presentacion' : key.startsWith('paso') ? 'pasos' : 'contenido';

@@ -9,6 +9,7 @@
  const input=dialog.querySelector('#matricula-chat-input');
  const advisorNotice=dialog.querySelector('#matricula-chat-advisor-notice');
  const submit=dialog.querySelector('#matricula-chat-send');
+ const copy=(key,fallback)=>window.colegioContent?.lumiCopy?.[key]??fallback;
  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
  let advisorMode=false;
  const faqs=window.colegioContent?.faqs ?? [
@@ -27,7 +28,7 @@
  };
  function message(text,from='bot',reference){
   const item=make('div',null,'matricula-message matricula-message-'+from);
-  item.append(make('span',from==='user'?'Usted':'Lumi','matricula-message-author'),make('p',text));
+  item.append(make('span',from==='user'?copy('authorVisitor','Usted'):copy('launcherName','Lumi'),'matricula-message-author'),make('p',text));
   if(reference?.url){const link=make('a',reference.link,'matricula-answer-link');link.href=reference.url;item.append(link);}
   log.append(item);
   while(log.children.length>24)log.firstElementChild.remove();
@@ -38,8 +39,8 @@
   const entering=conversation.hidden;
   advisorMode=advisor;home.hidden=true;conversation.hidden=false;
   advisorNotice.hidden=!advisor;
-  input.placeholder=advisor?'Escriba una consulta de prueba…':'Escriba su pregunta…';
-  submit.setAttribute('aria-label',advisor?'Probar mensaje para un asesor':'Enviar pregunta al asistente');
+  input.placeholder=advisor?copy('advisorPlaceholder','Escriba una consulta de prueba…'):copy('inputPlaceholder','Escriba su pregunta…');
+  submit.setAttribute('aria-label',advisor?copy('advisorSendAria','Probar mensaje para un asesor'):copy('sendAria','Enviar pregunta al asistente'));
   if(entering)dialog.querySelector('#matricula-chat-back').focus({preventScroll:true});
  }
  function ask(faq){
@@ -47,8 +48,8 @@
  }
  function showAdvisor(announce=true){
   openConversation(true);
-  if(announce)message('Me gustaría hablar con un asesor.','user');
-  message('Será un gusto acompañarle en su próximo paso. Esta es una vista previa de la atención personalizada: la conexión con asesores aún no está activa. Puede probar cómo se verá su consulta; no se enviará ningún mensaje.');
+  if(announce)message(copy('advisorQuestion','Me gustaría hablar con un asesor.'),'user');
+  message(copy('advisorAnswer','Será un gusto acompañarle en su próximo paso. Esta es una vista previa de la atención personalizada: la conexión con asesores aún no está activa. Puede probar cómo se verá su consulta; no se enviará ningún mensaje.'));
  }
  for(const faq of faqs){
   const button=make('button',null,'matricula-faq-button');button.type='button';
@@ -66,7 +67,7 @@
    launcher.classList.toggle('lumi-compact',compact);
    document.body.classList.toggle('lumi-is-compact',compact);
    sizeToggle.setAttribute('aria-expanded',String(!compact));
-   sizeToggle.setAttribute('aria-label',compact?'Mostrar personaje de Lumi':'Minimizar personaje de Lumi');
+   sizeToggle.setAttribute('aria-label',compact?copy('maximizeAria','Mostrar personaje de Lumi'):copy('minimizeAria','Minimizar personaje de Lumi'));
    sizeToggle.querySelector('span').textContent=compact?'+':'−';
   };
   const updateSize=()=>setCompact(preferredSize??(compactViewport.matches||constrained.size>0));
@@ -105,10 +106,10 @@
  form.addEventListener('submit',event=>{
   event.preventDefault();const text=input.value.trim().slice(0,300);if(!text)return;
   input.value='';message(text,'user');
-  if(advisorMode){message('Consulta de prueba mostrada. No se ha enviado a un asesor ni se ha guardado. Cuando se active este servicio, el equipo podrá continuar la conversación desde su bandeja.');return;}
+  if(advisorMode){message(copy('advisorConfirmation','Consulta de prueba mostrada. No se ha enviado a un asesor ni se ha guardado. Cuando se active este servicio, el equipo podrá continuar la conversación desde su bandeja.'));return;}
   const normalized=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   if(/asesor|persona|humano|hablar con alguien/.test(normalized)){showAdvisor(false);return;}
   const faq=[...faqs.slice(1),faqs[0]].find(item=>item.keys.some(key=>normalized.includes(key)));
-  message(faq?faq.answer:'Puedo orientarle sobre matrícula, requisitos, costos, cupos, niveles y visitas. Puede volver a las preguntas frecuentes o elegir «Hablar con un asesor». Las consultas particulares deben confirmarse con admisiones.','bot',faq);
+  message(faq?faq.answer:copy('fallbackAnswer','Puedo orientarle sobre matrícula, requisitos, costos, cupos, niveles y visitas. Puede volver a las preguntas frecuentes o elegir «Hablar con un asesor». Las consultas particulares deben confirmarse con admisiones.'),'bot',faq);
  });
 })();

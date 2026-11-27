@@ -132,6 +132,25 @@ test('Lumi usa las frases editadas y conserva requisitos y costos tomados del co
   assert.doesNotMatch(await readFile(path.join(root, 'institucional-datos.js'), 'utf8'), /¿Cómo puedo comenzar\?/);
 });
 
+test('la ventana de Lumi muestra textos editados y escapa el contenido de la plantilla', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.paginas.lumi.launcherSign = 'Conversemos';
+  changed.paginas.lumi.heading1 = 'Una consulta clara';
+  changed.paginas.lumi.closeAria = 'Cerrar <Lumi>';
+  changed.paginas.lumi.advisorAnswer = 'Esta conversación es una demostración.';
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  const page = await readFile(path.join(outputRoot, 'index.html'), 'utf8');
+  const data = await readFile(path.join(outputRoot, 'institucional-datos.js'), 'utf8');
+  assert.match(page, /<span class="lumi-sign" aria-hidden="true">Conversemos<\/span>/);
+  assert.match(page, /<h3>Una consulta clara<br>empieza aquí\.<\/h3>/);
+  assert.match(page, /aria-label="Cerrar &lt;Lumi&gt;"/);
+  assert.doesNotMatch(page, /\{\{lumi\./);
+  assert.match(data, /"advisorAnswer": "Esta conversación es una demostración\."/);
+  assert.doesNotMatch(await readFile(path.join(root, 'index.html'), 'utf8'), /Una consulta clara/);
+});
+
 test('copia un medio aprobado y verifica su hash antes de generar', async t => {
   const folder = await workspace(t);
   const mediaRoot = path.join(folder, 'media');

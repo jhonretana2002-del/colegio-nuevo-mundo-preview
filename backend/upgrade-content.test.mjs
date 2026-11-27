@@ -40,7 +40,7 @@ test('completa campos faltantes sin perder ediciones y conserva la publicación'
   const result = await upgradeContent(db.pool, { actorId });
   assert.equal(result.updated, true);
   assert.deepEqual(result.added, ['paginas.inicio.consultaEnlace', 'paginas.opiniones']);
-  assert.equal(db.revision.schema_version, 8);
+  assert.equal(db.revision.schema_version, 9);
   assert.equal(db.revision.status, 'borrador');
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.mision, old.mision);
@@ -68,7 +68,20 @@ test('la versión 4 incorpora textos de Contacto sin reemplazar ediciones anteri
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.paginas.contacto.contactoTitulo, 'Escríbanos cuando lo necesite.');
   assert.equal(updated.paginas.contacto.llamarEnlace, source.paginas.contacto.llamarEnlace);
-  assert.equal(db.revision.schema_version, 8);
+  assert.equal(db.revision.schema_version, 9);
+});
+
+test('la versión 8 incorpora la ventana de Lumi sin perder preguntas editadas', async () => {
+  const previous = structuredClone(source);
+  previous.paginas.lumi.matriculaPregunta = '¿Cómo comienzo el proceso?';
+  for (const key of ['launcherSign', 'welcome', 'advisorAnswer']) delete previous.paginas.lumi[key];
+  const db = fakePool({ content: previous, schemaVersion: 8 });
+  const result = await upgradeContent(db.pool, { actorId });
+  assert.deepEqual(result.added, ['paginas.lumi.launcherSign', 'paginas.lumi.welcome', 'paginas.lumi.advisorAnswer']);
+  const updated = JSON.parse(db.revision.payload);
+  assert.equal(updated.paginas.lumi.matriculaPregunta, '¿Cómo comienzo el proceso?');
+  assert.equal(updated.paginas.lumi.welcome, source.paginas.lumi.welcome);
+  assert.equal(db.revision.schema_version, 9);
 });
 
 test('rechaza cuentas sin Admin, campos desconocidos y versiones futuras', async () => {
@@ -77,7 +90,7 @@ test('rechaza cuentas sin Admin, campos desconocidos y versiones futuras', async
   const unknown = structuredClone(source); unknown.campoInventado = 'dato';
   const bad = fakePool({ content: unknown });
   await assert.rejects(upgradeContent(bad.pool, { actorId }), /revisión manual/);
-  const future = fakePool({ schemaVersion: 9 });
+  const future = fakePool({ schemaVersion: 10 });
   await assert.rejects(upgradeContent(future.pool, { actorId }), /más reciente/);
   assert.equal(bad.calls.includes('rollback'), true);
 });
