@@ -22,36 +22,56 @@ function isSignature(mime, bytes) {
   return false;
 }
 
+async function* mp4Boxes(input, start, end, budget) {
+  let position = start;
+  while (position < end) {
+    if (--budget.remaining < 0 || end - position < 8) throw new Error('Caja MP4 inválida.');
+    const header = Buffer.alloc(16);
+    const { bytesRead } = await input.read(header, 0, Math.min(16, end - position), position);
+    if (bytesRead < 8) throw new Error('Cabecera MP4 incompleta.');
+    let size = header.readUInt32BE(0);
+    let headerSize = 8;
+    if (size === 1) {
+      if (bytesRead < 16) throw new Error('Tamaño MP4 incompleto.');
+      const large = header.readBigUInt64BE(8);
+      if (large > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('Tamaño MP4 inválido.');
+      size = Number(large);
+      headerSize = 16;
+    } else if (size === 0) size = end - position;
+    if (size < headerSize || size > end - position) throw new Error('Tamaño MP4 inválido.');
+    yield { type: header.toString('ascii', 4, 8), start: position, payload: position + headerSize, end: position + size };
+    position += size;
+  }
+}
+
 async function validMp4Structure(file, bytes) {
   const input = await open(file, 'r');
   try {
-    let position = 0;
-    let boxes = 0;
-    let hasMovie = false;
+    const budget = { remaining: 10000 };
+    let first = true;
     let hasData = false;
-    while (position < bytes && ++boxes <= 10000) {
-      if (bytes - position < 8) return false;
-      const header = Buffer.alloc(16);
-      const { bytesRead } = await input.read(header, 0, Math.min(16, bytes - position), position);
-      if (bytesRead < 8) return false;
-      const type = header.toString('ascii', 4, 8);
-      let size = header.readUInt32BE(0);
-      let headerSize = 8;
-      if (size === 1) {
-        if (bytesRead < 16) return false;
-        const large = header.readBigUInt64BE(8);
-        if (large > BigInt(Number.MAX_SAFE_INTEGER)) return false;
-        size = Number(large);
-        headerSize = 16;
-      } else if (size === 0) size = bytes - position;
-      if (size < headerSize || size > bytes - position) return false;
-      if (position === 0 && (type !== 'ftyp' || size < 16)) return false;
-      if (type === 'moov') hasMovie = size > headerSize;
-      if (type === 'mdat') hasData = size > headerSize;
-      position += size;
+    let hasVideo = false;
+    for await (const box of mp4Boxes(input, 0, bytes, budget)) {
+      if (first && (box.type !== 'ftyp' || box.end - box.start < 16)) return false;
+      first = false;
+      if (box.type === 'mdat' && box.end > box.payload) hasData = true;
+      if (box.type !== 'moov') continue;
+      for await (const track of mp4Boxes(input, box.payload, box.end, budget)) {
+        if (track.type !== 'trak') continue;
+        for await (const child of mp4Boxes(input, track.payload, track.end, budget)) {
+          if (child.type !== 'mdia') continue;
+          for await (const media of mp4Boxes(input, child.payload, child.end, budget)) {
+            if (media.type !== 'hdlr' || media.end - media.payload < 12) continue;
+            const handler = Buffer.alloc(4);
+            const { bytesRead } = await input.read(handler, 0, 4, media.payload + 8);
+            if (bytesRead === 4 && handler.toString('ascii') === 'vide') hasVideo = true;
+          }
+        }
+      }
     }
-    return position === bytes && hasMovie && hasData;
-  } finally { await input.close(); }
+    return !first && hasData && hasVideo;
+  } catch { return false; }
+  finally { await input.close(); }
 }
 
 export async function listMedia(pool) {

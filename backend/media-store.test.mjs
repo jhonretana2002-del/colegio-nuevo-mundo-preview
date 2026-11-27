@@ -89,19 +89,28 @@ test('Admin sube imagen validada, la registra y puede previsualizarla', async ()
 test('Admin puede registrar un video MP4 con su tipo correcto', async () => {
   const mediaRoot = await mkdtemp(path.join(tmpdir(), 'cnm-media-'));
   try {
-    const result = await uploadMedia(fakePool().pool, request(mp4, 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot });
+    const actualVideo = await readFile(new URL('../assets/portada/portada-optimizada.mp4', import.meta.url));
+    const result = await uploadMedia(fakePool().pool, request(actualVideo, 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot });
     assert.equal(result.mimeType, 'video/mp4');
     assert.match(result.storageKey, /\.mp4$/);
+    assert.equal(result.bytes, actualVideo.length);
   } finally { await rm(mediaRoot, { recursive: true, force: true }); }
 });
 
-test('rechaza MP4 truncado o sin datos de video antes de registrarlo', async () => {
+test('rechaza MP4 truncado, sin datos o con solo audio antes de registrarlo', async () => {
   const mediaRoot = await mkdtemp(path.join(tmpdir(), 'cnm-media-'));
   try {
     const db = fakePool();
     await assert.rejects(uploadMedia(db.pool, request(mp4.subarray(0, -5), 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot }), /incompleto o dañado/);
     const noData = Buffer.concat([mp4Box('ftyp', Buffer.from('isom0000isom')), mp4Box('moov', Buffer.from('movie-data'))]);
     await assert.rejects(uploadMedia(db.pool, request(noData, 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot }), /incompleto o dañado/);
+    const audioHandler = Buffer.concat([Buffer.alloc(8), Buffer.from('soun')]);
+    const audioOnly = Buffer.concat([
+      mp4Box('ftyp', Buffer.from('isom0000isom')),
+      mp4Box('moov', mp4Box('trak', mp4Box('mdia', mp4Box('hdlr', audioHandler)))),
+      mp4Box('mdat', Buffer.from('audio-data')),
+    ]);
+    await assert.rejects(uploadMedia(db.pool, request(audioOnly, 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot }), /incompleto o dañado/);
     assert.equal(db.queries.some(item => item.sql.startsWith('INSERT INTO media_assets')), false);
     assert.deepEqual(await readdir(mediaRoot), []);
   } finally { await rm(mediaRoot, { recursive: true, force: true }); }
