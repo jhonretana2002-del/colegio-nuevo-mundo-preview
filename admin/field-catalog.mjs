@@ -76,7 +76,7 @@ const PAGE_LABELS = {
   telefonoEtiqueta: 'Etiqueta de teléfono', llamarEnlace: 'Enlace para llamar', whatsappEnlace: 'Enlace de WhatsApp',
   correoEtiqueta: 'Etiqueta de correo', correoEnlace: 'Enlace para escribir correo', mapaEnlace: 'Enlace del mapa',
   facebookEnlace: 'Enlace de Facebook', instagramEnlace: 'Enlace de Instagram', mapaTitulo: 'Título del mapa',
-  prepararConsultaEnlace: 'Botón para preparar consulta',
+  prepararConsultaEnlace: 'Botón para preparar consulta', tituloPestana: 'Título de la pestaña del navegador', volverEnlace: 'Enlace para volver al inicio',
   consultaAria: 'Descripción del botón de consulta', videoControl: 'Botón para reproducir video', videoPausar: 'Botón para pausar video', videoReintentar: 'Botón para reintentar video',
   videoError: 'Aviso si el video falla', videoPausado: 'Aviso de video pausado', videoReproduciendo: 'Aviso de video en reproducción', videoAviso: 'Nota del video', videoCredito: 'Crédito del video',
   imagenOfertaAviso: 'Nota de imagen de la oferta', imagenAcompanamientoAviso: 'Nota de imagen de acompañamiento', imagenMatriculaAviso: 'Nota de imagen de matrícula',
@@ -132,7 +132,7 @@ export function writePath(object, path, value) {
 }
 
 function groupFor(parts) {
-  if (parts[0] === 'paginas') return parts[1] === 'conocenos' ? 'institucion' : parts[1] === 'navegacion' ? 'menu' : parts[1] === 'pie' ? 'contacto' : parts[1];
+  if (parts[0] === 'paginas') return parts[1] === 'conocenos' ? 'institucion' : ['navegacion', 'error404'].includes(parts[1]) ? 'menu' : parts[1] === 'pie' ? 'contacto' : parts[1];
   return GROUPS.find(group => group.roots.includes(parts[0]))?.id;
 }
 
@@ -154,6 +154,7 @@ function sectionFor(path, content) {
   if (root === 'paginas') {
     if (parts[1] === 'pie') return { section: 'paginas.pie', sectionTitle: 'Pie de página' };
     if (parts[1] === 'navegacion') return { section: 'paginas.navegacion', sectionTitle: 'Nombre, menú y avisos' };
+    if (parts[1] === 'error404') return { section: 'paginas.error404', sectionTitle: 'Página no encontrada' };
     if (parts[1] === 'lumi') {
       const topic = ['matricula', 'requisitos', 'costos', 'cupos', 'oferta', 'visita'].find(name => parts[2].startsWith(name));
       const titles = { matricula: 'Matrícula', requisitos: 'Requisitos', costos: 'Costos y reserva', cupos: 'Cupos y fechas', oferta: 'Materias e idiomas', visita: 'Visitas' };
@@ -161,7 +162,7 @@ function sectionFor(path, content) {
       return { section: `paginas.lumi.${topic ?? shell}`, sectionTitle: titles[topic] ?? { acceso: 'Acceso a Lumi', asesor: 'Consulta con asesor', ventana: 'Ventana y mensajes' }[shell] };
     }
     const key = parts[2];
-    let part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(key) ? 'presentacion' : key.startsWith('paso') ? 'pasos' : 'contenido';
+    let part = ['titulo', 'tituloPestana', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(key) ? 'presentacion' : key.startsWith('paso') ? 'pasos' : 'contenido';
     if (parts[1] === 'admisiones' && part === 'contenido') {
       if (key.startsWith('consulta') || key.startsWith('form')) part = 'consulta';
       else if (key.startsWith('aranceles')) part = 'costos';

@@ -1,4 +1,4 @@
-export const CONTENT_SCHEMA_VERSION = 10;
+export const CONTENT_SCHEMA_VERSION = 11;
 
 // Incorpora solo campos nuevos de la plantilla. Los valores ya editados siempre prevalecen.
 export function fillMissingContent(template, current, path = [], added = []) {

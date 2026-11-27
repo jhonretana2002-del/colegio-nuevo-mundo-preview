@@ -164,6 +164,20 @@ test('la ventana de Lumi muestra textos editados y escapa el contenido de la pla
   assert.doesNotMatch(await readFile(path.join(root, 'index.html'), 'utf8'), /Una consulta clara/);
 });
 
+test('los títulos de pestaña y la página no encontrada salen del panel', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.paginas.inicio.tituloPestana = 'Bienvenidos al colegio';
+  changed.paginas.error404.titulo = 'No encontramos esa dirección.';
+  changed.paginas.error404.volverEnlace = 'Ir a la portada';
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  assert.match(await readFile(path.join(outputRoot, 'index.html'), 'utf8'), /<title>Bienvenidos al colegio \| Colegio Nuevo Mundo<\/title>/);
+  const missing = await readFile(path.join(outputRoot, '404.html'), 'utf8');
+  assert.match(missing, /<h1>No encontramos esa dirección\.<\/h1>/);
+  assert.match(missing, /Ir a la portada/);
+});
+
 test('copia un medio aprobado y verifica su hash antes de generar', async t => {
   const folder = await workspace(t);
   const mediaRoot = path.join(folder, 'media');

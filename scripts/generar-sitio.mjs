@@ -100,14 +100,15 @@ async function render(route, title, description, content, file) {
  await mkdir(path.dirname(destination), {recursive:true});
  await writeFile(destination, html);
 }
-await render('', 'Educación y comunidad', data.presentacion, renderHome(data, {e, url, link, external, form}));
-await render('conocenos/', 'Conócenos', pageCopy.conocenos.descripcionBuscadores, conocenos);
-await render('oferta-educativa/', 'Oferta educativa', pageCopy.oferta.descripcionBuscadores, oferta);
-await render('vida-en-el-colegio/', 'Vida en el colegio', pageCopy.vida.descripcionBuscadores, vida);
-await render('admisiones/', 'Admisiones', pageCopy.admisiones.descripcionBuscadores, admisiones);
-await render('contacto/', 'Contacto', pageCopy.contacto.descripcionBuscadores, contacto);
-await render('noticias/', 'Noticias y actividades', pageCopy.noticias.descripcionBuscadores, noticias);
-await render('', 'Página no encontrada', 'Página no encontrada.', hero('Página no encontrada.', 'Puede volver al inicio o consultar las categorías del menú.', 'Colegio Nuevo Mundo', '')+`<section class="section"><div class="container">${link(base,'Volver al inicio','button')}</div></section>`, '404.html');
+await render('', pageCopy.inicio.tituloPestana, data.presentacion, renderHome(data, {e, url, link, external, form}));
+await render('conocenos/', pageCopy.conocenos.tituloPestana, pageCopy.conocenos.descripcionBuscadores, conocenos);
+await render('oferta-educativa/', pageCopy.oferta.tituloPestana, pageCopy.oferta.descripcionBuscadores, oferta);
+await render('vida-en-el-colegio/', pageCopy.vida.tituloPestana, pageCopy.vida.descripcionBuscadores, vida);
+await render('admisiones/', pageCopy.admisiones.tituloPestana, pageCopy.admisiones.descripcionBuscadores, admisiones);
+await render('contacto/', pageCopy.contacto.tituloPestana, pageCopy.contacto.descripcionBuscadores, contacto);
+await render('noticias/', pageCopy.noticias.tituloPestana, pageCopy.noticias.descripcionBuscadores, noticias);
+const missing = pageCopy.error404;
+await render('', missing.tituloPestana, missing.descripcionBuscadores, hero(missing.titulo, missing.introduccion, missing.antetitulo, '')+`<section class="section"><div class="container">${link(base,e(missing.volverEnlace),'button')}</div></section>`, '404.html');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

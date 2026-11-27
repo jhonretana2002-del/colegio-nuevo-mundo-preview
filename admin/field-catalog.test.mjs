@@ -72,6 +72,9 @@ test('Moderador solo recibe texto y Admin recibe campos visuales y de estado', (
   assert.equal(moderator.find(field => field.path === 'paginas.lumi.launcherSign').sectionTitle, 'Acceso a Lumi');
   assert.equal(moderator.find(field => field.path === 'paginas.lumi.advisorAnswer').sectionTitle, 'Consulta con asesor');
   assert.equal(moderator.find(field => field.path === 'paginas.lumi.welcome').sectionTitle, 'Ventana y mensajes');
+  assert.equal(moderator.find(field => field.path === 'paginas.error404.volverEnlace').group, 'menu');
+  assert.equal(moderator.find(field => field.path === 'paginas.error404.titulo').sectionTitle, 'Página no encontrada');
+  assert.equal(moderator.find(field => field.path === 'paginas.inicio.tituloPestana').label, 'Título de la pestaña del navegador');
   assert.equal(moderator.find(field => field.path === 'paginas.pie.aviso').label, 'Aviso del pie de página');
   assert.equal(moderator.find(field => field.path === 'paginas.conocenos.llamadaTexto').label, 'Texto de la invitación');
   assert.equal(moderator.find(field => field.path === 'paginas.vida.serviciosAntetitulo').group, 'vida');

@@ -32,6 +32,7 @@
       "experienciasSubmenu": "Experiencias"
     },
     "inicio": {
+      "tituloPestana": "Educación y comunidad",
       "introAntetitulo": "Colegio Nuevo Mundo · Costa Rica",
       "consultaEnlace": "Solicitar información",
       "consultaAria": "Consulta de admisiones",
@@ -57,6 +58,7 @@
       "vidaEnlace": "Explore la vida en el colegio"
     },
     "conocenos": {
+      "tituloPestana": "Conócenos",
       "titulo": "Educar también es acompañar.",
       "introduccion": "Conozca nuestra identidad, nuestro propósito y los valores que orientan a nuestra comunidad educativa.",
       "antetitulo": "Identidad institucional",
@@ -79,6 +81,7 @@
       "llamadaTexto": "Conozca las asignaturas, las materias complementarias y los idiomas."
     },
     "oferta": {
+      "tituloPestana": "Oferta educativa",
       "titulo": "Una formación para aprender y crecer.",
       "introduccion": "Conozca las asignaturas de III Ciclo y Educación Diversificada, las materias complementarias y nuestra educación multilingüe.",
       "antetitulo": "Nuestra oferta educativa",
@@ -90,6 +93,7 @@
       "solicitarInfoEnlace": "Solicitar información"
     },
     "vida": {
+      "tituloPestana": "Vida en el colegio",
       "titulo": "Aprender también es sentirse acompañado.",
       "introduccion": "Una propuesta que combina clases presenciales, atención personalizada y comunicación permanente con las familias.",
       "antetitulo": "Vida en el colegio",
@@ -110,6 +114,7 @@
       "solicitarInfoEnlace": "Solicitar información"
     },
     "admisiones": {
+      "tituloPestana": "Admisiones",
       "titulo": "Únase a nuestra comunidad educativa.",
       "introduccion": "Conozca los requisitos, consulte las fechas y coordine con nuestro equipo los pasos para iniciar el proceso de admisión.",
       "antetitulo": "Admisiones",
@@ -180,6 +185,7 @@
       "formWhatsappConsulta": "Consulta:"
     },
     "contacto": {
+      "tituloPestana": "Contacto",
       "titulo": "Estamos para orientarle.",
       "introduccion": "Conversemos sobre la oferta educativa, los servicios y el próximo paso de su familia.",
       "antetitulo": "Contacto y ubicación",
@@ -243,12 +249,21 @@
       "ejemplosIntroduccion": "Así se presentarán las experiencias de las familias del Colegio Nuevo Mundo."
     },
     "noticias": {
+      "tituloPestana": "Noticias y actividades",
       "titulo": "Lo que nos conecta.",
       "introduccion": "Un espacio para las noticias, actividades y comunicados de nuestra comunidad educativa.",
       "antetitulo": "Noticias y actividades",
       "descripcionBuscadores": "Noticias y actividades de nuestra comunidad educativa.",
       "sinNoticias": "Esta vista previa todavía no incluye noticias. Compartiremos las novedades cuando estén disponibles.",
       "contacteEnlace": "Contacte al colegio"
+    },
+    "error404": {
+      "tituloPestana": "Página no encontrada",
+      "titulo": "Página no encontrada.",
+      "introduccion": "Puede volver al inicio o consultar las categorías del menú.",
+      "antetitulo": "Colegio Nuevo Mundo",
+      "descripcionBuscadores": "Página no encontrada.",
+      "volverEnlace": "Volver al inicio"
     },
     "lumi": {
       "launcherAria": "Abrir chat con Lumi",
