@@ -1,10 +1,10 @@
 import {renderOpinions} from './plantillas-opiniones.mjs';
 /* Componentes de portada. Los textos y recursos editables viven en colegio.json. */
-export function renderNavigation(current, pages, {e, url}) {
+export function renderNavigation(current, pages, {e, url, labels}) {
   const sections = {
-    'conocenos/': [['quienes-somos','Quiénes somos'],['mision','Misión y visión'],['valores','Nuestros valores']],
-    'oferta-educativa/': [['iii-ciclo','III Ciclo'],['diversificada','Educación Diversificada'],['complementarias','Materias complementarias'],['multilingue','Educación multilingüe']],
-    'vida-en-el-colegio/': [['propuesta','Nuestra propuesta'],['servicios','Recursos y servicios'],['experiencias','Experiencias']]
+    'conocenos/': [['quienes-somos',labels.quienesSubmenu],['mision',labels.misionSubmenu],['valores',labels.valoresSubmenu]],
+    'oferta-educativa/': [['iii-ciclo',labels.iiiCicloSubmenu],['diversificada',labels.diversificadaSubmenu],['complementarias',labels.complementariasSubmenu],['multilingue',labels.multilingueSubmenu]],
+    'vida-en-el-colegio/': [['propuesta',labels.propuestaSubmenu],['servicios',labels.serviciosSubmenu],['experiencias',labels.experienciasSubmenu]]
   };
   return pages.map(([route, label]) => {
     const parent = `<a href="${url(route)}"${route===current?' aria-current="page"':''}${route==='admisiones/'?' class="nav-admissions"':''}>${e(label)}</a>`;

@@ -58,6 +58,8 @@ test('Moderador solo recibe texto y Admin recibe campos visuales y de estado', (
   assert.equal(moderator.find(field => field.path === 'paginas.contacto.visitasNota').group, 'contacto');
   assert.equal(moderator.find(field => field.path === 'paginas.pie.contactoTitulo').sectionTitle, 'Pie de página');
   assert.equal(moderator.find(field => field.path === 'paginas.pie.horarioTitulo').group, 'contacto');
+  assert.equal(moderator.find(field => field.path === 'paginas.navegacion.quienesSubmenu').sectionTitle, 'Menú y avisos del sitio');
+  assert.equal(moderator.find(field => field.path === 'paginas.pie.aviso').label, 'Aviso del pie de página');
   assert.equal(moderator.find(field => field.path === 'paginas.conocenos.llamadaTexto').label, 'Texto de la invitación');
   assert.equal(moderator.find(field => field.path === 'paginas.vida.serviciosAntetitulo').group, 'vida');
   assert.equal(moderator.find(field => field.path === 'paginas.conocenos.misionTitulo').label, 'Título de misión');

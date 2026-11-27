@@ -45,6 +45,12 @@ const OBJECT_TEMPLATES = {
   horarioAdministrativo: [{ dias: '', horas: '' }],
 };
 const PAGE_LABELS = {
+  aviso: 'Aviso de vista previa', saltarEnlace: 'Enlace para saltar al contenido', menuBoton: 'Botón del menú',
+  inicioEnlace: 'Inicio', ofertaEnlace: 'Oferta educativa', admisionesEnlace: 'Admisiones', contactoEnlace: 'Contacto', noticiasEnlace: 'Noticias',
+  quienesSubmenu: 'Quiénes somos', misionSubmenu: 'Misión y visión', valoresSubmenu: 'Nuestros valores',
+  iiiCicloSubmenu: 'III Ciclo', diversificadaSubmenu: 'Educación Diversificada', complementariasSubmenu: 'Materias complementarias', multilingueSubmenu: 'Educación multilingüe',
+  propuestaSubmenu: 'Nuestra propuesta', serviciosSubmenu: 'Recursos y servicios', experienciasSubmenu: 'Experiencias',
+  whatsappEtiqueta: 'Etiqueta de WhatsApp', adminEnlace: 'Enlace al acceso administrativo',
   titulo: 'Título principal', introduccion: 'Texto introductorio', antetitulo: 'Frase superior', descripcionBuscadores: 'Resumen para buscadores',
   introAntetitulo: 'Frase de presentación', consultaEnlace: 'Botón de consulta', conocenosEnlace: 'Enlace para conocer el colegio', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', tarjetasEnlace: 'Enlace de tarjetas', vidaAntetitulo: 'Frase de vida en el colegio', vidaEnlace: 'Enlace a vida en el colegio',
   quienesAntetitulo: 'Frase de quiénes somos', quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', misionTitulo: 'Título de misión', visionAntetitulo: 'Frase de visión', visionTitulo: 'Título de visión', valoresAntetitulo: 'Frase de valores', valoresTitulo: 'Título de valores', historiaTitulo: 'Título de historia', historiaAlternativaTitulo: 'Título para presentar el colegio', historiaInvitacion: 'Invitación a conocer el colegio',
@@ -77,14 +83,14 @@ export function writePath(object, path, value) {
 }
 
 function groupFor(parts) {
-  if (parts[0] === 'paginas') return parts[1] === 'conocenos' ? 'institucion' : parts[1] === 'pie' ? 'contacto' : parts[1];
+  if (parts[0] === 'paginas') return ['conocenos', 'navegacion'].includes(parts[1]) ? 'institucion' : parts[1] === 'pie' ? 'contacto' : parts[1];
   return GROUPS.find(group => group.roots.includes(parts[0]))?.id;
 }
 
 function labelFor(path, content) {
   const parts = path.split('.');
   const key = parts.at(-1);
-  if (parts[0] === 'paginas') return PAGE_LABELS[key] ?? key;
+  if (parts[0] === 'paginas') return path === 'paginas.pie.aviso' ? 'Aviso del pie de página' : PAGE_LABELS[key] ?? key;
   if (parts.length === 1) return TITLES[key] ?? key;
   if (/^\d+$/.test(key)) return parts.at(-2)==='titulo'?`Línea ${Number(key)+1} del título`:`${TITLES[parts.at(-2)] ?? 'Texto'} ${Number(key) + 1}`;
   if (parts.length === 2) return TITLES[key] ?? key.replace(/([A-Z])/g, ' $1').toLowerCase();
@@ -98,6 +104,7 @@ function sectionFor(path, content) {
   const root = parts[0];
   if (root === 'paginas') {
     if (parts[1] === 'pie') return { section: 'paginas.pie', sectionTitle: 'Pie de página' };
+    if (parts[1] === 'navegacion') return { section: 'paginas.navegacion', sectionTitle: 'Menú y avisos del sitio' };
     const key = parts[2];
     let part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(key) ? 'presentacion' : key.startsWith('paso') ? 'pasos' : 'contenido';
     if (parts[1] === 'admisiones' && part === 'contenido') {

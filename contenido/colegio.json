@@ -3,6 +3,28 @@
   "publicUrl": "https://jhonretana2002-del.github.io/colegio-nuevo-mundo-preview/",
   "revision": "2026-11-17",
   "paginas": {
+    "navegacion": {
+      "aviso": "Vista previa del sitio · Información sujeta a validación institucional.",
+      "saltarEnlace": "Saltar al contenido",
+      "menuBoton": "Menú",
+      "inicioEnlace": "Inicio",
+      "conocenosEnlace": "Conócenos",
+      "ofertaEnlace": "Oferta educativa",
+      "vidaEnlace": "Vida en el colegio",
+      "admisionesEnlace": "Admisiones",
+      "contactoEnlace": "Contacto",
+      "noticiasEnlace": "Noticias y actividades",
+      "quienesSubmenu": "Quiénes somos",
+      "misionSubmenu": "Misión y visión",
+      "valoresSubmenu": "Nuestros valores",
+      "iiiCicloSubmenu": "III Ciclo",
+      "diversificadaSubmenu": "Educación Diversificada",
+      "complementariasSubmenu": "Materias complementarias",
+      "multilingueSubmenu": "Educación multilingüe",
+      "propuestaSubmenu": "Nuestra propuesta",
+      "serviciosSubmenu": "Recursos y servicios",
+      "experienciasSubmenu": "Experiencias"
+    },
     "inicio": {
       "introAntetitulo": "Colegio Nuevo Mundo · Costa Rica",
       "consultaEnlace": "Solicitar información",
@@ -102,7 +124,10 @@
     },
     "pie": {
       "contactoTitulo": "Estamos para orientarle",
-      "horarioTitulo": "Horario institucional"
+      "horarioTitulo": "Horario institucional",
+      "whatsappEtiqueta": "WhatsApp",
+      "aviso": "Información sujeta a validación institucional",
+      "adminEnlace": "Acceso administrativo"
     },
     "opiniones": {
       "verificadasAntetitulo": "Experiencias y comunidad",

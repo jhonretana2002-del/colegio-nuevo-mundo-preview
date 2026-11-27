@@ -39,6 +39,7 @@ La política preparada no protege la página pública por sí sola. Es una pieza
 
 ## Fase 2: edición completa
 
+- [x] Hacer editables los nombres del menú, sus subapartados, el aviso superior y textos del pie de página para ambos roles, con límites de longitud y actualización de esquema a versión 3. La generación conserva el HTML actual. Evidencia: `contenido/colegio.json`, `scripts/generar-sitio.mjs`, `scripts/plantillas-portada.mjs`, `admin/field-catalog.mjs` y pruebas.
 - [ ] Completar inventario y esquema versionado de todos los campos editables; todavía quedan textos fijos en plantillas, formularios, navegación y pie de página.
 - [ ] Exponer todos los campos textuales del sitio en formularios por sección.
 - [ ] Completar biblioteca y reemplazo de imágenes, póster y videos con procesamiento, variantes y publicación de medios aprobados.
