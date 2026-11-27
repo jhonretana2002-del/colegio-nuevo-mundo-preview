@@ -1,6 +1,6 @@
 # Avance del panel administrativo
 
-Este checklist corresponde a la guía de implementación del panel administrativo entregada el 25 de noviembre de 2026. El repositorio actual es una exportación pública; en GitHub Pages `/admin/` solo prepara descargas locales. Con la API privada bajo el mismo origen puede autenticar, guardar borradores, enviarlos a revisión, aprobarlos o devolverlos con instrucciones, pero aún no publica. Las casillas se marcan solo cuando hay evidencia.
+Este checklist corresponde a la guía de implementación del panel administrativo entregada el 25 de noviembre de 2026. El desarrollo se realiza en este repositorio de GitHub; todavía no se ha llevado al servidor ni conectado a MariaDB. Por indicación del responsable del proyecto, la conexión real a MySQL/MariaDB y la puesta en marcha quedan en la fase final. La fase 1 se considera concluida **en código y pruebas locales**, no en producción. En GitHub Pages `/admin/` solo prepara descargas locales. Con la API privada bajo el mismo origen podrá autenticar, guardar borradores, enviarlos a revisión, aprobarlos o devolverlos con instrucciones, pero aún no publica. Las casillas se marcan solo cuando hay evidencia.
 
 ## Fase 1: base y permisos
 
@@ -30,16 +30,16 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 - [x] Hacer editables los enlaces de texto de Inicio y la presentación e invitaciones de Opiniones en sus dos modos, sin alterar las notas que distinguen ejemplos de recomendaciones verificadas. Evidencia: `scripts/plantillas-portada.mjs`, `scripts/plantillas-opiniones.mjs`, `contenido/colegio.json` y pruebas. La generación mantiene el HTML público actual.
 - [x] Preparar actualización repetible del contenido almacenado antes de usar campos nuevos: conserva valores editados, añade campos faltantes, crea una revisión de trabajo y audita sin tocar la publicación. El servidor rechaza esquemas antiguos hasta ejecutar el comando. Evidencia: `backend/content-schema.mjs`, `backend/upgrade-content.mjs`, pruebas y guía de operación. Pendiente: probarlo con MariaDB real y respaldo de la instalación.
 - [x] Separar el generador de su archivo JSON y de la carpeta pública; preparar una copia local aislada de una revisión aprobada, con estilos y recursos actuales y verificación SHA-256 de archivos cargados. Evidencia: `scripts/generar-sitio.mjs`, `backend/stage-preview.mjs` y pruebas. Pendiente: integrar una vista previa sencilla dentro del panel y verificar contra MariaDB real.
-- [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
-- [ ] Completar inventario y esquema versionado de todos los campos editables; todavía quedan textos fijos en plantillas, formularios, navegación y pie de página.
-- [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.
-- [ ] Implementar inicio de sesión, recuperación, MFA para Admin y autorización por campo en cada operación del servidor.
-- [ ] Probar el prototipo con guardado real y repetir pruebas de permisos contra la API y MariaDB.
+- [x] Confirmar GitHub como ubicación de desarrollo y conservar la página pública intacta. Evidencia: repositorio `jhonretana2002-del/colegio-nuevo-mundo-preview`, rama `codex/admin-permisos-contenido` y confirmación del responsable. El hosting y despliegue se definirán en la fase final.
+- [x] Implementar en el repositorio la API privada, el almacenamiento transaccional de revisiones y la auditoría. Evidencia: `backend/http-api.mjs`, `backend/content-store.mjs`, migraciones y pruebas. La ejecución con MariaDB real queda en la fase final.
+- [x] Preparar inicio de sesión, MFA de Admin, autorización por campo y gestión privada de cuentas y recuperación entre cuentas Admin. Evidencia: `backend/auth-store.mjs`, `backend/account-provision.mjs`, `backend/account-operator.mjs`, `backend/manage-accounts.mjs` y pruebas. El procedimiento de emergencia para la única cuenta Admin se definirá antes de producción.
+- [x] Probar el flujo HTTP de lectura y guardado con la capa real de políticas: Moderador guarda texto y no puede cambiar medios; Admin cambia un medio; un conflicto de versión no sobrescribe y la publicación permanece intacta. Evidencia: `backend/admin-flow.test.mjs`. Usa una base simulada; la integración con MariaDB real queda en la fase final.
 
 La política preparada no protege la página pública por sí sola. Es una pieza para ejecutar dentro del servidor antes de guardar cambios.
 
 ## Fase 2: edición completa
 
+- [ ] Completar inventario y esquema versionado de todos los campos editables; todavía quedan textos fijos en plantillas, formularios, navegación y pie de página.
 - [ ] Exponer todos los campos textuales del sitio en formularios por sección.
 - [ ] Completar biblioteca y reemplazo de imágenes, póster y videos con procesamiento, variantes y publicación de medios aprobados.
 - [ ] Mostrar desde el panel una vista previa de la revisión aprobada con las plantillas y estilos actuales. El paquete local ya se puede generar sin sobrescribir el sitio público.
@@ -47,6 +47,9 @@ La política preparada no protege la página pública por sí sola. Es una pieza
 
 ## Fase 3: publicación y entrega
 
+- [ ] Definir el servidor privado, el hosting, la base MariaDB y el mecanismo de despliegue, y confirmar el acceso operativo.
+- [ ] Conectar MariaDB real como último tramo de integración: ejecutar migraciones, crear Admin, importar o actualizar contenido y repetir pruebas de permisos, MFA, revisión y guardado con datos de prueba y respaldo.
+- [ ] Definir y ensayar el procedimiento supervisado de recuperación cuando la única cuenta Admin pierda acceso.
 - [ ] Completar publicación de revisiones aprobadas, generación del sitio y despliegue reversible. Revisión y aprobación están preparadas en la API privada, sin cambiar la página pública.
 - [ ] Ejecutar pruebas de seguridad, contenido, accesibilidad y regresión visual.
 - [ ] Probar fallo de despliegue, restauración y respaldo.

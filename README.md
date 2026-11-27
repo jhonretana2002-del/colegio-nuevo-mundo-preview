@@ -12,6 +12,8 @@ El inicio incluye una portada audiovisual de ancho completo, presentación breve
 
 El acceso `/admin/` incluye un prototipo para preparar, revisar y descargar borradores de contenido en GitHub Pages. Su conexión con la API privada para autenticación, guardado, revisión con devolución motivada e historial está preparada en `backend/`, pero aún no se ha desplegado ni probado con MariaDB real. No publica cambios. Consultar `GUIA_GESTION_CONTENIDOS.md` para los campos disponibles y la validación institucional pendiente.
 
+La fase 1 del panel queda concluida en código y pruebas locales. Conforme al orden elegido para el proyecto, la conexión a MariaDB y al servidor se hará en la fase final, después de completar la edición del contenido. Consultar `AVANCE_PANEL_ADMINISTRATIVO.md` para las tareas y evidencias por fase.
+
 ## Lumi
 
 El asistente de matrícula se llama Lumi. El botón conserva el personaje y el emblema de la imagen de referencia; la mano se recorta en una capa y gira suavemente sobre la muñeca. El aro dorado, la cabeza y el cuerpo permanecen estables. La preferencia de reducir movimiento desactiva el saludo.
