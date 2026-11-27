@@ -131,5 +131,15 @@ window.colegioContent = {
       "link": "Ver ubicación y contacto",
       "url": "/colegio-nuevo-mundo-preview/contacto/"
     }
-  ]
+  ],
+  "formCopy": {
+    "consultaWhatsappMensaje": "Hola, quisiera información sobre admisiones del Colegio Nuevo Mundo.",
+    "formValidacion": "Complete este campo con información, no solo espacios.",
+    "formEstado": "Consulta preparada para revisar. No se ha enviado ningún mensaje.",
+    "formWhatsappNombre": "Nombre del encargado:",
+    "formWhatsappTelefono": "Teléfono:",
+    "formWhatsappCorreo": "Correo:",
+    "formWhatsappNivel": "Nivel de interés:",
+    "formWhatsappConsulta": "Consulta:"
+  }
 };

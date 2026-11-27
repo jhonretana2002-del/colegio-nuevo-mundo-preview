@@ -138,6 +138,7 @@
 
   const form = document.getElementById('admission-contact-form');
   if (!form) return;
+  const formCopy = window.colegioContent.formCopy;
   form.hidden = false;
   const review = document.getElementById('admission-contact-review');
   const preview = document.getElementById('admission-contact-preview');
@@ -157,19 +158,19 @@
     const value = key => String(fields.get(key) ?? '').trim();
     for (const key of ['name','phone','message']) {
       if (!value(key)) {
-        form.elements.namedItem(key).setCustomValidity('Complete este campo con información, no solo espacios.');
+        form.elements.namedItem(key).setCustomValidity(formCopy.formValidacion);
         form.reportValidity();
         return;
       }
     }
-    const text = ['Hola, quisiera información sobre admisiones del Colegio Nuevo Mundo.',
-      'Nombre del encargado: '+value('name'), 'Teléfono: '+value('phone'),
-      value('email') ? 'Correo: '+value('email') : '', 'Nivel de interés: '+value('level'),
-      'Consulta: '+value('message')].filter(Boolean).join('\n');
+    const text = [formCopy.consultaWhatsappMensaje,
+      formCopy.formWhatsappNombre+' '+value('name'), formCopy.formWhatsappTelefono+' '+value('phone'),
+      value('email') ? formCopy.formWhatsappCorreo+' '+value('email') : '', formCopy.formWhatsappNivel+' '+value('level'),
+      formCopy.formWhatsappConsulta+' '+value('message')].filter(Boolean).join('\n');
     preview.textContent = text;
     whatsapp.href = 'https://wa.me/'+form.dataset.whatsapp+'?text='+encodeURIComponent(text);
     review.hidden = false;
-    document.getElementById('review-status').textContent = 'Consulta preparada para revisar. No se ha enviado ningún mensaje.';
+    document.getElementById('review-status').textContent = formCopy.formEstado;
     review.scrollIntoView({block:'nearest', behavior:motion.matches?'instant':'smooth'});
   });
 })();

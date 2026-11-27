@@ -44,6 +44,37 @@ test('los cambios de texto solo aparecen en la salida aislada', async t => {
   assert.deepEqual(await readFile(path.join(root, 'index.html')), current);
 });
 
+test('las etiquetas de admisión editadas aparecen en Inicio y Admisiones sin tocar el sitio actual', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.paginas.admisiones.formNombre = 'Nombre de la persona encargada';
+  changed.paginas.admisiones.formWhatsappNombre = 'Persona encargada:';
+  changed.paginas.admisiones.arancelesPanelTitulo = 'Costos del colegio';
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  for (const route of ['index.html', 'admisiones/index.html']) {
+    assert.match(await readFile(path.join(outputRoot, route), 'utf8'), /Nombre de la persona encargada/);
+    assert.doesNotMatch(await readFile(path.join(root, route), 'utf8'), /Nombre de la persona encargada/);
+  }
+  assert.match(await readFile(path.join(outputRoot, 'institucional-datos.js'), 'utf8'), /"formWhatsappNombre": "Persona encargada:"/);
+  assert.match(await readFile(path.join(outputRoot, 'admisiones/index.html'), 'utf8'), /Costos del colegio/);
+});
+
+test('el formulario escapa HTML en textos editados y en los datos para WhatsApp', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.paginas.admisiones.formNombre = '<img src=x onerror=alert(1)>';
+  changed.paginas.admisiones.formWhatsappNombre = '<script>alert(1)</script>';
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  const page = await readFile(path.join(outputRoot, 'admisiones/index.html'), 'utf8');
+  const data = await readFile(path.join(outputRoot, 'institucional-datos.js'), 'utf8');
+  assert.match(page, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.doesNotMatch(page, /<img src=x onerror=alert\(1\)>/);
+  assert.match(data, /\\u003cscript>/);
+  assert.doesNotMatch(data, /<script>alert\(1\)<\/script>/);
+});
+
 test('copia un medio aprobado y verifica su hash antes de generar', async t => {
   const folder = await workspace(t);
   const mediaRoot = path.join(folder, 'media');

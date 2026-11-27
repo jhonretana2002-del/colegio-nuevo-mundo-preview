@@ -51,6 +51,22 @@ const PAGE_LABELS = {
   iiiCicloSubmenu: 'III Ciclo', diversificadaSubmenu: 'Educación Diversificada', complementariasSubmenu: 'Materias complementarias', multilingueSubmenu: 'Educación multilingüe',
   propuestaSubmenu: 'Nuestra propuesta', serviciosSubmenu: 'Recursos y servicios', experienciasSubmenu: 'Experiencias',
   whatsappEtiqueta: 'Etiqueta de WhatsApp', adminEnlace: 'Enlace al acceso administrativo',
+  consultaCorreoTexto: 'Texto antes del correo', consultaWhatsappMensaje: 'Mensaje inicial de WhatsApp', consultaWhatsappEnlace: 'Botón de WhatsApp',
+  formNombre: 'Campo: nombre de la familia', formTelefono: 'Campo: teléfono', formCorreo: 'Campo: correo', formNivel: 'Campo: nivel de interés',
+  formNivelSeleccione: 'Opción inicial del nivel', formNivelCiclo: 'Opción III Ciclo', formNivelDiversificada: 'Opción Educación Diversificada', formNivelOrientacion: 'Opción de orientación',
+  formMensaje: 'Campo: consulta', formRevisar: 'Botón para revisar', formNota: 'Aviso del formulario',
+  formRevisionTitulo: 'Título de revisión', formRevisionNota: 'Aviso antes de enviar', formEnviar: 'Botón para abrir WhatsApp',
+  formValidacion: 'Mensaje al completar un campo', formEstado: 'Aviso de consulta preparada',
+  formWhatsappNombre: 'WhatsApp: nombre', formWhatsappTelefono: 'WhatsApp: teléfono', formWhatsappCorreo: 'WhatsApp: correo',
+  formWhatsappNivel: 'WhatsApp: nivel', formWhatsappConsulta: 'WhatsApp: consulta',
+  arancelesCursoTexto: 'Texto del curso lectivo', arancelesTablaTitulo: 'Título de la tabla de costos',
+  arancelesRubro: 'Columna de rubro', arancelesMonto: 'Columna de monto', arancelesCondicion: 'Columna de condición',
+  arancelesMontoPendiente: 'Texto cuando falta el monto', arancelesPanelTitulo: 'Título de aranceles',
+  arancelesResumenCursoTexto: 'Resumen del curso lectivo', arancelesResumenPendiente: 'Resumen sin costos confirmados',
+  requisitosPanelTitulo: 'Título de requisitos', prematriculaPanelTitulo: 'Título de prematrícula',
+  prematriculaReservaEtiqueta: 'Etiqueta de reserva', prematriculaConfirmadaNota: 'Nota de reserva confirmada', prematriculaPendienteNota: 'Nota de reserva pendiente',
+  periodoPanelTitulo: 'Título del período', periodoCursoEtiqueta: 'Etiqueta de curso lectivo', periodoPendienteNota: 'Nota de fechas pendientes',
+  reservaEtiqueta: 'Etiqueta de reserva', verRequisitosEnlace: 'Enlace a requisitos', consultarArancelesEnlace: 'Enlace a aranceles',
   titulo: 'Título principal', introduccion: 'Texto introductorio', antetitulo: 'Frase superior', descripcionBuscadores: 'Resumen para buscadores',
   introAntetitulo: 'Frase de presentación', consultaEnlace: 'Botón de consulta', conocenosEnlace: 'Enlace para conocer el colegio', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', tarjetasEnlace: 'Enlace de tarjetas', vidaAntetitulo: 'Frase de vida en el colegio', vidaEnlace: 'Enlace a vida en el colegio',
   quienesAntetitulo: 'Frase de quiénes somos', quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', misionTitulo: 'Título de misión', visionAntetitulo: 'Frase de visión', visionTitulo: 'Título de visión', valoresAntetitulo: 'Frase de valores', valoresTitulo: 'Título de valores', historiaTitulo: 'Título de historia', historiaAlternativaTitulo: 'Título para presentar el colegio', historiaInvitacion: 'Invitación a conocer el colegio',
@@ -108,9 +124,9 @@ function sectionFor(path, content) {
     const key = parts[2];
     let part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(key) ? 'presentacion' : key.startsWith('paso') ? 'pasos' : 'contenido';
     if (parts[1] === 'admisiones' && part === 'contenido') {
-      if (key.startsWith('consulta')) part = 'consulta';
+      if (key.startsWith('consulta') || key.startsWith('form')) part = 'consulta';
       else if (key.startsWith('aranceles')) part = 'costos';
-      else if (['fechasTitulo', 'referenciaAntetitulo', 'calendarioPendiente', 'prematriculaResumen', 'periodoResumen'].includes(key)) part = 'fechas';
+      else if (['fechasTitulo', 'referenciaAntetitulo', 'calendarioPendiente', 'prematriculaResumen', 'periodoResumen'].includes(key) || key.startsWith('prematricula') || key.startsWith('periodo') || key==='reservaEtiqueta') part = 'fechas';
       else part = 'detalles';
     }
     if (parts[1] === 'opiniones') part = key.startsWith('verificadas') ? 'verificadas' : key.startsWith('invitacionFacebook') ? 'facebook' : key.startsWith('invitacionInstagram') ? 'instagram' : 'ejemplos';

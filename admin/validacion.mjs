@@ -7,7 +7,7 @@ export function validateDraft(data){
   const names={inicio:'Inicio',conocenos:'Conócenos',oferta:'Oferta educativa',vida:'Vida en el colegio',admisiones:'Admisiones',contacto:'Contacto',pie:'Pie de página',opiniones:'Opiniones',noticias:'Noticias'};
   for(const [page,items] of Object.entries(data.paginas))for(const [key,value] of Object.entries(items)){
    if(typeof value!=='string')continue;
-   const limit=key.endsWith('Enlace')||key.endsWith('Submenu')||key==='menuBoton'?60:key==='aviso'?180:key==='whatsappEtiqueta'?40:key==='descripcionBuscadores'?180:key==='titulo'||/Titulo(?:Linea\d)?$/.test(key)?100:key==='antetitulo'||key.endsWith('Antetitulo')?80:500;
+   const limit=key.endsWith('Enlace')||key.endsWith('Submenu')||key.endsWith('Etiqueta')||key.endsWith('PanelTitulo')||key==='menuBoton'||['arancelesRubro','arancelesMonto','arancelesCondicion','arancelesMontoPendiente'].includes(key)||key.startsWith('form')&&!['formNota','formRevisionNota','formEstado'].includes(key)?60:key==='aviso'||['formNota','formRevisionNota','formEstado','consultaWhatsappMensaje'].includes(key)?250:key==='whatsappEtiqueta'?40:key==='descripcionBuscadores'?180:key==='titulo'||/Titulo(?:Linea\d)?$/.test(key)?100:key==='antetitulo'||key.endsWith('Antetitulo')?80:500;
    if(Array.from(value).length>limit)errors.push(`Acorte el texto «${value.slice(0,30)}…» en ${names[page]??page}: máximo ${limit} caracteres.`);
   }
  }

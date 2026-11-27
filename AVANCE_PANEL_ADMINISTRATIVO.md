@@ -40,6 +40,7 @@ La política preparada no protege la página pública por sí sola. Es una pieza
 ## Fase 2: edición completa
 
 - [x] Hacer editables los nombres del menú, sus subapartados, el aviso superior y textos del pie de página para ambos roles, con límites de longitud y actualización de esquema a versión 3. La generación conserva el HTML actual. Evidencia: `contenido/colegio.json`, `scripts/generar-sitio.mjs`, `scripts/plantillas-portada.mjs`, `admin/field-catalog.mjs` y pruebas.
+- [x] Hacer editables para Admin y Moderador las etiquetas, opciones, avisos y mensajes de WhatsApp del formulario de Admisiones, además de títulos, etiquetas y avisos de aranceles, reserva y matrícula. El formulario se comparte entre Inicio y Admisiones; los mensajes dinámicos se generan desde el mismo contenido. Esquema de contenido versión 4. Evidencia: `scripts/plantilla-formulario-admisiones.mjs`, `scripts/generar-sitio.mjs`, `institucional.js`, `admin/field-catalog.mjs` y pruebas. Las páginas conservan el mismo HTML visible; solo se actualizaron versiones de scripts.
 - [ ] Completar inventario y esquema versionado de todos los campos editables; todavía quedan textos fijos en plantillas, formularios, navegación y pie de página.
 - [ ] Exponer todos los campos textuales del sitio en formularios por sección.
 - [ ] Completar biblioteca y reemplazo de imágenes, póster y videos con procesamiento, variantes y publicación de medios aprobados.
