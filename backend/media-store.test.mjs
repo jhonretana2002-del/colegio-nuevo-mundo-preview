@@ -40,7 +40,7 @@ test('Admin sube imagen validada, la registra y puede previsualizarla', async ()
     const uploaded = await uploadMedia(db.pool, request(jpeg), { actorId: 'user-1', role: 'admin', mediaRoot });
     assert.match(uploaded.storageKey, /^uploads\/[0-9a-f-]{36}\.jpg$/);
     assert.equal(uploaded.bytes, jpeg.length);
-    assert.equal((await listMedia(db.pool)).some(item => item.storageKey === uploaded.storageKey), true);
+    assert.equal((await listMedia(db.pool)).some(item => item.id === uploaded.id && item.storageKey === uploaded.storageKey), true);
     const preview = await openMediaPreview(db.pool, uploaded.id, mediaRoot);
     const chunks = [];
     for await (const chunk of preview.stream) chunks.push(chunk);

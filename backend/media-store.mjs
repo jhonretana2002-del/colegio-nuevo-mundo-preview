@@ -25,7 +25,7 @@ export async function listMedia(pool) {
   const [rows] = await pool.execute("SELECT id, storage_key, mime_type FROM media_assets WHERE kind IN ('image','video') ORDER BY created_at DESC");
   return [
     ...staticMedia.map(storageKey => ({ storageKey, mimeType: storageKey.endsWith('.mp4') ? 'video/mp4' : `image/${storageKey.endsWith('.jpg') ? 'jpeg' : storageKey.split('.').at(-1)}`, previewUrl: null })),
-    ...rows.map(row => ({ storageKey: row.storage_key, mimeType: row.mime_type, previewUrl: `/api/media/preview/${row.id}` })),
+    ...rows.map(row => ({ id: row.id, storageKey: row.storage_key, mimeType: row.mime_type, previewUrl: `/api/media/preview/${row.id}` })),
   ];
 }
 

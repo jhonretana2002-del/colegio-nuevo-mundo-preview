@@ -15,12 +15,19 @@ const reviewErrors=()=>[
  ...invalidMediaChanges(original,draft,availableMedia.map(item=>item.storageKey)).map(path=>`Revise el archivo elegido para «${labels.get(path)??path}».`),
 ];
 function mediaLabel(item){
- if(item.storageKey.startsWith('uploads/'))return item.mimeType==='video/mp4'?'Video nuevo':'Imagen nueva';
+ if(item.storageKey.startsWith('uploads/')){
+  const reference=(item.id??item.storageKey.split('/').at(-1)).slice(0,8);
+  return `${item.mimeType==='video/mp4'?'Video nuevo':'Imagen nueva'} · ref. ${reference}`;
+ }
  if(item.storageKey.includes('portada-optimizada'))return 'Video actual de portada';
  if(item.storageKey.includes('portada-poster'))return 'Imagen actual de portada';
  const name=item.storageKey.split('/').at(-1).replace(/\.[^.]+$/,'').replace(/-(640|960|1280|480)$/,'').replaceAll('-',' ');
  const size=/-(640|960|1280|480)\./.exec(item.storageKey)?.[1];
  return `${name[0].toUpperCase()+name.slice(1)}${size?` · ${size} px`:''}`;
+}
+function addMediaOption(select,item){
+ if([...select.options].some(option=>option.value===item.storageKey))return;
+ const option=make('option',mediaLabel(item));option.value=item.storageKey;select.append(option);
 }
 function previewUrl(item){return item?.previewUrl??(item?original.basePath+item.storageKey:null);}
 async function uploadFile(file,path,select,preview){
@@ -36,7 +43,11 @@ async function uploadFile(file,path,select,preview){
   if(response.status===401){showLogin();return;}
   const result=await response.json();
   if(!response.ok){$('state').textContent=result.error??'No se pudo subir el archivo.';return;}
-  availableMedia.push(result);const option=make('option',mediaLabel(result));option.value=result.storageKey;select.append(option);
+  availableMedia.push(result);
+  document.querySelectorAll('select[data-media-kind]').forEach(other=>{
+   if(other.dataset.mediaKind===(result.mimeType==='video/mp4'?'video':'image'))addMediaOption(other,result);
+  });
+  addMediaOption(select,result);
   undo=structuredClone(draft);set(path,result.storageKey);select.value=result.storageKey;preview.src=previewUrl(result);$('review').hidden=true;update();
   $('state').textContent='Archivo listo. Revise y guarde el borrador para usarlo.';
  }catch{$('state').textContent='No se pudo subir el archivo. Intente de nuevo.';}
@@ -122,6 +133,7 @@ function render(focusSection=null){
   if(input.tagName==='INPUT')input.type=kind==='boolean'?'checkbox':kind==='number'?'number':kind==='email'?'email':kind==='url'?'url':'text';
   if(kind==='boolean')input.checked=Boolean(value);
   else if(kind==='media'){
+   input.dataset.mediaKind=path.endsWith('.archivo')?'video':'image';
    const matching=availableMedia.filter(item=>kind==='media'&&(path.endsWith('.archivo')?item.mimeType==='video/mp4':item.mimeType.startsWith('image/')));
    for(const item of matching){const option=make('option',mediaLabel(item));option.value=item.storageKey;input.append(option);}
    if(!matching.some(item=>item.storageKey===value)){const option=make('option','Archivo actual');option.value=value;input.prepend(option);}
