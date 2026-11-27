@@ -10,6 +10,7 @@ export const GROUPS = [
   { id: 'contacto', title: 'Contacto', description: 'Mantenga al día teléfonos, ubicación y textos del pie de página.', roots: ['contacto'] },
   { id: 'opiniones', title: 'Opiniones', description: 'Revise los textos que se muestran como opiniones.', roots: ['opiniones', 'presentacionOpiniones'] },
   { id: 'noticias', title: 'Noticias', description: 'Edite la presentación de la página de noticias.', roots: [] },
+  { id: 'lumi', title: 'Lumi', description: 'Revise las preguntas y respuestas del asistente de consultas.', roots: [] },
 ];
 
 const TITLES = {
@@ -82,6 +83,12 @@ const PAGE_LABELS = {
   atribucionVideoEtiqueta: 'Etiqueta del crédito del video', atribucionVideoNota: 'Nota sobre el video', consultarLicenciaEnlace: 'Enlace para consultar la licencia',
   invitacionFacebookEnlace: 'Enlace de invitación a Facebook', invitacionInstagramEnlace: 'Enlace de invitación a Instagram', verOriginalEnlace: 'Enlace a recomendación original',
   pausarCarrusel: 'Botón para pausar opiniones', reanudarCarrusel: 'Botón para reanudar opiniones',
+  matriculaPregunta: 'Pregunta sobre matrícula', matriculaResumen: 'Tema: matrícula', matriculaRespuesta: 'Respuesta sobre matrícula', matriculaEnlace: 'Enlace a admisiones',
+  requisitosPregunta: 'Pregunta sobre requisitos', requisitosResumen: 'Tema: requisitos', requisitosAntes: 'Texto antes de la lista de requisitos', requisitosDespues: 'Aviso después de los requisitos', requisitosEnlace: 'Enlace a requisitos',
+  costosPregunta: 'Pregunta sobre costos', costosResumen: 'Tema: costos', costosCursoEtiqueta: 'Etiqueta del curso lectivo', costosPendiente: 'Texto para un monto pendiente', costosReservaAntes: 'Texto antes del monto de reserva', costosReservaDespues: 'Aviso después de la reserva', costosEnlace: 'Enlace a aranceles',
+  cuposPregunta: 'Pregunta sobre cupos', cuposResumen: 'Tema: cupos y fechas', cuposCursoEtiqueta: 'Etiqueta del curso lectivo', cuposPendiente: 'Aviso de fechas pendientes', cuposNota: 'Aviso sobre disponibilidad', cuposEnlace: 'Enlace a fechas de matrícula',
+  ofertaPregunta: 'Pregunta sobre materias e idiomas', ofertaResumen: 'Tema: oferta educativa', ofertaNota: 'Aviso sobre la oferta', ofertaEnlace: 'Enlace a materias e idiomas',
+  visitaPregunta: 'Pregunta sobre visitas', visitaResumen: 'Tema: visitas', visitaIntroduccion: 'Texto antes de la dirección', visitaHorarioEtiqueta: 'Etiqueta del horario', visitaNota: 'Aviso sobre coordinación', visitaEnlace: 'Enlace a contacto',
   titulo: 'Título principal', introduccion: 'Texto introductorio', antetitulo: 'Frase superior', descripcionBuscadores: 'Resumen para buscadores',
   introAntetitulo: 'Frase de presentación', consultaEnlace: 'Botón de consulta', conocenosEnlace: 'Enlace para conocer el colegio', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', tarjetasEnlace: 'Enlace de tarjetas', vidaAntetitulo: 'Frase de vida en el colegio', vidaEnlace: 'Enlace a vida en el colegio',
   quienesAntetitulo: 'Frase de quiénes somos', quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', misionTitulo: 'Título de misión', visionAntetitulo: 'Frase de visión', visionTitulo: 'Título de visión', valoresAntetitulo: 'Frase de valores', valoresTitulo: 'Título de valores', historiaTitulo: 'Título de historia', historiaAlternativaTitulo: 'Título para presentar el colegio', historiaInvitacion: 'Invitación a conocer el colegio',
@@ -136,6 +143,11 @@ function sectionFor(path, content) {
   if (root === 'paginas') {
     if (parts[1] === 'pie') return { section: 'paginas.pie', sectionTitle: 'Pie de página' };
     if (parts[1] === 'navegacion') return { section: 'paginas.navegacion', sectionTitle: 'Nombre, menú y avisos' };
+    if (parts[1] === 'lumi') {
+      const topic = ['matricula', 'requisitos', 'costos', 'cupos', 'oferta', 'visita'].find(name => parts[2].startsWith(name));
+      const titles = { matricula: 'Matrícula', requisitos: 'Requisitos', costos: 'Costos y reserva', cupos: 'Cupos y fechas', oferta: 'Materias e idiomas', visita: 'Visitas' };
+      return { section: `paginas.lumi.${topic}`, sectionTitle: titles[topic] };
+    }
     const key = parts[2];
     let part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(key) ? 'presentacion' : key.startsWith('paso') ? 'pasos' : 'contenido';
     if (parts[1] === 'admisiones' && part === 'contenido') {

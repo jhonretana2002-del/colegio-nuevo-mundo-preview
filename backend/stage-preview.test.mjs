@@ -114,6 +114,24 @@ test('la marca, la ruta de navegación y la consulta cambian desde el panel y es
   assert.doesNotMatch(await readFile(path.join(root, 'index.html'), 'utf8'), /OTRO NOMBRE/);
 });
 
+test('Lumi usa las frases editadas y conserva requisitos y costos tomados del contenido', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.paginas.lumi.matriculaPregunta = '¿Cómo puedo comenzar?';
+  changed.paginas.lumi.requisitosAntes = 'Documentos de referencia:';
+  changed.paginas.lumi.costosPendiente = 'monto por confirmar';
+  changed.paginas.lumi.visitaNota = 'Coordine la visita con el equipo.';
+  changed.admisiones.requisitos[0] = 'Documento actualizado';
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  const generated = await readFile(path.join(outputRoot, 'institucional-datos.js'), 'utf8');
+  assert.match(generated, /¿Cómo puedo comenzar\?/);
+  assert.match(generated, /Documentos de referencia: Documento actualizado/);
+  assert.match(generated, /monto por confirmar/);
+  assert.match(generated, /Coordine la visita con el equipo\./);
+  assert.doesNotMatch(await readFile(path.join(root, 'institucional-datos.js'), 'utf8'), /¿Cómo puedo comenzar\?/);
+});
+
 test('copia un medio aprobado y verifica su hash antes de generar', async t => {
   const folder = await workspace(t);
   const mediaRoot = path.join(folder, 'media');

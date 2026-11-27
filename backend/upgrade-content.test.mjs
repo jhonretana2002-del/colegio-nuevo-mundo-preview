@@ -40,7 +40,7 @@ test('completa campos faltantes sin perder ediciones y conserva la publicación'
   const result = await upgradeContent(db.pool, { actorId });
   assert.equal(result.updated, true);
   assert.deepEqual(result.added, ['paginas.inicio.consultaEnlace', 'paginas.opiniones']);
-  assert.equal(db.revision.schema_version, 7);
+  assert.equal(db.revision.schema_version, 8);
   assert.equal(db.revision.status, 'borrador');
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.mision, old.mision);
@@ -68,7 +68,7 @@ test('la versión 4 incorpora textos de Contacto sin reemplazar ediciones anteri
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.paginas.contacto.contactoTitulo, 'Escríbanos cuando lo necesite.');
   assert.equal(updated.paginas.contacto.llamarEnlace, source.paginas.contacto.llamarEnlace);
-  assert.equal(db.revision.schema_version, 7);
+  assert.equal(db.revision.schema_version, 8);
 });
 
 test('rechaza cuentas sin Admin, campos desconocidos y versiones futuras', async () => {
@@ -77,7 +77,7 @@ test('rechaza cuentas sin Admin, campos desconocidos y versiones futuras', async
   const unknown = structuredClone(source); unknown.campoInventado = 'dato';
   const bad = fakePool({ content: unknown });
   await assert.rejects(upgradeContent(bad.pool, { actorId }), /revisión manual/);
-  const future = fakePool({ schemaVersion: 8 });
+  const future = fakePool({ schemaVersion: 9 });
   await assert.rejects(upgradeContent(future.pool, { actorId }), /más reciente/);
   assert.equal(bad.calls.includes('rollback'), true);
 });
