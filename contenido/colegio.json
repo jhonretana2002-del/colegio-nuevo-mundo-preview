@@ -5,6 +5,12 @@
   "paginas": {
     "navegacion": {
       "aviso": "Vista previa del sitio · Información sujeta a validación institucional.",
+      "marcaColegio": "COLEGIO",
+      "marcaNombre": "NUEVO MUNDO",
+      "marcaPais": "COSTA RICA",
+      "marcaAria": "Colegio Nuevo Mundo, inicio",
+      "navAria": "Navegación principal",
+      "consultarTemaEnlace": "Consultar este tema",
       "saltarEnlace": "Saltar al contenido",
       "menuBoton": "Menú",
       "inicioEnlace": "Inicio",

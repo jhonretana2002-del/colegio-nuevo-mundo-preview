@@ -2,6 +2,7 @@ import { mayChangeField } from '../lib/content-policy.mjs';
 
 export const GROUPS = [
   { id: 'inicio', title: 'Inicio', description: 'Cambie el mensaje de portada y sus imágenes.', roots: ['inicio'] },
+  { id: 'menu', title: 'Menú y encabezado', description: 'Edite el nombre junto al logotipo, los enlaces y los avisos del encabezado.', roots: [] },
   { id: 'institucion', title: 'Conócenos', description: 'Actualice la presentación y los valores del colegio.', roots: ['nombre', 'lema', 'presentacion', 'quienesSomos', 'mision', 'vision', 'historia', 'valores', 'beneficios'] },
   { id: 'oferta', title: 'Oferta educativa', description: 'Revise las áreas, asignaturas e idiomas.', roots: ['oferta'] },
   { id: 'vida', title: 'Vida en el colegio', description: 'Edite servicios, horarios y fotografías.', roots: ['propuesta', 'servicios', 'galeria', 'horarioInstitucional', 'horarioAdministrativo'] },
@@ -46,6 +47,8 @@ const OBJECT_TEMPLATES = {
 };
 const PAGE_LABELS = {
   aviso: 'Aviso de vista previa', saltarEnlace: 'Enlace para saltar al contenido', menuBoton: 'Botón del menú',
+  marcaColegio: 'Primera línea junto al logotipo', marcaNombre: 'Nombre junto al logotipo', marcaPais: 'País junto al logotipo',
+  marcaAria: 'Descripción accesible del logotipo', navAria: 'Descripción accesible del menú', consultarTemaEnlace: 'Enlace para consultar un tema',
   inicioEnlace: 'Inicio', ofertaEnlace: 'Oferta educativa', admisionesEnlace: 'Admisiones', contactoEnlace: 'Contacto', noticiasEnlace: 'Noticias',
   quienesSubmenu: 'Quiénes somos', misionSubmenu: 'Misión y visión', valoresSubmenu: 'Nuestros valores',
   iiiCicloSubmenu: 'III Ciclo', diversificadaSubmenu: 'Educación Diversificada', complementariasSubmenu: 'Materias complementarias', multilingueSubmenu: 'Educación multilingüe',
@@ -111,7 +114,7 @@ export function writePath(object, path, value) {
 }
 
 function groupFor(parts) {
-  if (parts[0] === 'paginas') return ['conocenos', 'navegacion'].includes(parts[1]) ? 'institucion' : parts[1] === 'pie' ? 'contacto' : parts[1];
+  if (parts[0] === 'paginas') return parts[1] === 'conocenos' ? 'institucion' : parts[1] === 'navegacion' ? 'menu' : parts[1] === 'pie' ? 'contacto' : parts[1];
   return GROUPS.find(group => group.roots.includes(parts[0]))?.id;
 }
 
@@ -132,7 +135,7 @@ function sectionFor(path, content) {
   const root = parts[0];
   if (root === 'paginas') {
     if (parts[1] === 'pie') return { section: 'paginas.pie', sectionTitle: 'Pie de página' };
-    if (parts[1] === 'navegacion') return { section: 'paginas.navegacion', sectionTitle: 'Menú y avisos del sitio' };
+    if (parts[1] === 'navegacion') return { section: 'paginas.navegacion', sectionTitle: 'Nombre, menú y avisos' };
     const key = parts[2];
     let part = ['titulo', 'introduccion', 'antetitulo', 'descripcionBuscadores'].includes(key) ? 'presentacion' : key.startsWith('paso') ? 'pasos' : 'contenido';
     if (parts[1] === 'admisiones' && part === 'contenido') {

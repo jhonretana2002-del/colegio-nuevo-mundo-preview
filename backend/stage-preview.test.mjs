@@ -93,6 +93,27 @@ test('Contacto y los enlaces compartidos reflejan textos editados sin alterar la
   assert.doesNotMatch(await readFile(path.join(root, 'contacto/index.html'), 'utf8'), /Marcar ahora/);
 });
 
+test('la marca, la ruta de navegación y la consulta cambian desde el panel y escapan HTML', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.paginas.navegacion.marcaNombre = 'OTRO NOMBRE';
+  changed.paginas.navegacion.marcaAria = 'Otro colegio, inicio';
+  changed.paginas.navegacion.navAria = 'Menú del colegio';
+  changed.paginas.navegacion.inicioEnlace = 'Portada';
+  changed.paginas.navegacion.consultarTemaEnlace = 'Preguntar por esta área';
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  const home = await readFile(path.join(outputRoot, 'index.html'), 'utf8');
+  const offer = await readFile(path.join(outputRoot, 'oferta-educativa/index.html'), 'utf8');
+  const life = await readFile(path.join(outputRoot, 'vida-en-el-colegio/index.html'), 'utf8');
+  assert.match(home, /<strong>OTRO NOMBRE<\/strong>/);
+  assert.match(home, /aria-label="Otro colegio, inicio"/);
+  assert.match(home, /aria-label="Menú del colegio"/);
+  assert.match(offer, /<a href="\/colegio-nuevo-mundo-preview\/">Portada<\/a> \/ /);
+  assert.match(life, /Preguntar por esta área/);
+  assert.doesNotMatch(await readFile(path.join(root, 'index.html'), 'utf8'), /OTRO NOMBRE/);
+});
+
 test('copia un medio aprobado y verifica su hash antes de generar', async t => {
   const folder = await workspace(t);
   const mediaRoot = path.join(folder, 'media');
