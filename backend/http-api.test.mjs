@@ -5,6 +5,7 @@ import { ContentError } from './content-store.mjs';
 import path from 'node:path';
 import { mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { Readable } from 'node:stream';
 
 const origin = 'https://admin.example.test';
 const csrfSecret = 'a-private-secret-with-at-least-32-characters';
@@ -207,6 +208,27 @@ test('Admin puede enviar un archivo sin declarar identidad en el cuerpo', async 
     assert.equal(response.status, 201);
     assert.equal(uploadArgs.actorId, 'admin-real');
     assert.equal(uploadArgs.role, 'admin');
+  });
+});
+
+test('la miniatura privada exige sesión y transmite el tamaño solicitado', async () => {
+  const token = 'e'.repeat(64);
+  const id = '11111111-1111-4111-8111-111111111111';
+  let requestedSize;
+  await withServer({ stores: {
+    auth: { readSession: async () => ({ actor_id: 'moderator-1', role: 'moderador' }) },
+    media: { openMediaPreview: async (_pool, _id, _root, _range, size) => {
+      requestedSize = size;
+      return { stream: Readable.from([Buffer.from('webp')]), mimeType: 'image/webp', bytes: 4, range: null };
+    } },
+  } }, async base => {
+    const url = `${base}/api/media/preview/${id}?size=small`;
+    assert.equal((await fetch(url)).status, 401);
+    const response = await fetch(url, { headers: { cookie: `__Host-cnm_session=${token}` } });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'image/webp');
+    assert.equal(await response.text(), 'webp');
+    assert.equal(requestedSize, 'small');
   });
 });
 

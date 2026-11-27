@@ -26,7 +26,7 @@ export async function listMedia(pool) {
   const [rows] = await pool.execute("SELECT id, storage_key, mime_type, width, height FROM media_assets WHERE kind IN ('image','video') ORDER BY created_at DESC");
   return [
     ...staticMedia.map(storageKey => ({ storageKey, mimeType: storageKey.endsWith('.mp4') ? 'video/mp4' : `image/${storageKey.endsWith('.jpg') ? 'jpeg' : storageKey.split('.').at(-1)}`, previewUrl: null })),
-    ...rows.map(row => ({ id: row.id, storageKey: row.storage_key, mimeType: row.mime_type, width: row.width, height: row.height, previewUrl: `/api/media/preview/${row.id}` })),
+    ...rows.map(row => ({ id: row.id, storageKey: row.storage_key, mimeType: row.mime_type, width: row.width, height: row.height, previewUrl: `/api/media/preview/${row.id}${row.mime_type.startsWith('image/') ? '?size=small' : ''}` })),
   ];
 }
 
@@ -41,6 +41,7 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
   const tmp = path.join(mediaRoot, `.${id}.part`);
   let final = path.join(mediaRoot, `${id}.${type.ext}`);
   const processed = path.join(mediaRoot, `.${id}.processed.part`);
+  const variant = path.join(mediaRoot, `${id}-480.webp`);
   const handle = await open(tmp, 'wx');
   const digest = createHash('sha256');
   let count = 0;
@@ -63,6 +64,7 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
     let width = null;
     let height = null;
     let checksum = digest.digest();
+    let thumbnail = null;
     if (type.kind === 'image') {
       let result;
       try {
@@ -86,6 +88,9 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
       await writeFile(processed, result.data, { flag: 'wx' });
       await rename(processed, final);
       await unlink(tmp);
+      thumbnail = await sharp(result.data).resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 72 }).toBuffer({ resolveWithObject: true });
+      await writeFile(variant, thumbnail.data, { flag: 'wx' });
     } else {
       await rename(tmp, final);
     }
@@ -97,13 +102,17 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
         'INSERT INTO media_assets (id, kind, storage_key, mime_type, bytes, width, height, checksum_sha256, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [id, type.kind, storageKey, storedMime, storedBytes, width, height, checksum, actorId],
       );
+      if (thumbnail) await connection.execute(
+        'INSERT INTO media_variants (id, asset_id, storage_key, mime_type, bytes, width, height) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [randomUUID(), id, `uploads/${path.basename(variant)}`, 'image/webp', thumbnail.data.length, thumbnail.info.width, thumbnail.info.height],
+      );
       await connection.execute(
         "INSERT INTO audit_events (actor_id, action, target_type, target_id) VALUES (?, 'media.uploaded', 'media_asset', ?)",
         [actorId, id],
       );
       await connection.commit();
       completed = true;
-      return { id, storageKey, mimeType: storedMime, bytes: storedBytes, width, height, previewUrl: `/api/media/preview/${id}` };
+      return { id, storageKey, mimeType: storedMime, bytes: storedBytes, width, height, previewUrl: `/api/media/preview/${id}${thumbnail ? '?size=small' : ''}` };
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -113,18 +122,30 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
       await unlink(tmp).catch(() => {});
       await unlink(processed).catch(() => {});
       await unlink(final).catch(() => {});
+      await unlink(variant).catch(() => {});
     }
   }
 }
 
-export async function openMediaPreview(pool, id, mediaRoot, range = null) {
+export async function openMediaPreview(pool, id, mediaRoot, range = null, size = null) {
   if (!/^[0-9a-f-]{36}$/.test(id)) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
+  if (size !== null && size !== 'small') throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
   const [rows] = await pool.execute('SELECT storage_key, mime_type FROM media_assets WHERE id = ? LIMIT 1', [id]);
   if (!rows.length) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
-  const name = path.basename(rows[0].storage_key);
-  if (!new RegExp(`^${id}\\.(jpg|png|webp|mp4)$`).test(name) || rows[0].storage_key !== `uploads/${name}`) {
+  const original = path.basename(rows[0].storage_key);
+  if (!new RegExp(`^${id}\\.(jpg|png|webp|mp4)$`).test(original) || rows[0].storage_key !== `uploads/${original}`) {
     throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
   }
+  if (size === 'small' && !rows[0].mime_type.startsWith('image/')) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
+  let useVariant = false;
+  if (size === 'small') {
+    const [variants] = await pool.execute('SELECT storage_key, mime_type FROM media_variants WHERE asset_id = ? AND storage_key = ? LIMIT 1', [id, `uploads/${id}-480.webp`]);
+    if (variants.length) {
+      if (variants[0].storage_key !== `uploads/${id}-480.webp` || variants[0].mime_type !== 'image/webp') throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
+      useVariant = true;
+    }
+  }
+  const name = useVariant ? `${id}-480.webp` : original;
   const file = path.join(mediaRoot, name);
   const info = await stat(file).catch(() => null);
   if (!info?.isFile()) throw new ContentError('NOT_FOUND', 'Archivo no encontrado.');
@@ -137,5 +158,5 @@ export async function openMediaPreview(pool, id, mediaRoot, range = null) {
     end = match[2] ? Number(match[2]) : end;
     if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || end >= info.size) throw new ContentError('INVALID_RANGE', 'Rango de archivo inválido.');
   }
-  return { stream: createReadStream(file, { start, end }), mimeType: rows[0].mime_type, bytes: end - start + 1, range: range ? `bytes ${start}-${end}/${info.size}` : null };
+  return { stream: createReadStream(file, { start, end }), mimeType: useVariant ? 'image/webp' : rows[0].mime_type, bytes: end - start + 1, range: range ? `bytes ${start}-${end}/${info.size}` : null };
 }

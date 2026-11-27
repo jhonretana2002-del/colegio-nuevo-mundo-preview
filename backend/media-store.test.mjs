@@ -16,20 +16,23 @@ function request(bytes, mime = 'image/jpeg') {
   return stream;
 }
 
-function fakePool({ failAudit = false } = {}) {
+function fakePool({ failAudit = false, noVariant = false } = {}) {
   const queries = [];
   let row = null;
+  let variantRow = null;
   const connection = {
     async beginTransaction() {},
     async execute(sql, params) {
       queries.push({ sql, params });
       if (sql.startsWith('INSERT INTO media_assets')) row = { id: params[0], storage_key: params[2], mime_type: params[3], width: params[5], height: params[6] };
+      if (sql.startsWith('INSERT INTO media_variants')) variantRow = { storage_key: params[2], mime_type: params[3], width: params[5], height: params[6] };
       if (failAudit && sql.startsWith('INSERT INTO audit_events')) throw new Error('auditoría fallida');
       return [{ affectedRows: 1 }];
     },
-    async commit() {}, async rollback() { row = null; }, release() {},
+    async commit() {}, async rollback() { row = null; variantRow = null; }, release() {},
   };
   return { pool: { async getConnection() { return connection; }, async execute(sql) {
+    if (sql.includes('FROM media_variants')) return [[noVariant ? null : variantRow].filter(Boolean)];
     if (sql.includes('WHERE id')) return [[row].filter(Boolean)];
     return [row ? [row] : []];
   } }, queries };
@@ -44,6 +47,7 @@ test('Admin sube imagen validada, la registra y puede previsualizarla', async ()
     assert.equal(uploaded.mimeType, 'image/webp');
     assert.equal(uploaded.width, 640);
     assert.equal(uploaded.height, 480);
+    assert.equal(uploaded.previewUrl, `/api/media/preview/${uploaded.id}?size=small`);
     assert.ok(uploaded.bytes > 0);
     assert.equal((await listMedia(db.pool)).some(item => item.id === uploaded.id && item.storageKey === uploaded.storageKey), true);
     const preview = await openMediaPreview(db.pool, uploaded.id, mediaRoot);
@@ -52,6 +56,13 @@ test('Admin sube imagen validada, la registra y puede previsualizarla', async ()
     const output = await readFile(path.join(mediaRoot, path.basename(uploaded.storageKey)));
     assert.deepEqual(Buffer.concat(chunks), output);
     assert.equal((await sharp(output).metadata()).format, 'webp');
+    const small = await openMediaPreview(db.pool, uploaded.id, mediaRoot, null, 'small');
+    const smallChunks = [];
+    for await (const chunk of small.stream) smallChunks.push(chunk);
+    const thumbnail = Buffer.concat(smallChunks);
+    assert.equal((await sharp(thumbnail).metadata()).width, 480);
+    assert.ok(thumbnail.length < output.length);
+    assert.equal(db.queries.some(item => item.sql.startsWith('INSERT INTO media_variants')), true);
     const inserted = db.queries.find(item => item.sql.startsWith('INSERT INTO media_assets')).params;
     assert.deepEqual(inserted[7], createHash('sha256').update(output).digest());
     const ranged = await openMediaPreview(db.pool, uploaded.id, mediaRoot, 'bytes=0-2');
@@ -70,6 +81,19 @@ test('Admin puede registrar un video MP4 con su tipo correcto', async () => {
     const result = await uploadMedia(fakePool().pool, request(mp4, 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot });
     assert.equal(result.mimeType, 'video/mp4');
     assert.match(result.storageKey, /\.mp4$/);
+  } finally { await rm(mediaRoot, { recursive: true, force: true }); }
+});
+
+test('una imagen anterior sin miniatura conserva la vista previa original', async () => {
+  const mediaRoot = await mkdtemp(path.join(tmpdir(), 'cnm-media-'));
+  try {
+    const db = fakePool({ noVariant: true });
+    const uploaded = await uploadMedia(db.pool, request(jpeg), { actorId: 'user-1', role: 'admin', mediaRoot });
+    const preview = await openMediaPreview(db.pool, uploaded.id, mediaRoot, null, 'small');
+    const chunks = [];
+    for await (const chunk of preview.stream) chunks.push(chunk);
+    assert.deepEqual(Buffer.concat(chunks), await readFile(path.join(mediaRoot, path.basename(uploaded.storageKey))));
+    await assert.rejects(openMediaPreview(db.pool, uploaded.id, mediaRoot, null, 'unknown'), /no encontrado/);
   } finally { await rm(mediaRoot, { recursive: true, force: true }); }
 });
 
@@ -94,7 +118,7 @@ test('reduce una imagen grande y rechaza una demasiado pequeña sin dejar archiv
     assert.equal(result.mimeType, 'image/webp');
     const small = await sharp({ create: { width: 200, height: 100, channels: 3, background: '#fff' } }).png().toBuffer();
     await assert.rejects(uploadMedia(fakePool().pool, request(small, 'image/png'), { actorId: 'user-1', role: 'admin', mediaRoot }), /320 × 240/);
-    assert.deepEqual(await readdir(mediaRoot), [path.basename(result.storageKey)]);
+    assert.deepEqual((await readdir(mediaRoot)).sort(), [`${result.id}-480.webp`, path.basename(result.storageKey)].sort());
   } finally { await rm(mediaRoot, { recursive: true, force: true }); }
 });
 

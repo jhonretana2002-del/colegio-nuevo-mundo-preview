@@ -95,7 +95,8 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot
   }
   return async (req, res) => {
     try {
-      const pathname = new URL(req.url, origin).pathname;
+      const requestUrl = new URL(req.url, origin);
+      const pathname = requestUrl.pathname;
       const method = req.method;
       if (method === 'POST' && req.headers.origin !== origin) {
         return respond(res, 403, { error: 'Origen no permitido.' });
@@ -152,7 +153,8 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot
         return respond(res, 200, await media.listMedia(pool));
       }
       if (method === 'GET' && /^\/api\/media\/preview\/[0-9a-f-]{36}$/.test(pathname)) {
-        const preview = await media.openMediaPreview(pool, pathname.split('/').at(-1), mediaRoot, req.headers.range);
+        const size = requestUrl.searchParams.get('size');
+        const preview = await media.openMediaPreview(pool, pathname.split('/').at(-1), mediaRoot, req.headers.range, size);
         res.writeHead(preview.range ? 206 : 200, { 'Content-Type': preview.mimeType, 'Content-Length': preview.bytes, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'", 'Accept-Ranges': 'bytes', ...(preview.range ? { 'Content-Range': preview.range } : {}) });
         preview.stream.on('error', () => res.destroy());
         preview.stream.pipe(res);
