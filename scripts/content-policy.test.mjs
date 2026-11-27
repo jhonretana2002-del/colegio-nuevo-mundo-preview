@@ -110,3 +110,19 @@ test('Admin no puede duplicar identificadores de tarjetas', () => {
   assert.equal(result.allowed, false);
   assert.ok(result.shapeErrors.some(error => error.includes('identificadores')));
 });
+
+test('Admin gestiona noticias y Moderador corrige solo su texto', () => {
+  const article = { id: '11111111-1111-4111-8111-111111111111', fecha: '2026-11-27', titulo: 'Actividad', resumen: 'Resumen', texto: 'Detalle', imagen: null, alt: '' };
+  const withNews = edit(data => { data.publicaciones.push(article); });
+  assert.equal(validateContentChange('admin', source, withNews).allowed, true);
+  assert.equal(validateContentChange('moderador', source, withNews).allowed, false);
+  const corrected = structuredClone(withNews);
+  corrected.publicaciones[0].titulo = 'Nueva actividad';
+  corrected.publicaciones[0].texto = 'Detalle corregido';
+  assert.equal(validateContentChange('moderador', withNews, corrected).allowed, true);
+  corrected.publicaciones[0].fecha = '2026-11-28';
+  assert.equal(validateContentChange('moderador', withNews, corrected).allowed, false);
+  corrected.publicaciones[0].fecha = article.fecha;
+  corrected.publicaciones[0].imagen = 'estudiantes-480.webp';
+  assert.equal(validateContentChange('moderador', withNews, corrected).allowed, false);
+});

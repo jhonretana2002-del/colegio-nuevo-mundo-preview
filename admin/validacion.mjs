@@ -33,6 +33,16 @@ export function validateDraft(data){
  if(data.oferta.some(item=>!item.items.length))errors.push('Cada área debe conservar su lista de asignaturas o idiomas.');
  if(data.historia!==null&&(!data.historia.resumen.trim()||!data.historia.parrafos.length||data.historia.parrafos.some(text=>!text.trim())))errors.push('Complete la historia institucional antes de guardar.');
  if(data.horarioAdministrativo!==null&&(!data.horarioAdministrativo.length||data.horarioAdministrativo.some(item=>!item.dias.trim()||!item.horas.trim())))errors.push('Complete los días y horas del horario administrativo.');
+ if(!Array.isArray(data.publicaciones)||data.publicaciones.length>30)errors.push('Noticias permite hasta 30 publicaciones.');
+ else for(const [index,item] of data.publicaciones.entries()){
+  const label=`Noticia ${index+1}`;
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(item.id))errors.push(`${label}: identificador inválido.`);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(item.fecha)||Number.isNaN(Date.parse(item.fecha))||new Date(item.fecha).toISOString().slice(0,10)!==item.fecha)errors.push(`${label}: indique una fecha válida.`);
+  if(!item.titulo.trim()||Array.from(item.titulo).length>100)errors.push(`${label}: complete el título en un máximo de 100 caracteres.`);
+  if(!item.resumen.trim()||Array.from(item.resumen).length>250)errors.push(`${label}: complete el resumen en un máximo de 250 caracteres.`);
+  if(!item.texto.trim()||Array.from(item.texto).length>3000)errors.push(`${label}: complete el texto en un máximo de 3000 caracteres.`);
+  if(item.imagen!==null&&(!item.alt.trim()||Array.from(item.alt).length>150))errors.push(`${label}: describa la imagen en un máximo de 150 caracteres.`);
+ }
  const links=[data.contacto.facebook,data.contacto.instagram,data.contacto.mapa,data.contacto.mapaEmbed,data.inicio.video.fuente,data.inicio.video.licencia,...data.opiniones.map(item=>item.fuente)];
  if(links.some(link=>link!==null&&(!/^https:\/\//i.test(link)||!safeHttps(link))))errors.push('Los enlaces externos deben usar HTTPS y una URL válida.');
  if(data.contacto.mapaEmbed!==null&&!isGoogleMaps(data.contacto.mapaEmbed))errors.push('El mapa incrustado debe proceder de Google Maps.');

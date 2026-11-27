@@ -44,6 +44,31 @@ test('los cambios de texto solo aparecen en la salida aislada', async t => {
   assert.deepEqual(await readFile(path.join(root, 'index.html')), current);
 });
 
+test('Noticias genera publicaciones escapadas y conserva el aviso público actual', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.publicaciones.push({ id: '11111111-1111-4111-8111-111111111111', fecha: '2026-11-27', titulo: 'Feria <escolar>', resumen: 'Conozca la actividad.', texto: 'Primer día\nSegundo día', imagen: null, alt: '' });
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  const news = await readFile(path.join(outputRoot, 'noticias/index.html'), 'utf8');
+  assert.match(news, /Feria &lt;escolar&gt;/);
+  assert.match(news, /Primer día\nSegundo día/);
+  assert.doesNotMatch(news, /<escolar>/);
+  assert.doesNotMatch(news, /Esta vista previa todavía no incluye noticias/);
+  assert.match(await readFile(path.join(root, 'noticias/index.html'), 'utf8'), /Esta vista previa todavía no incluye noticias/);
+});
+
+test('Noticias puede mostrar una imagen del catálogo con descripción accesible', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.publicaciones.push({ id: '11111111-1111-4111-8111-111111111111', fecha: '2026-11-27', titulo: 'Feria', resumen: 'Actividad escolar.', texto: 'Detalles de la actividad.', imagen: 'estudiantes-480.webp', alt: 'Estudiantes en el colegio' });
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  const news = await readFile(path.join(outputRoot, 'noticias/index.html'), 'utf8');
+  assert.match(news, /src="\/colegio-nuevo-mundo-preview\/estudiantes-480\.webp" alt="Estudiantes en el colegio"/);
+  assert.ok((await readFile(path.join(outputRoot, 'estudiantes-480.webp'))).length > 0);
+});
+
 test('la descripción accesible de los submenús cambia sin alterar el HTML actual', async t => {
   const folder = await workspace(t);
   const changed = structuredClone(source);

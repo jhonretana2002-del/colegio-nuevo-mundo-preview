@@ -18,3 +18,11 @@ test('limita preguntas y enlaces de Lumi para conservar la lectura del chat',()=
 test('limita el nombre visible de Lumi para conservar el botón flotante',()=>{const data=structuredClone(original);data.paginas.lumi.launcherName='A'.repeat(21);assert.ok(validateDraft(data).some(text=>text.includes('Lumi')&&text.includes('20')));});
 test('Opiniones exige aclarar que las reseñas de muestra no son reales',()=>{const data=structuredClone(original);data.paginas.opiniones.ejemploEtiqueta='Reseña de una familia';assert.ok(validateDraft(data).some(text=>text.includes('ejemplos ficticios')));data.paginas.opiniones.ejemploEtiqueta=original.paginas.opiniones.ejemploEtiqueta;data.paginas.opiniones.recomendacionSinNotaAviso='Cinco estrellas';assert.ok(validateDraft(data).some(text=>text.includes('notas ausentes')));});
 test('limita el título de la pestaña para evitar cortes en el navegador',()=>{const data=structuredClone(original);data.paginas.noticias.tituloPestana='A'.repeat(61);assert.ok(validateDraft(data).some(text=>text.includes('Noticias')&&text.includes('60')));});
+test('Noticias exige fecha, título, resumen, texto y descripción de imagen',()=>{
+ const data=structuredClone(original);
+ data.publicaciones.push({id:'11111111-1111-4111-8111-111111111111',fecha:'2026-02-30',titulo:'',resumen:'',texto:'',imagen:'estudiantes-480.webp',alt:''});
+ const errors=validateDraft(data);
+ for(const word of ['fecha','título','resumen','texto','imagen'])assert.ok(errors.some(error=>error.includes(word)),word);
+ data.publicaciones[0]={id:'11111111-1111-4111-8111-111111111111',fecha:'2026-11-27',titulo:'Actividad',resumen:'Resumen',texto:'Detalle',imagen:null,alt:''};
+ assert.deepEqual(validateDraft(data),[]);
+});

@@ -5,7 +5,7 @@ import { ContentError, getPublished, getWorking, listRevisions, saveDraft, submi
 
 const source = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
-function fakeDatabase(version = 0, working = source, uploaded = [], schemaVersion = 12) {
+function fakeDatabase(version = 0, working = source, uploaded = [], schemaVersion = 13) {
   const calls = [];
   const connection = {
     async beginTransaction() { calls.push('begin'); },
@@ -33,6 +33,20 @@ test('guarda un borrador textual y una auditoría dentro de la misma transacció
   assert.ok(calls.some(call => typeof call === 'object' && call.sql.includes('INSERT INTO audit_events')));
   assert.ok(calls.some(call => typeof call === 'object' && call.sql.includes('INSERT INTO content_working')));
   assert.deepEqual(calls.slice(-2), ['commit', 'release']);
+});
+
+test('Admin agrega una noticia y Moderador solo corrige su texto guardado', async () => {
+  const article = { id: '11111111-1111-4111-8111-111111111111', fecha: '2026-11-27', titulo: 'Visita', resumen: 'Conozca el colegio.', texto: 'Se realizó la actividad.', imagen: null, alt: '' };
+  const withNews = structuredClone(source);
+  withNews.publicaciones.push(article);
+  const admin = await saveDraft(fakeDatabase().pool, { documentId: 'document-1', actorId: 'admin-1', role: 'admin', expectedVersion: '0', content: withNews });
+  assert.deepEqual(admin.changed, ['publicaciones']);
+  const corrected = structuredClone(withNews);
+  corrected.publicaciones[0].texto = 'Se realizó la visita.';
+  const moderator = await saveDraft(fakeDatabase(0, withNews).pool, { documentId: 'document-1', actorId: 'moderator-1', role: 'moderador', expectedVersion: '0', content: corrected });
+  assert.deepEqual(moderator.changed, ['publicaciones.0.texto']);
+  corrected.publicaciones[0].imagen = 'estudiantes-480.webp';
+  await assert.rejects(saveDraft(fakeDatabase(0, withNews).pool, { documentId: 'document-1', actorId: 'moderator-1', role: 'moderador', expectedVersion: '0', content: corrected }), /rol no puede/);
 });
 
 test('un Moderador conserva cambios visuales previos de Admin al guardar texto', async () => {
@@ -117,7 +131,7 @@ test('lectura de trabajo devuelve revisión y versión actuales', async () => {
   const pool = { async execute(sql, params) {
     assert.ok(sql.includes('content_working'));
     assert.deepEqual(params, ['colegio', 'es-CR']);
-    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', schema_version: 12, review_reason: null, payload: JSON.stringify(source) }]];
+    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', schema_version: 13, review_reason: null, payload: JSON.stringify(source) }]];
   } };
   const result = await getWorking(pool);
   assert.equal(result.version, '3');
@@ -134,14 +148,14 @@ test('lectura privada pide actualización si la estructura es antigua', async ()
 
 test('lectura privada detecta campos faltantes en una revisión marcada como actual', async () => {
   const old = structuredClone(source);delete old.paginas.opiniones;
-  const pool = { async execute() { return [[{ document_id: 'doc', version: 1, revision_id: 'old', schema_version: 12, payload: JSON.stringify(old) }]]; } };
+  const pool = { async execute() { return [[{ document_id: 'doc', version: 1, revision_id: 'old', schema_version: 13, payload: JSON.stringify(old) }]]; } };
   await assert.rejects(getWorking(pool), error => error instanceof ContentError && error.code === 'SCHEMA_UPDATE_REQUIRED');
 });
 
 test('lectura de un borrador devuelto incluye la corrección solicitada', async () => {
   const pool = { async execute(sql) {
     assert.match(sql, /content_review_decisions/);
-    return [[{ document_id: 'doc', version: 4, revision_id: 'draft-4', status: 'rechazado', author_id: 'user-1', schema_version: 12, review_reason: 'Revise el costo', payload: JSON.stringify(source) }]];
+    return [[{ document_id: 'doc', version: 4, revision_id: 'draft-4', status: 'rechazado', author_id: 'user-1', schema_version: 13, review_reason: 'Revise el costo', payload: JSON.stringify(source) }]];
   } };
   const result = await getWorking(pool);
   assert.equal(result.status, 'rechazado');

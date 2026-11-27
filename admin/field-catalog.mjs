@@ -9,7 +9,7 @@ export const GROUPS = [
   { id: 'admisiones', title: 'Admisiones', description: 'Actualice requisitos, fechas y costos.', roots: ['admisiones'] },
   { id: 'contacto', title: 'Contacto', description: 'Mantenga al día teléfonos, ubicación y textos del pie de página.', roots: ['contacto'] },
   { id: 'opiniones', title: 'Opiniones', description: 'Revise los textos que se muestran como opiniones.', roots: ['opiniones', 'presentacionOpiniones'] },
-  { id: 'noticias', title: 'Noticias', description: 'Edite la presentación de la página de noticias.', roots: [] },
+  { id: 'noticias', title: 'Noticias', description: 'Prepare noticias y edite la presentación de la página.', roots: ['publicaciones'] },
   { id: 'lumi', title: 'Lumi', description: 'Revise las preguntas y respuestas del asistente de consultas.', roots: [] },
 ];
 
@@ -20,7 +20,7 @@ const TITLES = {
   dias: 'Días', horas: 'Horas', monto: 'Monto', rubro: 'Rubro', condicion: 'Condición',
   numero: 'Número', correo: 'Correo', direccion: 'Dirección', cursoLectivo: 'Curso lectivo',
   matriculaAbierta: 'Matrícula abierta', calendarioConfirmado: 'Calendario confirmado',
-  fechaTexto: 'Fecha visible', alt: 'Texto alternativo', fuente: 'Fuente', licencia: 'Licencia',
+  fechaTexto: 'Fecha visible', fecha: 'Fecha', alt: 'Descripción de la imagen', fuente: 'Fuente', licencia: 'Licencia',
   autor: 'Autor', aviso: 'Aviso', consulta: 'Mensaje de consulta',
   nombre: 'Nombre del colegio', lema: 'Lema del colegio (pie de página)', presentacion: 'Presentación general',
   quienesSomos: 'Quiénes somos', mision: 'Misión', vision: 'Visión',
@@ -38,7 +38,7 @@ const SECTION_TITLES = {
   horarioAdministrativo: 'Horario de oficina', aranceles: 'Costos',
   reserva: 'Reserva', horarioPrematricula: 'Horario de prematrícula',
   telefonos: 'Teléfonos', whatsapp: 'WhatsApp', opiniones: 'Opiniones',
-  presentacionOpiniones: 'Presentación de opiniones', ejemplos: 'Opiniones de muestra',
+  presentacionOpiniones: 'Presentación de opiniones', ejemplos: 'Opiniones de muestra', publicaciones: 'Noticia',
 };
 const MEDIA_KEYS = new Set(['imagen', 'imagenGrande', 'archivo', 'poster']);
 const URL_KEYS = new Set(['facebook', 'instagram', 'mapa', 'mapaEmbed', 'fuente', 'licencia']);
@@ -187,7 +187,7 @@ function sectionFor(path, content) {
   let section = root;
   if (['nombre', 'lema', 'presentacion', 'quienesSomos', 'mision', 'vision', 'historia'].includes(root)) section = 'institucion.general';
   if (root === 'inicio' || root === 'admisiones' || root === 'contacto' || root === 'presentacionOpiniones') section = parts.length > 2 ? `${root}.${parts[1]}` : `${root}.general`;
-  if (['oferta', 'valores', 'beneficios', 'servicios', 'galeria', 'opiniones'].includes(root) && /^\d+$/.test(parts[1] ?? '')) section = `${root}.${parts[1]}`;
+  if (['oferta', 'valores', 'beneficios', 'servicios', 'galeria', 'opiniones', 'publicaciones'].includes(root) && /^\d+$/.test(parts[1] ?? '')) section = `${root}.${parts[1]}`;
   if (root === 'inicio' && parts[1] === 'tarjetas' && /^\d+$/.test(parts[2] ?? '')) section = `inicio.tarjetas.${parts[2]}`;
   if (root === 'admisiones' && parts[1] === 'aranceles' && /^\d+$/.test(parts[2] ?? '')) section = `admisiones.aranceles.${parts[2]}`;
   if (root === 'contacto' && parts[1] === 'telefonos' && /^\d+$/.test(parts[2] ?? '')) section = `contacto.telefonos.${parts[2]}`;
@@ -216,6 +216,7 @@ function fieldKind(value, path) {
   if (path in OBJECT_TEMPLATES) return 'optional-structure';
   const key = path.split('.').at(-1);
   if (MEDIA_KEYS.has(key)) return 'media';
+  if (/^publicaciones\.\d+\.fecha$/.test(path)) return 'date';
   if (typeof value === 'boolean') return 'boolean';
   if (typeof value === 'number' || (value === null && key === 'monto')) return 'number';
   if (key === 'correo') return 'email';

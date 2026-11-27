@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { mayChangeField } from '../lib/content-policy.mjs';
 import { editableFields, optionalTemplate, readPath, writePath } from './field-catalog.mjs';
+import { NEWS_TEMPLATE } from '../lib/content-shape.mjs';
 
 const content = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
@@ -104,4 +105,16 @@ test('lectura y escritura de rutas conservan la estructura del documento', () =>
   assert.equal(readPath(copy, 'oferta.0.items.0'), 'Nueva asignatura');
   assert.equal(readPath(content, 'oferta.0.items.0'), 'Español');
   assert.deepEqual(optionalTemplate('historia'), { resumen: '', parrafos: [''] });
+});
+
+test('Noticias presenta campos claros y reserva fecha e imagen para Admin', () => {
+  const draft = structuredClone(content);
+  draft.publicaciones.push({ ...NEWS_TEMPLATE, id: '11111111-1111-4111-8111-111111111111', fecha: '2026-11-27', titulo: 'Visita al colegio' });
+  const admin = editableFields(draft, 'admin');
+  const moderator = editableFields(draft, 'moderador');
+  assert.equal(admin.find(field => field.path === 'publicaciones.0.titulo').sectionTitle, 'Noticia: Visita al colegio');
+  assert.equal(admin.find(field => field.path === 'publicaciones.0.fecha').kind, 'date');
+  assert.equal(admin.find(field => field.path === 'publicaciones.0.imagen').kind, 'media');
+  assert.ok(moderator.some(field => field.path === 'publicaciones.0.texto' && field.group === 'noticias'));
+  assert.ok(!moderator.some(field => ['publicaciones.0.fecha', 'publicaciones.0.imagen'].includes(field.path)));
 });
