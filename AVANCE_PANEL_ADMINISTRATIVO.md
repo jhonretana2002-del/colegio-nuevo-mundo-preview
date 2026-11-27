@@ -29,6 +29,7 @@ Este checklist corresponde a la guía de implementación del panel administrativ
 - [x] Pasar a `colegio.json` mensajes informativos de Admisiones, Contacto y pie de página, además de invitaciones y títulos de secciones en Conócenos, Oferta y Vida en el colegio, incluidos misión, visión y horarios. Conectar el lema existente al pie sin duplicar campos y limitar la extensión de títulos para proteger la distribución. Evidencia: `scripts/generar-sitio.mjs`, `admin/field-catalog.mjs` y pruebas. La exportación pública mantiene el HTML actual.
 - [x] Hacer editables los enlaces de texto de Inicio y la presentación e invitaciones de Opiniones en sus dos modos, sin alterar las notas que distinguen ejemplos de recomendaciones verificadas. Evidencia: `scripts/plantillas-portada.mjs`, `scripts/plantillas-opiniones.mjs`, `contenido/colegio.json` y pruebas. La generación mantiene el HTML público actual.
 - [x] Preparar actualización repetible del contenido almacenado antes de usar campos nuevos: conserva valores editados, añade campos faltantes, crea una revisión de trabajo y audita sin tocar la publicación. El servidor rechaza esquemas antiguos hasta ejecutar el comando. Evidencia: `backend/content-schema.mjs`, `backend/upgrade-content.mjs`, pruebas y guía de operación. Pendiente: probarlo con MariaDB real y respaldo de la instalación.
+- [x] Separar el generador de su archivo JSON y de la carpeta pública; preparar una copia local aislada de una revisión aprobada, con estilos y recursos actuales y verificación SHA-256 de archivos cargados. Evidencia: `scripts/generar-sitio.mjs`, `backend/stage-preview.mjs` y pruebas. Pendiente: integrar una vista previa sencilla dentro del panel y verificar contra MariaDB real.
 - [ ] Confirmar ubicación y acceso al proyecto privado con servidor, hosting y mecanismo de despliegue.
 - [ ] Completar inventario y esquema versionado de todos los campos editables; todavía quedan textos fijos en plantillas, formularios, navegación y pie de página.
 - [ ] Implementar API, almacenamiento de revisiones y auditoría en el servidor privado.
@@ -41,7 +42,7 @@ La política preparada no protege la página pública por sí sola. Es una pieza
 
 - [ ] Exponer todos los campos textuales del sitio en formularios por sección.
 - [ ] Completar biblioteca y reemplazo de imágenes, póster y videos con procesamiento, variantes y publicación de medios aprobados.
-- [ ] Generar vista previa con las plantillas y estilos actuales.
+- [ ] Mostrar desde el panel una vista previa de la revisión aprobada con las plantillas y estilos actuales. El paquete local ya se puede generar sin sobrescribir el sitio público.
 - [ ] Verificar cobertura por campo, roles y vistas de escritorio y móvil.
 
 ## Fase 3: publicación y entrega

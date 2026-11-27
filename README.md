@@ -33,4 +33,6 @@ Vista local: `http://127.0.0.1:4873/colegio-nuevo-mundo-preview/`.
 
 Consultar `GUIA_ADAPTACION_CONTENIDOS.md` para edición, datos pendientes, limitaciones y fases de publicación. Esta implementación no activa el panel privado ni publica automáticamente en GitHub Pages.
 
+La revisión aprobada en MariaDB también puede prepararse en una carpeta local independiente para comprobar todas las páginas con el diseño actual. El procedimiento y sus límites están en `backend/README.md`, sección «Vista previa local de una revisión aprobada».
+
 La adaptación audiovisual del 15 de noviembre está documentada en `GUIA_PORTADA_AUDIOVISUAL.md`. Los textos e imágenes de portada se editan en `inicio`, dentro de la misma fuente JSON. Las fuentes y el video se sirven localmente; el video no se descarga automáticamente en móvil, con movimiento reducido o con ahorro de datos disponible en el navegador.

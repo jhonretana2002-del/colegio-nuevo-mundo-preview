@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {renderHome, renderNavigation} from './plantillas-portada.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const data = JSON.parse(await readFile(path.join(root, 'contenido/colegio.json'), 'utf8'));
+export async function generateSite(data, { outputRoot = root, resourceRoot = root } = {}) {
 const e = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const base = data.basePath;
 const pageCopy = data.paginas;
@@ -13,7 +13,7 @@ assert.equal(data.inicio.titulo.length, 3, 'La portada utiliza tres líneas de t
 assert.deepEqual(data.inicio.tarjetas.map(x=>x.id).sort(), data.oferta.map(x=>x.id).sort(), 'Una tarjeta por cada área de la oferta.');
 for (const resource of [data.inicio.video.archivo, data.inicio.video.poster, data.inicio.acompanamiento.imagen, ...data.inicio.tarjetas.map(x=>x.imagen)]) {
   assert.match(resource, /^[a-zA-Z0-9/_-]+\.(mp4|jpg|webp)$/);
-  await access(path.join(root, resource));
+  await access(path.join(resourceRoot, resource));
 }
 assert.match(base, /^\/[a-zA-Z0-9/_-]*\/$/);
 assert.match(data.contacto.whatsapp.numero, /^\d{8,15}$/);
@@ -86,10 +86,10 @@ const faqs = [
  {label:'¿Qué materias e idiomas ofrece el colegio?',short:'Oferta, materias e idiomas',keys:['nivel','secundaria','primaria','grado','ciclo','oferta','materia','complementaria','idioma','robotica','ingles','mandarin'],answer:data.oferta.map(x=>x.titulo+': '+x.items.join(', ')).join('. ')+'. Consulte el alcance de la oferta para el nivel de interés.',path:'oferta-educativa/#complementarias',link:'Ver materias y complementarias'},
  {label:'¿Puedo coordinar una visita?',short:'Conocer el colegio',keys:['visita','conocer','ubicacion','direccion','donde','horario'],answer:'Nos encontramos en '+data.contacto.direccion+' Horario institucional: '+data.horarioInstitucional.map(x=>x.dias+', '+x.horas).join('; ')+'. Confirme el horario de atención administrativa para coordinar una visita.',path:'contacto/',link:'Ver ubicación y contacto'}
 ];
-await writeFile(path.join(root,'institucional-datos.js'), '/* Generado desde contenido/colegio.json. No editar a mano. */\nwindow.colegioContent = '+JSON.stringify({basePath:base,legacy,faqs:faqs.map(x=>({...x,url:url(x.path)}))},null,2).replaceAll('<','\\u003c')+';\n');
+await writeFile(path.join(outputRoot,'institucional-datos.js'), '/* Generado desde contenido/colegio.json. No editar a mano. */\nwindow.colegioContent = '+JSON.stringify({basePath:base,legacy,faqs:faqs.map(x=>({...x,url:url(x.path)}))},null,2).replaceAll('<','\\u003c')+';\n');
 async function render(route, title, description, content, file) {
  const html = `<!doctype html>\n<html lang="es-CR" data-static-preview="true"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(title)} | ${e(data.nombre)}</title><meta name="description" content="${e(description)}"><meta name="theme-color" content="#18376f"><meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; media-src 'self'; font-src 'self'; frame-src https://www.google.com; object-src 'none'; base-uri 'none'; form-action 'none'"><link rel="canonical" href="${e(data.publicUrl+route)}"><link rel="icon" href="${url('favicon.png')}"><link rel="stylesheet" href="${url('fuentes.css?v=1')}"><link rel="stylesheet" href="${url('institucional.css?v=1')}"><link rel="stylesheet" href="${url('navegacion.css?v=2')}">${file===undefined && route===''?`<link rel="preload" as="image" href="${url(data.inicio.video.poster)}"><link rel="stylesheet" href="${url('portada.css?v=3')}"><link rel="stylesheet" href="${url('matricula-portada.css?v=1')}"><link rel="stylesheet" href="${url('opiniones.css?v=3')}"><script type="module" src="${url('portada.js?v=4')}"></script>`:''}<link rel="stylesheet" href="${url('matricula-chat.css?v=7')}"><script defer src="${url('institucional-datos.js?v=1')}"></script><script defer src="${url('institucional.js?v=2')}"></script><script defer src="${url('matricula-chat.js?v=6')}"></script></head><body class="site-page${route==='' && file===undefined?' home-page':''}">${header(route)}<main id="contenido">${content}</main>${footer}${lumi}</body></html>\n`;
- const destination = path.join(root, file ?? route+'index.html');
+ const destination = path.join(outputRoot, file ?? route+'index.html');
  await mkdir(path.dirname(destination), {recursive:true});
  await writeFile(destination, html);
 }
@@ -101,4 +101,10 @@ await render('admisiones/', 'Admisiones', pageCopy.admisiones.descripcionBuscado
 await render('contacto/', 'Contacto', pageCopy.contacto.descripcionBuscadores, contacto);
 await render('noticias/', 'Noticias y actividades', pageCopy.noticias.descripcionBuscadores, noticias);
 await render('', 'Página no encontrada', 'Página no encontrada.', hero('Página no encontrada.', 'Puede volver al inicio o consultar las categorías del menú.', 'Colegio Nuevo Mundo', '')+`<section class="section"><div class="container">${link(base,'Volver al inicio','button')}</div></section>`, '404.html');
-console.log('Generadas 7 páginas, página 404 y respuestas de Lumi desde contenido/colegio.json.');
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const data = JSON.parse(await readFile(path.join(root, 'contenido/colegio.json'), 'utf8'));
+  await generateSite(data);
+  console.log('Generadas 7 páginas, página 404 y respuestas de Lumi desde contenido/colegio.json.');
+}

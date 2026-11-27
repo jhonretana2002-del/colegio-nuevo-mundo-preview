@@ -33,6 +33,19 @@ Las migraciones usan un bloqueo de base de datos, checksum e identificadores de 
 
 `upgrade-content.mjs` actualiza la estructura JSON de una instalación previa dentro de una transacción. Toma la última revisión de trabajo, agrega campos nuevos de la plantilla sin reemplazar los existentes, valida el resultado, crea una revisión nueva, avanza la versión y registra auditoría. La revisión publicada sigue apuntando al contenido anterior. El servidor privado se niega a abrir el panel con una revisión de trabajo de esquema antiguo. Esta operación todavía no se ha ejecutado en una instancia MariaDB real.
 
+## Vista previa local de una revisión aprobada
+
+`stage-preview.mjs` lee la revisión de trabajo de MariaDB y solo acepta el estado `aprobado`. Comprueba la estructura, los campos y los medios; copia los recursos públicos actuales y los archivos cargados que la revisión utiliza, verificando el SHA-256 de cada uno contra `media_assets`. Genera las siete páginas y la página 404 en una carpeta nueva **fuera del repositorio**. No cambia la revisión publicada, el sitio de GitHub Pages ni los archivos fuente. Si algo falla, elimina únicamente la carpeta temporal que acaba de crear. Nunca sobrescribe una carpeta de destino existente.
+
+Con las variables `DB_*` y `MEDIA_ROOT` de la instalación privada configuradas:
+
+```powershell
+node backend/stage-preview.mjs C:\ruta\absoluta\a\vista-colegio
+node scripts/servir-vista-previa.mjs C:\ruta\absoluta\a\vista-colegio 4873
+```
+
+Abrir `http://127.0.0.1:4873/colegio-nuevo-mundo-preview/`. El servidor local escucha solo en el equipo del operador. La carpeta generada contiene únicamente archivos públicos; no contiene contraseñas ni secretos. Esto prepara una revisión visual local; aún faltan un acceso integrado en el panel, publicación, reversión y despliegue con medios procesados. La prueba automatizada compara las páginas generadas con las actuales ignorando únicamente las diferencias de salto de línea de Windows. No se ha probado esta operación con MariaDB real.
+
 ## Identidad y sesiones
 
 `auth-store.mjs` prepara contraseñas con `scrypt` y sal individual, sesiones de ocho horas con token aleatorio de 256 bits y almacenamiento exclusivo de su hash. `readSession` obtiene la identidad y el rol desde la base; nunca se aceptan esos valores enviados por el navegador. Admin debe tener un secreto TOTP configurado y presentar un código de seis dígitos; las cuentas Moderador también lo requieren cuando tienen un secreto configurado. Los secretos se cifran con AES-256-GCM, y cada código aceptado queda marcado en una transacción junto con la nueva sesión. La clave de cifrado requiere respaldo seguro y rotación planificada.
