@@ -41,6 +41,9 @@ test('Moderador solo recibe texto y Admin recibe campos visuales y de estado', (
   assert.ok(!moderator.some(field => field.path === 'inicio.video.archivo'));
   const admin = editableFields(content, 'admin');
   assert.ok(admin.some(field => field.path === 'inicio.video.archivo' && field.kind === 'media'));
+  assert.equal(admin.find(field => field.path === 'inicio.video.archivo').label, 'Video de la portada');
+  assert.equal(admin.find(field => field.path === 'inicio.video.poster').label, 'Imagen fija de la portada');
+  assert.equal(admin.find(field => field.path === 'inicio.acompanamiento.imagen').label, 'Imagen de acompañamiento');
   assert.ok(admin.some(field => field.path === 'galeria.0.imagenGrande' && field.kind === 'media'));
   assert.ok(admin.some(field => field.path === 'admisiones.matriculaAbierta' && field.kind === 'boolean'));
   assert.ok(admin.some(field => field.path === 'historia' && field.kind === 'optional-structure'));

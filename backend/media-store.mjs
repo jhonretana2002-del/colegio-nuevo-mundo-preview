@@ -22,6 +22,38 @@ function isSignature(mime, bytes) {
   return false;
 }
 
+async function validMp4Structure(file, bytes) {
+  const input = await open(file, 'r');
+  try {
+    let position = 0;
+    let boxes = 0;
+    let hasMovie = false;
+    let hasData = false;
+    while (position < bytes && ++boxes <= 10000) {
+      if (bytes - position < 8) return false;
+      const header = Buffer.alloc(16);
+      const { bytesRead } = await input.read(header, 0, Math.min(16, bytes - position), position);
+      if (bytesRead < 8) return false;
+      const type = header.toString('ascii', 4, 8);
+      let size = header.readUInt32BE(0);
+      let headerSize = 8;
+      if (size === 1) {
+        if (bytesRead < 16) return false;
+        const large = header.readBigUInt64BE(8);
+        if (large > BigInt(Number.MAX_SAFE_INTEGER)) return false;
+        size = Number(large);
+        headerSize = 16;
+      } else if (size === 0) size = bytes - position;
+      if (size < headerSize || size > bytes - position) return false;
+      if (position === 0 && (type !== 'ftyp' || size < 16)) return false;
+      if (type === 'moov') hasMovie = size > headerSize;
+      if (type === 'mdat') hasData = size > headerSize;
+      position += size;
+    }
+    return position === bytes && hasMovie && hasData;
+  } finally { await input.close(); }
+}
+
 export async function listMedia(pool) {
   const [rows] = await pool.execute("SELECT id, storage_key, mime_type, width, height FROM media_assets WHERE kind IN ('image','video') ORDER BY created_at DESC");
   return [
@@ -92,6 +124,7 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
         .webp({ quality: 72 }).toBuffer({ resolveWithObject: true });
       await writeFile(variant, thumbnail.data, { flag: 'wx' });
     } else {
+      if (!(await validMp4Structure(tmp, count))) throw new ContentError('INVALID_MEDIA', 'El video MP4 está incompleto o dañado.');
       await rename(tmp, final);
     }
     const connection = await pool.getConnection();

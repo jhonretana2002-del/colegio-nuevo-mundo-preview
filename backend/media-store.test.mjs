@@ -9,6 +9,18 @@ import { listMedia, openMediaPreview, uploadMedia } from './media-store.mjs';
 import sharp from 'sharp';
 
 const jpeg = await sharp({ create: { width: 640, height: 480, channels: 3, background: '#18376f' } }).jpeg().toBuffer();
+function mp4Box(type, payload) {
+  const box = Buffer.alloc(8 + payload.length);
+  box.writeUInt32BE(box.length, 0);
+  box.write(type, 4, 4, 'ascii');
+  payload.copy(box, 8);
+  return box;
+}
+const mp4 = Buffer.concat([
+  mp4Box('ftyp', Buffer.from('isom0000isom', 'ascii')),
+  mp4Box('mdat', Buffer.from('frame-data', 'ascii')),
+  mp4Box('moov', Buffer.from('movie-data', 'ascii')),
+]);
 
 function request(bytes, mime = 'image/jpeg') {
   const stream = Readable.from([bytes]);
@@ -77,10 +89,21 @@ test('Admin sube imagen validada, la registra y puede previsualizarla', async ()
 test('Admin puede registrar un video MP4 con su tipo correcto', async () => {
   const mediaRoot = await mkdtemp(path.join(tmpdir(), 'cnm-media-'));
   try {
-    const mp4 = Buffer.from('000000186674797069736f6d00000000', 'hex');
     const result = await uploadMedia(fakePool().pool, request(mp4, 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot });
     assert.equal(result.mimeType, 'video/mp4');
     assert.match(result.storageKey, /\.mp4$/);
+  } finally { await rm(mediaRoot, { recursive: true, force: true }); }
+});
+
+test('rechaza MP4 truncado o sin datos de video antes de registrarlo', async () => {
+  const mediaRoot = await mkdtemp(path.join(tmpdir(), 'cnm-media-'));
+  try {
+    const db = fakePool();
+    await assert.rejects(uploadMedia(db.pool, request(mp4.subarray(0, -5), 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot }), /incompleto o dañado/);
+    const noData = Buffer.concat([mp4Box('ftyp', Buffer.from('isom0000isom')), mp4Box('moov', Buffer.from('movie-data'))]);
+    await assert.rejects(uploadMedia(db.pool, request(noData, 'video/mp4'), { actorId: 'user-1', role: 'admin', mediaRoot }), /incompleto o dañado/);
+    assert.equal(db.queries.some(item => item.sql.startsWith('INSERT INTO media_assets')), false);
+    assert.deepEqual(await readdir(mediaRoot), []);
   } finally { await rm(mediaRoot, { recursive: true, force: true }); }
 });
 

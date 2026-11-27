@@ -139,6 +139,9 @@ function groupFor(parts) {
 function labelFor(path, content) {
   const parts = path.split('.');
   const key = parts.at(-1);
+  if (path === 'inicio.video.archivo') return 'Video de la portada';
+  if (path === 'inicio.video.poster') return 'Imagen fija de la portada';
+  if (path === 'inicio.acompanamiento.imagen') return 'Imagen de acompañamiento';
   if (parts[0] === 'paginas') return path === 'paginas.pie.aviso' ? 'Aviso del pie de página' : PAGE_LABELS[key] ?? key;
   if (parts.length === 1) return TITLES[key] ?? key;
   if (/^\d+$/.test(key)) return parts.at(-2)==='titulo'?`Línea ${Number(key)+1} del título`:`${TITLES[parts.at(-2)] ?? 'Texto'} ${Number(key) + 1}`;
