@@ -44,6 +44,16 @@ test('los cambios de texto solo aparecen en la salida aislada', async t => {
   assert.deepEqual(await readFile(path.join(root, 'index.html')), current);
 });
 
+test('la descripción accesible de los submenús cambia sin alterar el HTML actual', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.paginas.navegacion.apartadosAriaPrefijo = 'Secciones de';
+  await stagePreview({ content: changed, outputRoot: path.join(folder, 'preview') });
+  const preview = await readFile(path.join(folder, 'preview/index.html'), 'utf8');
+  assert.match(preview, /aria-label="Secciones de Conócenos"/);
+  assert.doesNotMatch(await readFile(path.join(root, 'index.html'), 'utf8'), /Secciones de Conócenos/);
+});
+
 test('una vista previa privada usa su propio prefijo sin cambiar el contenido fuente', async t => {
   const folder = await workspace(t);
   const outputRoot = path.join(folder, 'preview');

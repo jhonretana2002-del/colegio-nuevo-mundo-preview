@@ -40,7 +40,7 @@ test('completa campos faltantes sin perder ediciones y conserva la publicación'
   const result = await upgradeContent(db.pool, { actorId });
   assert.equal(result.updated, true);
   assert.deepEqual(result.added, ['paginas.inicio.consultaEnlace', 'paginas.opiniones']);
-  assert.equal(db.revision.schema_version, 11);
+  assert.equal(db.revision.schema_version, 12);
   assert.equal(db.revision.status, 'borrador');
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.mision, old.mision);
@@ -68,7 +68,7 @@ test('la versión 4 incorpora textos de Contacto sin reemplazar ediciones anteri
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.paginas.contacto.contactoTitulo, 'Escríbanos cuando lo necesite.');
   assert.equal(updated.paginas.contacto.llamarEnlace, source.paginas.contacto.llamarEnlace);
-  assert.equal(db.revision.schema_version, 11);
+  assert.equal(db.revision.schema_version, 12);
 });
 
 test('la versión 8 incorpora la ventana de Lumi sin perder preguntas editadas', async () => {
@@ -81,7 +81,7 @@ test('la versión 8 incorpora la ventana de Lumi sin perder preguntas editadas',
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.paginas.lumi.matriculaPregunta, '¿Cómo comienzo el proceso?');
   assert.equal(updated.paginas.lumi.welcome, source.paginas.lumi.welcome);
-  assert.equal(db.revision.schema_version, 11);
+  assert.equal(db.revision.schema_version, 12);
 });
 
 test('la versión 9 agrega avisos de Opiniones sin perder invitaciones editadas', async () => {
@@ -95,7 +95,7 @@ test('la versión 9 agrega avisos de Opiniones sin perder invitaciones editadas'
   assert.ok(result.added.includes('paginas.opiniones.recomendacionSinNotaAviso'));
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.paginas.opiniones.invitacionFacebookTitulo, 'Cuéntenos su experiencia.');
-  assert.equal(db.revision.schema_version, 11);
+  assert.equal(db.revision.schema_version, 12);
 });
 
 test('la versión 10 agrega títulos de pestaña y página 404 sin perder textos editados', async () => {
@@ -115,7 +115,20 @@ test('la versión 10 agrega títulos de pestaña y página 404 sin perder textos
   assert.equal(updated.paginas.contacto.titulo, 'Conversemos.');
   assert.equal(updated.paginas.noticias.tituloPestana, source.paginas.noticias.tituloPestana);
   assert.deepEqual(updated.paginas.error404, source.paginas.error404);
-  assert.equal(db.revision.schema_version, 11);
+  assert.equal(db.revision.schema_version, 12);
+});
+
+test('la versión 11 completa la descripción de submenús sin perder nombres editados', async () => {
+  const previous = structuredClone(source);
+  previous.paginas.navegacion.conocenosEnlace = 'Nuestra institución';
+  delete previous.paginas.navegacion.apartadosAriaPrefijo;
+  const db = fakePool({ content: previous, schemaVersion: 11 });
+  const result = await upgradeContent(db.pool, { actorId });
+  assert.deepEqual(result.added, ['paginas.navegacion.apartadosAriaPrefijo']);
+  const updated = JSON.parse(db.revision.payload);
+  assert.equal(updated.paginas.navegacion.conocenosEnlace, 'Nuestra institución');
+  assert.equal(updated.paginas.navegacion.apartadosAriaPrefijo, 'Apartados de');
+  assert.equal(db.revision.schema_version, 12);
 });
 
 test('rechaza cuentas sin Admin, campos desconocidos y versiones futuras', async () => {
@@ -124,7 +137,7 @@ test('rechaza cuentas sin Admin, campos desconocidos y versiones futuras', async
   const unknown = structuredClone(source); unknown.campoInventado = 'dato';
   const bad = fakePool({ content: unknown });
   await assert.rejects(upgradeContent(bad.pool, { actorId }), /revisión manual/);
-  const future = fakePool({ schemaVersion: 12 });
+  const future = fakePool({ schemaVersion: 13 });
   await assert.rejects(upgradeContent(future.pool, { actorId }), /más reciente/);
   assert.equal(bad.calls.includes('rollback'), true);
 });

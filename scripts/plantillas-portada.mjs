@@ -10,7 +10,7 @@ export function renderNavigation(current, pages, {e, url, labels}) {
     const parent = `<a href="${url(route)}"${route===current?' aria-current="page"':''}${route==='admisiones/'?' class="nav-admissions"':''}>${e(label)}</a>`;
     if (!sections[route]) return `<div class="nav-item">${parent}</div>`;
     const id = 'submenu-'+route.slice(0,-1);
-    return `<div class="nav-item" data-nav-group><div class="nav-parent">${parent}<button class="submenu-toggle" type="button" aria-expanded="false" aria-controls="${id}" aria-label="Apartados de ${e(label)}" hidden><span aria-hidden="true">+</span></button></div><ul class="nav-submenu" id="${id}" hidden>${sections[route].map(([fragment,title])=>`<li><a href="${url(route+'#'+fragment)}">${e(title)}</a></li>`).join('')}</ul></div>`;
+    return `<div class="nav-item" data-nav-group><div class="nav-parent">${parent}<button class="submenu-toggle" type="button" aria-expanded="false" aria-controls="${id}" aria-label="${e(labels.apartadosAriaPrefijo)} ${e(label)}" hidden><span aria-hidden="true">+</span></button></div><ul class="nav-submenu" id="${id}" hidden>${sections[route].map(([fragment,title])=>`<li><a href="${url(route+'#'+fragment)}">${e(title)}</a></li>`).join('')}</ul></div>`;
   }).join('');
 }
 

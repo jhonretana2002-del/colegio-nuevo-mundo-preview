@@ -76,7 +76,7 @@ const PAGE_LABELS = {
   telefonoEtiqueta: 'Etiqueta de teléfono', llamarEnlace: 'Enlace para llamar', whatsappEnlace: 'Enlace de WhatsApp',
   correoEtiqueta: 'Etiqueta de correo', correoEnlace: 'Enlace para escribir correo', mapaEnlace: 'Enlace del mapa',
   facebookEnlace: 'Enlace de Facebook', instagramEnlace: 'Enlace de Instagram', mapaTitulo: 'Título del mapa',
-  prepararConsultaEnlace: 'Botón para preparar consulta', tituloPestana: 'Título de la pestaña del navegador', volverEnlace: 'Enlace para volver al inicio',
+  prepararConsultaEnlace: 'Botón para preparar consulta', tituloPestana: 'Título de la pestaña del navegador', volverEnlace: 'Enlace para volver al inicio', apartadosAriaPrefijo: 'Descripción de los submenús',
   consultaAria: 'Descripción del botón de consulta', videoControl: 'Botón para reproducir video', videoPausar: 'Botón para pausar video', videoReintentar: 'Botón para reintentar video',
   videoError: 'Aviso si el video falla', videoPausado: 'Aviso de video pausado', videoReproduciendo: 'Aviso de video en reproducción', videoAviso: 'Nota del video', videoCredito: 'Crédito del video',
   imagenOfertaAviso: 'Nota de imagen de la oferta', imagenAcompanamientoAviso: 'Nota de imagen de acompañamiento', imagenMatriculaAviso: 'Nota de imagen de matrícula',
