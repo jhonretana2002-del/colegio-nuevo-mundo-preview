@@ -49,8 +49,11 @@
       "valoresAntetitulo": "Lo que nos guía",
       "valoresTitulo": "Nuestros valores",
       "historiaTitulo": "Nuestra historia",
+      "historiaPanelTitulo": "Conozca nuestra historia",
       "historiaAlternativaTitulo": "Conozcámonos",
       "historiaInvitacion": "Converse con nuestro equipo para conocer más sobre el colegio y su trayectoria.",
+      "contacteEnlace": "Contacte al colegio",
+      "verOfertaEnlace": "Ver oferta educativa",
       "llamadaTitulo": "Descubra lo que podemos aprender juntos.",
       "llamadaTexto": "Conozca las asignaturas, las materias complementarias y los idiomas."
     },
@@ -62,7 +65,8 @@
       "instruccion": "Seleccione un tema para consultar su información. Al abrir otra opción, la anterior se cierra.",
       "nota": "Consulte con el colegio el alcance de las asignaturas y los idiomas para el nivel de su interés.",
       "llamadaTitulo": "¿Desea conocer más sobre nuestra oferta?",
-      "llamadaTexto": "Nuestro equipo puede orientarle según el nivel de interés de su familia."
+      "llamadaTexto": "Nuestro equipo puede orientarle según el nivel de interés de su familia.",
+      "solicitarInfoEnlace": "Solicitar información"
     },
     "vida": {
       "titulo": "Aprender también es sentirse acompañado.",
@@ -78,8 +82,11 @@
       "serviciosTitulo": "Lo que acompaña la jornada.",
       "experienciasAntetitulo": "Experiencias que nos unen",
       "experienciasTitulo": "Espacios para compartir.",
+      "galeriaAviso": "Imágenes de referencia de la propuesta visual; selección final sujeta a validación del colegio.",
+      "coordinarConsultaEnlace": "Coordinar una consulta",
       "llamadaTitulo": "Conversemos sobre su próximo paso.",
-      "llamadaTexto": "Consulte nuestra propuesta y las condiciones de los servicios."
+      "llamadaTexto": "Consulte nuestra propuesta y las condiciones de los servicios.",
+      "solicitarInfoEnlace": "Solicitar información"
     },
     "admisiones": {
       "titulo": "Únase a nuestra comunidad educativa.",
@@ -163,12 +170,25 @@
       "horarioTitulo": "Horario institucional",
       "atencionTitulo": "Horario de atención",
       "visitasNota": "Para visitas y trámites, confirme el horario de atención administrativa al contactar al colegio.",
+      "telefonoEtiqueta": "Teléfono",
+      "llamarEnlace": "Llamar",
+      "whatsappEtiqueta": "WhatsApp",
+      "whatsappEnlace": "Escribir por WhatsApp",
+      "correoEtiqueta": "Correo electrónico",
+      "correoEnlace": "Enviar correo",
+      "mapaEnlace": "Cómo llegar en Google Maps",
+      "facebookEnlace": "Facebook · Colegio Nuevo Mundo CR",
+      "instagramEnlace": "Instagram · @colegionuevomundocr",
+      "mapaTitulo": "Ubicación del Colegio Nuevo Mundo",
+      "prepararConsultaEnlace": "Preparar consulta",
       "llamadaTitulo": "¿Desea iniciar una consulta de admisión?",
       "llamadaTexto": "Prepare su consulta y revísela antes de enviarla por WhatsApp."
     },
     "pie": {
       "contactoTitulo": "Estamos para orientarle",
       "horarioTitulo": "Horario institucional",
+      "facebookEnlace": "Facebook",
+      "instagramEnlace": "Instagram",
       "whatsappEtiqueta": "WhatsApp",
       "aviso": "Información sujeta a validación institucional",
       "adminEnlace": "Acceso administrativo"
@@ -192,7 +212,8 @@
       "introduccion": "Un espacio para las noticias, actividades y comunicados de nuestra comunidad educativa.",
       "antetitulo": "Noticias y actividades",
       "descripcionBuscadores": "Noticias y actividades de nuestra comunidad educativa.",
-      "sinNoticias": "Esta vista previa todavía no incluye noticias. Compartiremos las novedades cuando estén disponibles."
+      "sinNoticias": "Esta vista previa todavía no incluye noticias. Compartiremos las novedades cuando estén disponibles.",
+      "contacteEnlace": "Contacte al colegio"
     }
   },
   "nombre": "Colegio Nuevo Mundo",

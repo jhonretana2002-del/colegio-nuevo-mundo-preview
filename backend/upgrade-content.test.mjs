@@ -40,7 +40,7 @@ test('completa campos faltantes sin perder ediciones y conserva la publicación'
   const result = await upgradeContent(db.pool, { actorId });
   assert.equal(result.updated, true);
   assert.deepEqual(result.added, ['paginas.inicio.consultaEnlace', 'paginas.opiniones']);
-  assert.equal(db.revision.schema_version, 4);
+  assert.equal(db.revision.schema_version, 5);
   assert.equal(db.revision.status, 'borrador');
   const updated = JSON.parse(db.revision.payload);
   assert.equal(updated.mision, old.mision);
@@ -57,13 +57,27 @@ test('una segunda actualización no crea otra revisión', async () => {
   assert.equal(db.calls.filter(call => typeof call === 'object' && call.sql.startsWith('INSERT INTO content_revisions')).length, 1);
 });
 
+test('la versión 4 incorpora textos de Contacto sin reemplazar ediciones anteriores', async () => {
+  const previous = structuredClone(source);
+  previous.paginas.contacto.contactoTitulo = 'Escríbanos cuando lo necesite.';
+  delete previous.paginas.contacto.llamarEnlace;
+  delete previous.paginas.pie.facebookEnlace;
+  const db = fakePool({ content: previous, schemaVersion: 4 });
+  const result = await upgradeContent(db.pool, { actorId });
+  assert.deepEqual(result.added, ['paginas.contacto.llamarEnlace', 'paginas.pie.facebookEnlace']);
+  const updated = JSON.parse(db.revision.payload);
+  assert.equal(updated.paginas.contacto.contactoTitulo, 'Escríbanos cuando lo necesite.');
+  assert.equal(updated.paginas.contacto.llamarEnlace, source.paginas.contacto.llamarEnlace);
+  assert.equal(db.revision.schema_version, 5);
+});
+
 test('rechaza cuentas sin Admin, campos desconocidos y versiones futuras', async () => {
   const inactive = fakePool({ user: false });
   await assert.rejects(upgradeContent(inactive.pool, { actorId }), /Admin activa/);
   const unknown = structuredClone(source); unknown.campoInventado = 'dato';
   const bad = fakePool({ content: unknown });
   await assert.rejects(upgradeContent(bad.pool, { actorId }), /revisión manual/);
-  const future = fakePool({ schemaVersion: 5 });
+  const future = fakePool({ schemaVersion: 6 });
   await assert.rejects(upgradeContent(future.pool, { actorId }), /más reciente/);
   assert.equal(bad.calls.includes('rollback'), true);
 });

@@ -4,7 +4,7 @@ export function validateDraft(data){
  if(!data.lema.trim()||Array.from(data.lema).length>100)errors.push('Complete el lema del colegio en un máximo de 100 caracteres.');
  if(data.paginas&&Object.values(data.paginas).some(page=>Object.values(page).some(value=>typeof value!=='string'||!value.trim())))errors.push('Complete los títulos y textos de presentación de las páginas.');
  if(data.paginas){
-  const names={inicio:'Inicio',conocenos:'Conócenos',oferta:'Oferta educativa',vida:'Vida en el colegio',admisiones:'Admisiones',contacto:'Contacto',pie:'Pie de página',opiniones:'Opiniones',noticias:'Noticias'};
+  const names={navegacion:'Menú del sitio',inicio:'Inicio',conocenos:'Conócenos',oferta:'Oferta educativa',vida:'Vida en el colegio',admisiones:'Admisiones',contacto:'Contacto',pie:'Pie de página',opiniones:'Opiniones',noticias:'Noticias'};
   for(const [page,items] of Object.entries(data.paginas))for(const [key,value] of Object.entries(items)){
    if(typeof value!=='string')continue;
    const limit=key.endsWith('Enlace')||key.endsWith('Submenu')||key.endsWith('Etiqueta')||key.endsWith('PanelTitulo')||key==='menuBoton'||['arancelesRubro','arancelesMonto','arancelesCondicion','arancelesMontoPendiente'].includes(key)||key.startsWith('form')&&!['formNota','formRevisionNota','formEstado'].includes(key)?60:key==='aviso'||['formNota','formRevisionNota','formEstado','consultaWhatsappMensaje'].includes(key)?250:key==='whatsappEtiqueta'?40:key==='descripcionBuscadores'?180:key==='titulo'||/Titulo(?:Linea\d)?$/.test(key)?100:key==='antetitulo'||key.endsWith('Antetitulo')?80:500;

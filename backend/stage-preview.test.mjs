@@ -75,6 +75,24 @@ test('el formulario escapa HTML en textos editados y en los datos para WhatsApp'
   assert.doesNotMatch(data, /<script>alert\(1\)<\/script>/);
 });
 
+test('Contacto y los enlaces compartidos reflejan textos editados sin alterar las páginas actuales', async t => {
+  const folder = await workspace(t);
+  const changed = structuredClone(source);
+  changed.paginas.contacto.llamarEnlace = 'Marcar ahora';
+  changed.paginas.contacto.mapaEnlace = 'Ver el mapa';
+  changed.paginas.pie.facebookEnlace = 'Nuestra comunidad en Facebook';
+  changed.paginas.vida.galeriaAviso = 'Fotografías de muestra para revisión.';
+  changed.paginas.conocenos.verOfertaEnlace = 'Explorar las áreas educativas';
+  const outputRoot = path.join(folder, 'preview');
+  await stagePreview({ content: changed, outputRoot });
+  assert.match(await readFile(path.join(outputRoot, 'contacto/index.html'), 'utf8'), /Marcar ahora →/);
+  assert.match(await readFile(path.join(outputRoot, 'contacto/index.html'), 'utf8'), /Ver el mapa/);
+  assert.match(await readFile(path.join(outputRoot, 'vida-en-el-colegio/index.html'), 'utf8'), /Fotografías de muestra para revisión/);
+  assert.match(await readFile(path.join(outputRoot, 'index.html'), 'utf8'), /Nuestra comunidad en Facebook/);
+  assert.match(await readFile(path.join(outputRoot, 'conocenos/index.html'), 'utf8'), /Explorar las áreas educativas/);
+  assert.doesNotMatch(await readFile(path.join(root, 'contacto/index.html'), 'utf8'), /Marcar ahora/);
+});
+
 test('copia un medio aprobado y verifica su hash antes de generar', async t => {
   const folder = await workspace(t);
   const mediaRoot = path.join(folder, 'media');

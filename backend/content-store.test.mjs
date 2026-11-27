@@ -5,7 +5,7 @@ import { ContentError, getPublished, getWorking, listRevisions, saveDraft, submi
 
 const source = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
-function fakeDatabase(version = 0, working = source, uploaded = [], schemaVersion = 4) {
+function fakeDatabase(version = 0, working = source, uploaded = [], schemaVersion = 5) {
   const calls = [];
   const connection = {
     async beginTransaction() { calls.push('begin'); },
@@ -117,7 +117,7 @@ test('lectura de trabajo devuelve revisión y versión actuales', async () => {
   const pool = { async execute(sql, params) {
     assert.ok(sql.includes('content_working'));
     assert.deepEqual(params, ['colegio', 'es-CR']);
-    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', schema_version: 4, review_reason: null, payload: JSON.stringify(source) }]];
+    return [[{ document_id: 'doc', version: 3, revision_id: 'draft-3', status: 'borrador', author_id: 'user-1', schema_version: 5, review_reason: null, payload: JSON.stringify(source) }]];
   } };
   const result = await getWorking(pool);
   assert.equal(result.version, '3');
@@ -134,14 +134,14 @@ test('lectura privada pide actualización si la estructura es antigua', async ()
 
 test('lectura privada detecta campos faltantes en una revisión marcada como actual', async () => {
   const old = structuredClone(source);delete old.paginas.opiniones;
-  const pool = { async execute() { return [[{ document_id: 'doc', version: 1, revision_id: 'old', schema_version: 4, payload: JSON.stringify(old) }]]; } };
+  const pool = { async execute() { return [[{ document_id: 'doc', version: 1, revision_id: 'old', schema_version: 5, payload: JSON.stringify(old) }]]; } };
   await assert.rejects(getWorking(pool), error => error instanceof ContentError && error.code === 'SCHEMA_UPDATE_REQUIRED');
 });
 
 test('lectura de un borrador devuelto incluye la corrección solicitada', async () => {
   const pool = { async execute(sql) {
     assert.match(sql, /content_review_decisions/);
-    return [[{ document_id: 'doc', version: 4, revision_id: 'draft-4', status: 'rechazado', author_id: 'user-1', schema_version: 4, review_reason: 'Revise el costo', payload: JSON.stringify(source) }]];
+    return [[{ document_id: 'doc', version: 4, revision_id: 'draft-4', status: 'rechazado', author_id: 'user-1', schema_version: 5, review_reason: 'Revise el costo', payload: JSON.stringify(source) }]];
   } };
   const result = await getWorking(pool);
   assert.equal(result.status, 'rechazado');

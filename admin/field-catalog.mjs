@@ -67,6 +67,12 @@ const PAGE_LABELS = {
   prematriculaReservaEtiqueta: 'Etiqueta de reserva', prematriculaConfirmadaNota: 'Nota de reserva confirmada', prematriculaPendienteNota: 'Nota de reserva pendiente',
   periodoPanelTitulo: 'Título del período', periodoCursoEtiqueta: 'Etiqueta de curso lectivo', periodoPendienteNota: 'Nota de fechas pendientes',
   reservaEtiqueta: 'Etiqueta de reserva', verRequisitosEnlace: 'Enlace a requisitos', consultarArancelesEnlace: 'Enlace a aranceles',
+  historiaPanelTitulo: 'Título para abrir la historia', contacteEnlace: 'Enlace para contactar', verOfertaEnlace: 'Enlace a la oferta',
+  solicitarInfoEnlace: 'Botón para solicitar información', galeriaAviso: 'Aviso de las fotografías', coordinarConsultaEnlace: 'Enlace para coordinar una consulta',
+  telefonoEtiqueta: 'Etiqueta de teléfono', llamarEnlace: 'Enlace para llamar', whatsappEnlace: 'Enlace de WhatsApp',
+  correoEtiqueta: 'Etiqueta de correo', correoEnlace: 'Enlace para escribir correo', mapaEnlace: 'Enlace del mapa',
+  facebookEnlace: 'Enlace de Facebook', instagramEnlace: 'Enlace de Instagram', mapaTitulo: 'Título del mapa',
+  prepararConsultaEnlace: 'Botón para preparar consulta',
   titulo: 'Título principal', introduccion: 'Texto introductorio', antetitulo: 'Frase superior', descripcionBuscadores: 'Resumen para buscadores',
   introAntetitulo: 'Frase de presentación', consultaEnlace: 'Botón de consulta', conocenosEnlace: 'Enlace para conocer el colegio', ofertaAntetitulo: 'Frase de la oferta', ofertaDescripcion: 'Descripción de la oferta', tarjetasEnlace: 'Enlace de tarjetas', vidaAntetitulo: 'Frase de vida en el colegio', vidaEnlace: 'Enlace a vida en el colegio',
   quienesAntetitulo: 'Frase de quiénes somos', quienesTitulo: 'Título de quiénes somos', misionAntetitulo: 'Frase de misión', misionTitulo: 'Título de misión', visionAntetitulo: 'Frase de visión', visionTitulo: 'Título de visión', valoresAntetitulo: 'Frase de valores', valoresTitulo: 'Título de valores', historiaTitulo: 'Título de historia', historiaAlternativaTitulo: 'Título para presentar el colegio', historiaInvitacion: 'Invitación a conocer el colegio',
@@ -129,8 +135,12 @@ function sectionFor(path, content) {
       else if (['fechasTitulo', 'referenciaAntetitulo', 'calendarioPendiente', 'prematriculaResumen', 'periodoResumen'].includes(key) || key.startsWith('prematricula') || key.startsWith('periodo') || key==='reservaEtiqueta') part = 'fechas';
       else part = 'detalles';
     }
+    if (parts[1] === 'contacto' && part === 'contenido') {
+      if (['telefonoEtiqueta','llamarEnlace','whatsappEtiqueta','whatsappEnlace','correoEtiqueta','correoEnlace','facebookEnlace','instagramEnlace'].includes(key)) part = 'metodos';
+      else if (['mapaEnlace','mapaTitulo','ubicacionAntetitulo','ubicacionTitulo','horarioTitulo','atencionTitulo','visitasNota'].includes(key)) part = 'ubicacion';
+    }
     if (parts[1] === 'opiniones') part = key.startsWith('verificadas') ? 'verificadas' : key.startsWith('invitacionFacebook') ? 'facebook' : key.startsWith('invitacionInstagram') ? 'instagram' : 'ejemplos';
-    const title = { presentacion: 'Presentación de la página', pasos: 'Pasos de admisión', contenido: 'Textos de las secciones', fechas: 'Fechas y reserva', costos: 'Costos y aranceles', consulta: 'Formulario de consulta', detalles: 'Requisitos y detalles', verificadas: 'Opiniones verificadas', facebook: 'Invitación a Facebook', instagram: 'Invitación a Instagram', ejemplos: 'Muestra de opiniones' }[part];
+    const title = { presentacion: 'Presentación de la página', pasos: 'Pasos de admisión', contenido: 'Textos de las secciones', fechas: 'Fechas y reserva', costos: 'Costos y aranceles', consulta: 'Formulario de consulta', detalles: 'Requisitos y detalles', metodos: 'Formas de contacto', ubicacion: 'Ubicación y horario', verificadas: 'Opiniones verificadas', facebook: 'Invitación a Facebook', instagram: 'Invitación a Instagram', ejemplos: 'Muestra de opiniones' }[part];
     return { section: `${parts[0]}.${parts[1]}.${part}`, sectionTitle: title };
   }
   let section = root;
