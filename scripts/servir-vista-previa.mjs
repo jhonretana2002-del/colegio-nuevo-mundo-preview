@@ -12,12 +12,12 @@ const mime = {
   '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.woff2': 'font/woff2',
 };
 
-export function createPreviewServer(directory, base) {
+export function createPreviewHandler(directory, base) {
   if (!path.isAbsolute(directory ?? '') || !/^\/[a-zA-Z0-9/_-]*\/$/.test(base ?? '')) {
     throw new Error('Carpeta absoluta o prefijo de sitio inválido.');
   }
   const folder = path.resolve(directory);
-  return createServer(async (req, res) => {
+  return async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.writeHead(405, { Allow: 'GET, HEAD' }); res.end(); return;
     }
@@ -57,7 +57,11 @@ export function createPreviewServer(directory, base) {
       if (req.method === 'HEAD') { res.end(); return; }
       createReadStream(file, { start, end }).on('error', () => res.destroy()).pipe(res);
     } catch { res.writeHead(404); res.end(); }
-  });
+  };
+}
+
+export function createPreviewServer(directory, base) {
+  return createServer(createPreviewHandler(directory, base));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

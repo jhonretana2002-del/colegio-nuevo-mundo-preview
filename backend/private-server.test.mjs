@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { createPrivateServer, privateConfig } from './private-server.mjs';
 
 const config = { pool: {}, origin: 'https://admin.example.test', csrfSecret: 'a'.repeat(32), mfaKey: 'b'.repeat(64), mediaRoot: path.resolve('uploads'), loginGate: async () => true };
 
 test('servidor privado exige secretos, HTTPS y carpeta absoluta', () => {
   assert.throws(() => privateConfig({}), /Falta configuración/);
-  assert.throws(() => privateConfig({ PUBLIC_ORIGIN: 'http://local', CSRF_SECRET: 'a'.repeat(32), MFA_ENCRYPTION_KEY: 'b'.repeat(64), LOGIN_LIMIT_SECRET: 'c'.repeat(32), MEDIA_ROOT: path.resolve('uploads') }), /HTTPS/);
-  assert.equal(privateConfig({ PUBLIC_ORIGIN: 'https://admin.example.test', CSRF_SECRET: 'a'.repeat(32), MFA_ENCRYPTION_KEY: 'b'.repeat(64), LOGIN_LIMIT_SECRET: 'c'.repeat(32), MEDIA_ROOT: path.resolve('uploads'), PORT: '4899' }).port, 4899);
+  assert.throws(() => privateConfig({ PUBLIC_ORIGIN: 'http://local', CSRF_SECRET: 'a'.repeat(32), MFA_ENCRYPTION_KEY: 'b'.repeat(64), LOGIN_LIMIT_SECRET: 'c'.repeat(32), MEDIA_ROOT: path.resolve('uploads'), PREVIEW_ROOT: path.join(tmpdir(), 'cnm-private-preview') }), /HTTPS/);
+  assert.equal(privateConfig({ PUBLIC_ORIGIN: 'https://admin.example.test', CSRF_SECRET: 'a'.repeat(32), MFA_ENCRYPTION_KEY: 'b'.repeat(64), LOGIN_LIMIT_SECRET: 'c'.repeat(32), MEDIA_ROOT: path.resolve('uploads'), PREVIEW_ROOT: path.join(tmpdir(), 'cnm-private-preview'), PORT: '4899' }).port, 4899);
+  assert.throws(() => privateConfig({ PUBLIC_ORIGIN: 'https://admin.example.test', CSRF_SECRET: 'a'.repeat(32), MFA_ENCRYPTION_KEY: 'b'.repeat(64), LOGIN_LIMIT_SECRET: 'c'.repeat(32), MEDIA_ROOT: path.resolve('uploads'), PREVIEW_ROOT: path.resolve('previews') }), /fuera del repositorio/);
 });
 
 test('sirve solo archivos necesarios del panel y respeta rangos de video', async () => {

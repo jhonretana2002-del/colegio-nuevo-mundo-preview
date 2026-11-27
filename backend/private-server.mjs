@@ -23,7 +23,7 @@ const staticPaths = new Set([
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.mp4': 'video/mp4', '.woff2': 'font/woff2' };
 
 export function privateConfig(env = process.env) {
-  const required = ['PUBLIC_ORIGIN', 'CSRF_SECRET', 'MFA_ENCRYPTION_KEY', 'LOGIN_LIMIT_SECRET', 'MEDIA_ROOT'];
+  const required = ['PUBLIC_ORIGIN', 'CSRF_SECRET', 'MFA_ENCRYPTION_KEY', 'LOGIN_LIMIT_SECRET', 'MEDIA_ROOT', 'PREVIEW_ROOT'];
   const missing = required.filter(key => !env[key]);
   if (missing.length) throw new Error(`Falta configuración privada: ${missing.join(', ')}`);
   let parsedOrigin;
@@ -33,9 +33,14 @@ export function privateConfig(env = process.env) {
   }
   if (env.CSRF_SECRET.length < 32 || env.LOGIN_LIMIT_SECRET.length < 32 || !/^[0-9a-fA-F]{64}$/.test(env.MFA_ENCRYPTION_KEY)) throw new Error('Los secretos privados son inválidos.');
   if (!path.isAbsolute(env.MEDIA_ROOT)) throw new Error('MEDIA_ROOT debe ser una ruta absoluta.');
+  if (!path.isAbsolute(env.PREVIEW_ROOT)) throw new Error('PREVIEW_ROOT debe ser una ruta absoluta.');
+  const previewFolder = path.resolve(env.PREVIEW_ROOT);
+  if (previewFolder === root || previewFolder.startsWith(root + path.sep) || previewFolder === path.parse(previewFolder).root) {
+    throw new Error('PREVIEW_ROOT debe estar fuera del repositorio y dentro de una carpeta dedicada.');
+  }
   const port = Number(env.PORT ?? 4874);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT inválido.');
-  return { origin: env.PUBLIC_ORIGIN, csrfSecret: env.CSRF_SECRET, mfaKey: env.MFA_ENCRYPTION_KEY, loginLimitSecret: env.LOGIN_LIMIT_SECRET, mediaRoot: env.MEDIA_ROOT, port };
+  return { origin: env.PUBLIC_ORIGIN, csrfSecret: env.CSRF_SECRET, mfaKey: env.MFA_ENCRYPTION_KEY, loginLimitSecret: env.LOGIN_LIMIT_SECRET, mediaRoot: env.MEDIA_ROOT, previewRoot: env.PREVIEW_ROOT, port };
 }
 
 export async function servePrivateStatic(req, res) {
@@ -88,7 +93,7 @@ if (invokedDirectly) {
   try {
     await pool.query('SELECT 1');
     await getWorking(pool);
-    const server = createPrivateServer({ pool, origin: config.origin, csrfSecret: config.csrfSecret, mfaKey: config.mfaKey, mediaRoot: config.mediaRoot, loginGate: createLoginGate(pool, config.loginLimitSecret), trustedProxy: true });
+    const server = createPrivateServer({ pool, origin: config.origin, csrfSecret: config.csrfSecret, mfaKey: config.mfaKey, mediaRoot: config.mediaRoot, previewRoot: config.previewRoot, loginGate: createLoginGate(pool, config.loginLimitSecret), trustedProxy: true });
     await new Promise((resolve, reject) => server.once('error', reject).listen(config.port, '127.0.0.1', resolve));
     console.log(`Panel privado escuchando en 127.0.0.1:${config.port}, detrás de ${config.origin}`);
     const shutdown = async () => { await new Promise(resolve => server.close(resolve)); await pool.end(); };

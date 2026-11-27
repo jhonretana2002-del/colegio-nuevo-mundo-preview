@@ -51,7 +51,7 @@ La política preparada no protege la página pública por sí sola. Es una pieza
 - [ ] Completar inventario y esquema versionado de todos los campos editables; quedan algunos mensajes de apoyo escritos directamente en el código y revisar los textos que deban permanecer fijos por seguridad.
 - [ ] Exponer todos los campos textuales del sitio en formularios por sección.
 - [ ] Completar biblioteca y reemplazo de imágenes, póster y videos con procesamiento, variantes y publicación de medios aprobados.
-- [ ] Mostrar desde el panel una vista previa de la revisión aprobada con las plantillas y estilos actuales. El paquete local ya se puede generar sin sobrescribir el sitio público.
+- [x] Mostrar desde el panel una vista previa de la revisión aprobada con las plantillas y estilos actuales. El enlace aparece solo tras aprobar y sin cambios locales pendientes; cada página y recurso de la copia exige sesión y verifica la revisión vigente. La generación usa una carpeta privada fuera del repositorio y no sobrescribe la página pública. Evidencia: `backend/http-api.mjs`, `backend/stage-preview.mjs`, `admin/gestion.js` y pruebas HTTP. Falta ensayarla con MariaDB real en la fase final.
 - [ ] Verificar cobertura por campo, roles y vistas de escritorio y móvil.
 
 ## Fase 3: publicación y entrega

@@ -27,7 +27,7 @@ function mediaReferences(content) {
   return [...keys];
 }
 
-function mediaKeys(content) { return mediaReferences(content).filter(key => key.startsWith('uploads/')); }
+export function mediaKeys(content) { return mediaReferences(content).filter(key => key.startsWith('uploads/')); }
 
 async function copyUploaded(content, mediaRoot, outputRoot, mediaRecords) {
   const keys = mediaKeys(content);
@@ -46,8 +46,9 @@ async function copyUploaded(content, mediaRoot, outputRoot, mediaRecords) {
   }
 }
 
-export async function stagePreview({ content, outputRoot, mediaRoot, mediaRecords = [], templateRoot = sourceRoot }) {
+export async function stagePreview({ content, outputRoot, mediaRoot, mediaRecords = [], templateRoot = sourceRoot, previewBasePath = null }) {
   if (!content || !path.isAbsolute(outputRoot ?? '')) throw new Error('Se requiere contenido y una carpeta de destino absoluta.');
+  if (previewBasePath !== null && !/^\/[a-zA-Z0-9/_-]+\/$/.test(previewBasePath)) throw new Error('El prefijo privado de vista previa es inválido.');
   const errors = [...validateContentShape(reference, content), ...validateDraft(content),
     ...invalidMediaChanges(content, content, [...staticMedia, ...mediaRecords.map(row => row.storage_key)])];
   if (errors.length) throw new Error(`La revisión aprobada no supera la validación: ${errors.join('; ')}`);
@@ -67,7 +68,7 @@ export async function stagePreview({ content, outputRoot, mediaRoot, mediaRecord
     await cp(path.join(source, 'assets'), path.join(temporary, 'assets'), { recursive: true });
     await copyUploaded(content, mediaRoot, temporary, mediaRecords);
     for (const key of mediaReferences(content)) await access(path.join(temporary, key));
-    await generateSite(content, { outputRoot: temporary, resourceRoot: temporary });
+    await generateSite(previewBasePath === null ? content : { ...content, basePath: previewBasePath }, { outputRoot: temporary, resourceRoot: temporary });
     await rename(temporary, destination);
     return { outputRoot: destination, uploadedMedia: mediaKeys(content).length };
   } catch (error) {

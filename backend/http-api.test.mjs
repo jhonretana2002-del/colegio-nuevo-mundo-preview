@@ -3,11 +3,14 @@ import assert from 'node:assert/strict';
 import { createAdminHandler, createAdminServer } from './http-api.mjs';
 import { ContentError } from './content-store.mjs';
 import path from 'node:path';
+import { mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 
 const origin = 'https://admin.example.test';
 const csrfSecret = 'a-private-secret-with-at-least-32-characters';
 const mfaKey = 'aa'.repeat(32);
 const mediaRoot = path.resolve('uploads');
+const source = JSON.parse(await readFile(new URL('../contenido/colegio.json', import.meta.url), 'utf8'));
 
 async function withServer(options, run) {
   const server = createAdminServer({ pool: {}, origin, csrfSecret, mfaKey, mediaRoot, loginGate: async () => true, ...options });
@@ -205,6 +208,38 @@ test('Admin puede enviar un archivo sin declarar identidad en el cuerpo', async 
     assert.equal(uploadArgs.actorId, 'admin-real');
     assert.equal(uploadArgs.role, 'admin');
   });
+});
+
+test('la vista previa privada exige sesión y revisión aprobada y sirve sus recursos', async () => {
+  const previewRoot = await mkdtemp(path.join(tmpdir(), 'cnm-private-preview-'));
+  const revisionId = '11111111-1111-4111-8111-111111111111';
+  const token = 'a'.repeat(64);
+  let status = 'aprobado';
+  try {
+    const oldPreview = path.join(previewRoot, '22222222-2222-4222-8222-222222222222');
+    await mkdir(oldPreview);
+    await withServer({ previewRoot, stores: {
+      auth: { readSession: async () => ({ actor_id: 'moderator-1', role: 'moderador' }) },
+      content: { getWorking: async () => ({ revisionId, status, content: source }) },
+    } }, async base => {
+      const cookie = `__Host-cnm_session=${token}`;
+      assert.equal((await fetch(`${base}/api/site-preview/`)).status, 401);
+      const redirect = await fetch(`${base}/api/site-preview/`, { headers: { cookie }, redirect: 'manual' });
+      assert.equal(redirect.status, 302);
+      assert.equal(redirect.headers.get('location'), `/api/site-preview/${revisionId}/`);
+      await assert.rejects(stat(oldPreview), { code: 'ENOENT' });
+      const page = await fetch(`${base}${redirect.headers.get('location')}`, { headers: { cookie } });
+      assert.equal(page.status, 200);
+      assert.match(await page.text(), new RegExp(`/api/site-preview/${revisionId}/fuentes\\.css`));
+      const css = await fetch(`${base}/api/site-preview/${revisionId}/fuentes.css`, { headers: { cookie } });
+      assert.equal(css.status, 200);
+      assert.match(css.headers.get('content-type'), /text\/css/);
+      assert.equal((await fetch(`${base}/api/site-preview/${revisionId}/fuentes.css`)).status, 401);
+      assert.equal((await fetch(`${base}/api/site-preview/22222222-2222-4222-8222-222222222222/` , { headers: { cookie } })).status, 404);
+      status = 'borrador';
+      assert.equal((await fetch(`${base}/api/site-preview/`, { headers: { cookie } })).status, 409);
+    });
+  } finally { await rm(previewRoot, { recursive: true, force: true }); }
 });
 
 test('límite de acceso usa IP del proxy local solo si se configura y es válida', async () => {

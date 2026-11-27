@@ -1,10 +1,13 @@
 import { createServer } from 'node:http';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import path from 'node:path';
+import { readdir, rm, stat } from 'node:fs/promises';
 import { isIP } from 'node:net';
 import { startSession, readSession, revokeSession } from './auth-store.mjs';
 import { getPublished, getWorking, listRevisions, saveDraft, submitWorking, approveWorking, rejectWorking, ContentError } from './content-store.mjs';
 import { listMedia, openMediaPreview, uploadMedia } from './media-store.mjs';
+import { mediaKeys, stagePreview } from './stage-preview.mjs';
+import { createPreviewHandler } from '../scripts/servir-vista-previa.mjs';
 
 const COOKIE = '__Host-cnm_session';
 const MAX_BODY = 1024 * 1024;
@@ -57,13 +60,39 @@ async function readJson(req) {
   catch { throw new ContentError('BAD_REQUEST', 'JSON inválido.'); }
 }
 
-export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot, loginGate, trustedProxy = false, stores = {} }) {
+export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot, previewRoot = null, loginGate, trustedProxy = false, stores = {} }) {
   if (!pool || !origin || !/^https:\/\//.test(origin) || !csrfSecret || csrfSecret.length < 32 || !/^[0-9a-fA-F]{64}$/.test(mfaKey ?? '') || !path.isAbsolute(mediaRoot ?? '') || typeof loginGate !== 'function') {
     throw new Error('Se requiere MariaDB, origen HTTPS, secretos CSRF/MFA, almacenamiento de medios y límite de intentos de acceso.');
   }
   const auth = { startSession, readSession, revokeSession, ...stores.auth };
   const content = { getPublished, getWorking, listRevisions, saveDraft, submitWorking, approveWorking, rejectWorking, ...stores.content };
   const media = { listMedia, openMediaPreview, uploadMedia, ...stores.media };
+  if (previewRoot !== null && !path.isAbsolute(previewRoot)) throw new Error('PREVIEW_ROOT debe ser una ruta absoluta.');
+  const preparing = new Map();
+  async function preparePreview(working) {
+    const destination = path.join(previewRoot, working.revisionId);
+    if ((await stat(destination).catch(() => null))?.isDirectory()) return destination;
+    if (!preparing.has(working.revisionId)) {
+      const pending = (async () => {
+        const keys = mediaKeys(working.content);
+        const [records] = keys.length
+          ? await pool.execute(`SELECT storage_key, checksum_sha256 FROM media_assets WHERE storage_key IN (${keys.map(() => '?').join(',')})`, keys)
+          : [[]];
+        await stagePreview({ content: working.content, outputRoot: destination, mediaRoot, mediaRecords: records,
+          previewBasePath: `/api/site-preview/${working.revisionId}/` });
+        const folder = path.resolve(previewRoot);
+        for (const entry of await readdir(folder, { withFileTypes: true })) {
+          if (!entry.isDirectory() || !/^[0-9a-f-]{36}$/.test(entry.name) || entry.name === working.revisionId) continue;
+          const stale = path.resolve(folder, entry.name);
+          if (stale.startsWith(folder + path.sep)) await rm(stale, { recursive: true, force: true }).catch(() => {});
+        }
+      })();
+      preparing.set(working.revisionId, pending);
+      pending.finally(() => preparing.delete(working.revisionId)).catch(() => {});
+    }
+    await preparing.get(working.revisionId);
+    return destination;
+  }
   return async (req, res) => {
     try {
       const pathname = new URL(req.url, origin).pathname;
@@ -89,6 +118,21 @@ export function createAdminHandler({ pool, origin, csrfSecret, mfaKey, mediaRoot
         return respond(res, 200, { role: identity.role, csrfToken: csrfToken(token, csrfSecret) });
       }
       if (method === 'POST' && !validCsrf(req, token, csrfSecret)) return respond(res, 403, { error: 'Token de solicitud inválido.' });
+      if ((method === 'GET' || method === 'HEAD') && (pathname === '/api/site-preview' || pathname.startsWith('/api/site-preview/'))) {
+        if (!previewRoot) return respond(res, 503, { error: 'La vista previa privada no está configurada.' });
+        const working = await content.getWorking(pool);
+        if (working.status !== 'aprobado') return respond(res, 409, { error: 'Apruebe la revisión antes de abrir la vista previa.' });
+        if (!/^[0-9a-f-]{36}$/.test(working.revisionId ?? '')) return respond(res, 500, { error: 'Identificador de revisión inválido.' });
+        const base = `/api/site-preview/${working.revisionId}/`;
+        if (pathname === '/api/site-preview' || pathname === '/api/site-preview/') {
+          await preparePreview(working);
+          res.writeHead(302, { Location: base, 'Cache-Control': 'private, no-store' }); res.end(); return;
+        }
+        if (!pathname.startsWith(base)) return respond(res, 404, { error: 'Vista previa no encontrada.' });
+        const destination = path.join(previewRoot, working.revisionId);
+        if (!(await stat(destination).catch(() => null))?.isDirectory()) return respond(res, 404, { error: 'Vista previa no preparada.' });
+        return createPreviewHandler(destination, base)(req, res);
+      }
       if (method === 'POST' && pathname === '/api/auth/logout') {
         await auth.revokeSession(pool, token);
         return respond(res, 200, { ok: true }, { 'Set-Cookie': `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0` });

@@ -44,6 +44,19 @@ test('los cambios de texto solo aparecen en la salida aislada', async t => {
   assert.deepEqual(await readFile(path.join(root, 'index.html')), current);
 });
 
+test('una vista previa privada usa su propio prefijo sin cambiar el contenido fuente', async t => {
+  const folder = await workspace(t);
+  const outputRoot = path.join(folder, 'preview');
+  const prefix = '/api/site-preview/11111111-1111-4111-8111-111111111111/';
+  await stagePreview({ content: source, outputRoot, previewBasePath: prefix });
+  const home = await readFile(path.join(outputRoot, 'index.html'), 'utf8');
+  const data = await readFile(path.join(outputRoot, 'institucional-datos.js'), 'utf8');
+  assert.match(home, /href="\/api\/site-preview\/11111111-1111-4111-8111-111111111111\/fuentes\.css/);
+  assert.match(data, /"basePath": "\/api\/site-preview\/11111111-1111-4111-8111-111111111111\/"/);
+  assert.equal(source.basePath, '/colegio-nuevo-mundo-preview/');
+  await assert.rejects(stagePreview({ content: source, outputRoot: path.join(folder, 'invalid'), previewBasePath: '/otro?mal/' }), /prefijo privado/);
+});
+
 test('las etiquetas de admisión editadas aparecen en Inicio y Admisiones sin tocar el sitio actual', async t => {
   const folder = await workspace(t);
   const changed = structuredClone(source);

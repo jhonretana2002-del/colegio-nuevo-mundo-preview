@@ -69,6 +69,7 @@ function renderWorkflow(){
  $('submit-review').disabled=changes().length>0;
  $('approve-review').hidden=role!=='admin'||revisionStatus!=='en_revision';
  $('approve-review').disabled=changes().length>0;
+ $('preview-approved').hidden=revisionStatus!=='aprobado'||changes().length>0;
  $('reject-box').hidden=role!=='admin'||revisionStatus!=='en_revision';
  $('reject-review').disabled=changes().length>0;
 }
