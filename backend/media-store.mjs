@@ -1,9 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, open, rename, stat, unlink } from 'node:fs/promises';
+import { mkdir, open, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { ContentError } from './content-store.mjs';
+import sharp from 'sharp';
 
 const staticMedia = JSON.parse(readFileSync(new URL('../contenido/medios-disponibles.json', import.meta.url), 'utf8'));
 const TYPES = new Map([
@@ -22,10 +23,10 @@ function isSignature(mime, bytes) {
 }
 
 export async function listMedia(pool) {
-  const [rows] = await pool.execute("SELECT id, storage_key, mime_type FROM media_assets WHERE kind IN ('image','video') ORDER BY created_at DESC");
+  const [rows] = await pool.execute("SELECT id, storage_key, mime_type, width, height FROM media_assets WHERE kind IN ('image','video') ORDER BY created_at DESC");
   return [
     ...staticMedia.map(storageKey => ({ storageKey, mimeType: storageKey.endsWith('.mp4') ? 'video/mp4' : `image/${storageKey.endsWith('.jpg') ? 'jpeg' : storageKey.split('.').at(-1)}`, previewUrl: null })),
-    ...rows.map(row => ({ id: row.id, storageKey: row.storage_key, mimeType: row.mime_type, previewUrl: `/api/media/preview/${row.id}` })),
+    ...rows.map(row => ({ id: row.id, storageKey: row.storage_key, mimeType: row.mime_type, width: row.width, height: row.height, previewUrl: `/api/media/preview/${row.id}` })),
   ];
 }
 
@@ -38,7 +39,8 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
   await mkdir(mediaRoot, { recursive: true });
   const id = randomUUID();
   const tmp = path.join(mediaRoot, `.${id}.part`);
-  const final = path.join(mediaRoot, `${id}.${type.ext}`);
+  let final = path.join(mediaRoot, `${id}.${type.ext}`);
+  const processed = path.join(mediaRoot, `.${id}.processed.part`);
   const handle = await open(tmp, 'wx');
   const digest = createHash('sha256');
   let count = 0;
@@ -56,14 +58,44 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
       }
     } finally { await handle.close(); }
     if (!count || !isSignature(mime, header)) throw new ContentError('INVALID_MEDIA', 'El archivo no coincide con el formato indicado.');
-    await rename(tmp, final);
+    let storedMime = mime;
+    let storedBytes = count;
+    let width = null;
+    let height = null;
+    let checksum = digest.digest();
+    if (type.kind === 'image') {
+      let result;
+      try {
+        const metadata = await sharp(tmp, { limitInputPixels: 40_000_000 }).metadata();
+        const format = { 'image/jpeg': 'jpeg', 'image/png': 'png', 'image/webp': 'webp' }[mime];
+        if (metadata.format !== format || (metadata.pages ?? 1) !== 1 || !metadata.width || !metadata.height || metadata.width < 320 || metadata.height < 240) {
+          throw new Error('Formato o dimensiones inválidos.');
+        }
+        result = await sharp(tmp, { limitInputPixels: 40_000_000 }).rotate()
+          .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+          .webp({ quality: 82 }).toBuffer({ resolveWithObject: true });
+        if (result.data.length > type.max) throw new Error('Imagen procesada demasiado grande.');
+      } catch {
+        throw new ContentError('INVALID_MEDIA', 'La imagen debe abrirse correctamente y medir al menos 320 × 240 píxeles.');
+      }
+      width = result.info.width; height = result.info.height;
+      storedBytes = result.data.length;
+      checksum = createHash('sha256').update(result.data).digest();
+      storedMime = 'image/webp';
+      final = path.join(mediaRoot, `${id}.webp`);
+      await writeFile(processed, result.data, { flag: 'wx' });
+      await rename(processed, final);
+      await unlink(tmp);
+    } else {
+      await rename(tmp, final);
+    }
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
-      const storageKey = `uploads/${id}.${type.ext}`;
+      const storageKey = `uploads/${id}${path.extname(final)}`;
       await connection.execute(
-        'INSERT INTO media_assets (id, kind, storage_key, mime_type, bytes, checksum_sha256, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [id, type.kind, storageKey, mime, count, digest.digest(), actorId],
+        'INSERT INTO media_assets (id, kind, storage_key, mime_type, bytes, width, height, checksum_sha256, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [id, type.kind, storageKey, storedMime, storedBytes, width, height, checksum, actorId],
       );
       await connection.execute(
         "INSERT INTO audit_events (actor_id, action, target_type, target_id) VALUES (?, 'media.uploaded', 'media_asset', ?)",
@@ -71,7 +103,7 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
       );
       await connection.commit();
       completed = true;
-      return { id, storageKey, mimeType: mime, bytes: count, previewUrl: `/api/media/preview/${id}` };
+      return { id, storageKey, mimeType: storedMime, bytes: storedBytes, width, height, previewUrl: `/api/media/preview/${id}` };
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -79,6 +111,7 @@ export async function uploadMedia(pool, request, { actorId, role, mediaRoot }) {
   } finally {
     if (!completed) {
       await unlink(tmp).catch(() => {});
+      await unlink(processed).catch(() => {});
       await unlink(final).catch(() => {});
     }
   }

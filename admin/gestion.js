@@ -17,7 +17,8 @@ const reviewErrors=()=>[
 function mediaLabel(item){
  if(item.storageKey.startsWith('uploads/')){
   const reference=(item.id??item.storageKey.split('/').at(-1)).slice(0,8);
-  return `${item.mimeType==='video/mp4'?'Video nuevo':'Imagen nueva'} · ref. ${reference}`;
+  const shape=item.width&&item.height?(item.width>item.height*1.2?'horizontal':item.height>item.width*1.2?'vertical':'cuadrada'):null;
+  return `${item.mimeType==='video/mp4'?'Video nuevo':`Imagen nueva${shape?` ${shape}`:''}`} · ref. ${reference}`;
  }
  if(item.storageKey.includes('portada-optimizada'))return 'Video actual de portada';
  if(item.storageKey.includes('portada-poster'))return 'Imagen actual de portada';
