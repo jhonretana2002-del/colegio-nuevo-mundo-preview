@@ -85,6 +85,8 @@ test('Moderador solo recibe texto y Admin recibe campos visuales y de estado', (
   assert.equal(moderator.find(field => field.path === 'paginas.admisiones.arancelesPanelTitulo').sectionTitle, 'Costos y aranceles');
   assert.equal(moderator.find(field => field.path === 'paginas.opiniones.verificadasIntroduccion').sectionTitle, 'Opiniones verificadas');
   assert.equal(moderator.find(field => field.path === 'paginas.opiniones.invitacionInstagramTexto').sectionTitle, 'Invitación a Instagram');
+  assert.equal(moderator.find(field => field.path === 'paginas.opiniones.recomendacionSinNotaAviso').sectionTitle, 'Opiniones verificadas');
+  assert.equal(moderator.find(field => field.path === 'paginas.opiniones.ejemploEtiqueta').sectionTitle, 'Muestra de opiniones');
   assert.equal(moderator.find(field => field.path === 'paginas.inicio.videoPausar').sectionTitle, 'Textos del video');
   assert.equal(moderator.find(field => field.path === 'paginas.inicio.imagenOfertaAviso').sectionTitle, 'Notas de las imágenes');
   assert.equal(moderator.find(field => field.path === 'paginas.opiniones.reanudarCarrusel').label, 'Botón para reanudar opiniones');

@@ -11,6 +11,20 @@ export function validateDraft(data){
    if(Array.from(value).length>limit)errors.push(`Acorte el texto «${value.slice(0,30)}…» en ${names[page]??page}: máximo ${limit} caracteres.`);
   }
  }
+ const opinionCopy=data.paginas?.opiniones;
+ if(opinionCopy){
+  const disclosures=[
+   [opinionCopy.recomendacionSinComentario,/sin comentario/i],
+   [opinionCopy.recomendacionSinNotaAviso,/sin nota num[eé]rica/i],
+   [opinionCopy.verificadasCuentaNota,/no son testimonios ni calificaciones/i],
+   [opinionCopy.verificadasNota,/no est[aá] confirmado/i],
+   [opinionCopy.ejemploEtiqueta,/ejemplo/i],
+   [opinionCopy.ejemploEtiqueta,/ficticio/i],
+   [opinionCopy.ejemploEstrellasAria,/ejemplo/i],
+   [opinionCopy.ejemploEstrellasAria,/no es una calificaci[oó]n real/i],
+  ];
+  if(disclosures.some(([value,pattern])=>typeof value!=='string'||!pattern.test(value)))errors.push('Conserve en Opiniones los avisos que distinguen las recomendaciones verificadas, las notas ausentes y los ejemplos ficticios.');
+ }
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contacto.correo))errors.push('Revise el correo electrónico.');
  if(!/^\d{8,15}$/.test(data.contacto.whatsapp.numero))errors.push('WhatsApp debe contener entre 8 y 15 dígitos, incluido el código de país.');
  if((a.calendarioConfirmado||a.matriculaAbierta||a.aranceles.some(f=>f.monto!==null))&&!a.cursoLectivo)errors.push('Indique el curso lectivo antes de confirmar fechas o registrar aranceles.');

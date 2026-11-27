@@ -83,6 +83,10 @@ const PAGE_LABELS = {
   atribucionVideoEtiqueta: 'Etiqueta del crédito del video', atribucionVideoNota: 'Nota sobre el video', consultarLicenciaEnlace: 'Enlace para consultar la licencia',
   invitacionFacebookEnlace: 'Enlace de invitación a Facebook', invitacionInstagramEnlace: 'Enlace de invitación a Instagram', verOriginalEnlace: 'Enlace a recomendación original',
   pausarCarrusel: 'Botón para pausar opiniones', reanudarCarrusel: 'Botón para reanudar opiniones',
+  recomendacionTipo: 'Origen de la recomendación', recomendacionSinTexto: 'Resumen si no hay comentario', recomendacionSinComentario: 'Aviso de comentario ausente',
+  recomendacionSinNotaTitulo: 'Título de recomendación sin nota', recomendacionSinNotaAviso: 'Aviso de nota numérica ausente',
+  verificadasCuentaNota: 'Nota sobre origen y cantidad', verificadasNota: 'Nota sobre fechas y vínculo familiar',
+  ejemploEtiqueta: 'Etiqueta de reseña ficticia', ejemploEstrellasAria: 'Descripción accesible de estrellas ficticias',
   matriculaPregunta: 'Pregunta sobre matrícula', matriculaResumen: 'Tema: matrícula', matriculaRespuesta: 'Respuesta sobre matrícula', matriculaEnlace: 'Enlace a admisiones',
   requisitosPregunta: 'Pregunta sobre requisitos', requisitosResumen: 'Tema: requisitos', requisitosAntes: 'Texto antes de la lista de requisitos', requisitosDespues: 'Aviso después de los requisitos', requisitosEnlace: 'Enlace a requisitos',
   costosPregunta: 'Pregunta sobre costos', costosResumen: 'Tema: costos', costosCursoEtiqueta: 'Etiqueta del curso lectivo', costosPendiente: 'Texto para un monto pendiente', costosReservaAntes: 'Texto antes del monto de reserva', costosReservaDespues: 'Aviso después de la reserva', costosEnlace: 'Enlace a aranceles',
@@ -172,7 +176,7 @@ function sectionFor(path, content) {
       if (key.startsWith('video') || key.startsWith('atribucionVideo') || key === 'consultarLicenciaEnlace') part = 'video';
       else if (key.startsWith('imagen')) part = 'imagenes';
     }
-    if (parts[1] === 'opiniones') part = key.startsWith('verificadas') ? 'verificadas' : key.startsWith('invitacionFacebook') ? 'facebook' : key.startsWith('invitacionInstagram') ? 'instagram' : 'ejemplos';
+    if (parts[1] === 'opiniones') part = key.startsWith('verificadas') || key.startsWith('recomendacion') ? 'verificadas' : key.startsWith('invitacionFacebook') ? 'facebook' : key.startsWith('invitacionInstagram') ? 'instagram' : 'ejemplos';
     const title = { presentacion: 'Presentación de la página', pasos: 'Pasos de admisión', contenido: 'Textos de las secciones', video: 'Textos del video', imagenes: 'Notas de las imágenes', fechas: 'Fechas y reserva', costos: 'Costos y aranceles', consulta: 'Formulario de consulta', detalles: 'Requisitos y detalles', metodos: 'Formas de contacto', ubicacion: 'Ubicación y horario', verificadas: 'Opiniones verificadas', facebook: 'Invitación a Facebook', instagram: 'Invitación a Instagram', ejemplos: 'Muestra de opiniones' }[part];
     return { section: `${parts[0]}.${parts[1]}.${part}`, sectionTitle: title };
   }

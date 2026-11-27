@@ -15,7 +15,7 @@ function memoryDatabase() {
       if (sql.includes('FROM content_documents d') && sql.includes('content_working')) return [[{
         document_id: 'documento-1', version: state.version, revision_id: state.revisionId,
         payload: JSON.stringify(state.content), status: 'borrador', author_id: state.authorId,
-        schema_version: 9, review_reason: null,
+        schema_version: 10, review_reason: null,
       }]];
       if (sql.includes('FROM content_documents d') && sql.includes('content_publications')) return [[{
         document_id: 'documento-1', version: state.version, revision_id: 'revision-inicial', payload: JSON.stringify(source),
@@ -29,7 +29,7 @@ function memoryDatabase() {
         async execute(sql, params = []) {
           if (sql.startsWith('SELECT id, version FROM content_documents')) return [[{ id: 'documento-1', version: pending.version }]];
           if (sql.includes('FROM content_publications p')) return [[{
-            id: pending.revisionId, payload: JSON.stringify(pending.content), schema_version: 9,
+            id: pending.revisionId, payload: JSON.stringify(pending.content), schema_version: 10,
           }]];
           if (sql.startsWith('SELECT storage_key FROM media_assets')) return [[]];
           if (sql.startsWith('INSERT INTO content_revisions')) {
