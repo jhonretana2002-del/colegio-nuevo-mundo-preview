@@ -36,12 +36,19 @@ test('las cinco estrellas ficticias se identifican en cada tarjeta y no se atrib
 test('textos editoriales cambian en ambos modos sin quitar avisos de procedencia',()=>{
  const verified=structuredClone(data);
  verified.paginas.opiniones.invitacionFacebookTitulo='Comparta su experiencia con otras familias.';
+ verified.paginas.opiniones.pausarCarrusel='Detener opiniones';
+ verified.paginas.opiniones.reanudarCarrusel='Continuar opiniones';
+ verified.paginas.opiniones.verOriginalEnlace='Abrir fuente original';
  const verifiedHtml=renderOpinions(verified,helpers);
  assert.ok(verifiedHtml.includes('Comparta su experiencia con otras familias.'));
+ assert.ok(verifiedHtml.includes('data-pause="Detener opiniones"')&&verifiedHtml.includes('data-resume="Continuar opiniones"'));
+ assert.ok(verifiedHtml.includes('Abrir fuente original'));
  assert.ok(verifiedHtml.includes('sin nota numérica'));
  const examples=structuredClone(configured);
  examples.paginas.opiniones.ejemplosIntroduccion='Así aparecerá una muestra de diseño.';
+ examples.paginas.opiniones.pausarCarrusel='Detener opiniones';
  const exampleHtml=renderOpinions(examples,helpers);
  assert.ok(exampleHtml.includes('Así aparecerá una muestra de diseño.'));
+ assert.ok(exampleHtml.includes('data-pause="Detener opiniones"'));
  assert.ok(exampleHtml.includes('Reseña de ejemplo · nombre ficticio'));
 });

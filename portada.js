@@ -1,4 +1,4 @@
-import './opiniones.js?v=2';
+import './opiniones.js?v=3';
 import {createVideoController} from './lib/video-portada.mjs';
 
 const video = document.getElementById('portada-video');
@@ -16,12 +16,12 @@ if (video && button && hero) {
     autoPlay:allowAutoplay(),
     onState(state) {
       const active = state.playing || state.loading;
-      const label = active ? 'Pausar video' : state.failed ? 'Reintentar video' : 'Reproducir video';
+      const label = active ? button.dataset.pause : state.failed ? button.dataset.retry : button.dataset.play;
       button.querySelector('[data-video-label]').textContent = label;
       button.querySelector('.video-symbol').textContent = active ? 'Ⅱ' : '▶';
       hero.classList.toggle('has-video', video.readyState >= 2 && !state.failed);
       if (state.failed && !failureAnnounced) {
-        status.textContent = 'El video no pudo reproducirse. Puede seguir consultando la página o intentar de nuevo.';
+        status.textContent = status.dataset.error;
         failureAnnounced = true;
       }
       if (!state.failed) failureAnnounced = false;
@@ -32,9 +32,9 @@ if (video && button && hero) {
     const state = controller.getState();
     if (state.playing || state.loading) {
       controller.pause();
-      status.textContent = 'Video pausado.';
+      status.textContent = status.dataset.paused;
     } else {
-      status.textContent = 'Reproduciendo video de archivo sin sonido.';
+      status.textContent = status.dataset.playing;
       controller.play();
     }
   });

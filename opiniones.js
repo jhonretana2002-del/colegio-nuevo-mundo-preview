@@ -19,7 +19,7 @@ if(section){
   if(staticMode)player?.cancel();
   else if(manualPause||hover||document.hidden||!inView)player?.pause();
   else player?.play();
-  button.textContent=manualPause?'Reanudar carrusel':'Pausar carrusel';
+  button.textContent=manualPause?button.dataset.resume:button.dataset.pause;
   button.setAttribute('aria-pressed',String(manualPause));
   button.hidden=motion.matches||!track.animate;
  };
