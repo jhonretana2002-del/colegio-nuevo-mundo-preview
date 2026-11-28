@@ -125,4 +125,11 @@ test('Admin gestiona noticias y Moderador corrige solo su texto', () => {
   corrected.publicaciones[0].fecha = article.fecha;
   corrected.publicaciones[0].imagen = 'estudiantes-480.webp';
   assert.equal(validateContentChange('moderador', withNews, corrected).allowed, false);
+  const removed = structuredClone(withNews);
+  removed.publicaciones.pop();
+  assert.equal(validateContentChange('admin', withNews, removed).allowed, true);
+  assert.equal(validateContentChange('moderador', withNews, removed).allowed, false);
+  const duplicate = structuredClone(withNews);
+  duplicate.publicaciones.push(structuredClone(article));
+  assert.ok(validateContentChange('admin', withNews, duplicate).shapeErrors.some(error => error.includes('identificadores')));
 });

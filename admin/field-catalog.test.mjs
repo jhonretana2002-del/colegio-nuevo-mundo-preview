@@ -117,4 +117,6 @@ test('Noticias presenta campos claros y reserva fecha e imagen para Admin', () =
   assert.equal(admin.find(field => field.path === 'publicaciones.0.imagen').kind, 'media');
   assert.ok(moderator.some(field => field.path === 'publicaciones.0.texto' && field.group === 'noticias'));
   assert.ok(!moderator.some(field => ['publicaciones.0.fecha', 'publicaciones.0.imagen'].includes(field.path)));
+  draft.publicaciones[0].titulo = '';
+  assert.equal(editableFields(draft, 'admin').find(field => field.path === 'publicaciones.0.titulo').sectionTitle, 'Noticia: n.º 1');
 });

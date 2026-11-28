@@ -198,7 +198,7 @@ function sectionFor(path, content) {
   const offerName = section.startsWith('inicio.tarjetas.') ? content.oferta.find(offer => offer.id === item?.id)?.titulo : null;
   const name = item?.titulo ?? item?.rubro ?? item?.autor ?? offerName;
   const title = number === undefined ? (SECTION_TITLES[parentKey] ?? 'Información general') :
-    `${SECTION_TITLES[parentKey] ?? 'Elemento'}: ${name ?? `n.º ${Number(number) + 1}`}`;
+    `${SECTION_TITLES[parentKey] ?? 'Elemento'}: ${name || `n.º ${Number(number) + 1}`}`;
   return { section, sectionTitle: title };
 }
 

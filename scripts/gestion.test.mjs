@@ -25,4 +25,6 @@ test('Noticias exige fecha, título, resumen, texto y descripción de imagen',()
  for(const word of ['fecha','título','resumen','texto','imagen'])assert.ok(errors.some(error=>error.includes(word)),word);
  data.publicaciones[0]={id:'11111111-1111-4111-8111-111111111111',fecha:'2026-11-27',titulo:'Actividad',resumen:'Resumen',texto:'Detalle',imagen:null,alt:''};
  assert.deepEqual(validateDraft(data),[]);
+ data.publicaciones=Array.from({length:31},(_,i)=>({...data.publicaciones[0],id:`${String(i).padStart(8,'0')}-1111-4111-8111-111111111111`}));
+ assert.ok(validateDraft(data).some(error=>error.includes('hasta 30 publicaciones')));
 });

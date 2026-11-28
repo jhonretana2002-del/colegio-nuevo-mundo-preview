@@ -174,7 +174,9 @@ function render(focusSection=null){
    if(kind==='number')next=next===''?null:Number(next);
    if(kind==='media'&&next==='')next=null;
    if(value===null&&['text','url'].includes(kind))next=next.trim()||null;
-   set(path,next);$('review').hidden=true;update();
+   set(path,next);
+   if(/^publicaciones\.\d+\.titulo$/.test(path))target.querySelector('summary').textContent=`Noticia: ${next.trim()||`n.º ${Number(section.split('.')[1])+1}`}`;
+   $('review').hidden=true;update();
   });box.append(lab,input);
   if(kind==='media'){
    box.append(make('small',mediaHelp(path)));
